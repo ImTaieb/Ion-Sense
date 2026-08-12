@@ -59,14 +59,263 @@
     code { color: #b7ffc7; font-family: ui-monospace, monospace; }
     [hidden] { display: none !important; }
     @media (max-width: 600px) { .shell { padding: 20px 15px 34px; } .grid { grid-template-columns: 1fr; } .span-2 { grid-column: auto; } .dev-grid { grid-template-columns: repeat(2, 1fr); } }
+    /* Unified Ion Sense control-surface refresh. */
+    :root {
+      --ion: #65ff23;
+      --ion-rgb: 101, 255, 35;
+      --panel: rgba(3, 11, 7, .92);
+      --panel-2: rgba(6, 17, 10, .86);
+      --line: rgba(144, 255, 112, .14);
+      --text: #f3f7f4;
+      --muted: #98a39c;
+    }
+    html { min-height: 100%; background: #020503; }
+    body {
+      position: relative;
+      isolation: isolate;
+      background:
+        radial-gradient(circle at 86% -8%, rgba(var(--ion-rgb), .14), transparent 34%),
+        radial-gradient(circle at -10% 45%, rgba(var(--ion-rgb), .055), transparent 30%),
+        linear-gradient(145deg, #020503 0%, #061009 52%, #020503 100%);
+    }
+    body::before {
+      content: "";
+      position: fixed;
+      inset: 0;
+      z-index: -2;
+      opacity: .22;
+      pointer-events: none;
+      background-image:
+        linear-gradient(rgba(var(--ion-rgb), .022) 1px, transparent 1px),
+        linear-gradient(90deg, rgba(var(--ion-rgb), .022) 1px, transparent 1px);
+      background-size: 52px 52px;
+      mask-image: radial-gradient(circle at 50% 20%, #000, transparent 76%);
+    }
+    body::after {
+      content: "";
+      position: fixed;
+      inset: 0;
+      z-index: -1;
+      pointer-events: none;
+      opacity: .07;
+      background: repeating-linear-gradient(to bottom, transparent 0 3px, rgba(255,255,255,.08) 4px);
+    }
+    .shell { width: min(760px, 100%); padding: 28px 30px 48px; }
+    .settings-hero {
+      position: relative;
+      display: grid;
+      grid-template-columns: 72px minmax(0, 1fr) auto;
+      align-items: center;
+      gap: 18px;
+      margin: 0 0 18px;
+      padding: 20px 22px;
+      overflow: hidden;
+      border: 1px solid rgba(var(--ion-rgb), .31);
+      border-radius: 24px;
+      background:
+        radial-gradient(circle at 8% 50%, rgba(var(--ion-rgb), .13), transparent 25%),
+        linear-gradient(115deg, rgba(5,16,9,.96), rgba(2,8,5,.92));
+      box-shadow: inset 0 1px rgba(255,255,255,.035), 0 0 28px rgba(var(--ion-rgb),.055);
+    }
+    .settings-hero::after {
+      content: "";
+      position: absolute;
+      right: 18px;
+      bottom: 12px;
+      width: 112px;
+      height: 46px;
+      opacity: .13;
+      background-image: radial-gradient(circle, rgba(var(--ion-rgb),.8) 0 1px, transparent 1.4px);
+      background-size: 8px 8px;
+      mask-image: linear-gradient(90deg, transparent, #000);
+    }
+    .settings-brand {
+      position: relative;
+      display: grid;
+      place-items: center;
+      width: 72px;
+      height: 72px;
+      border: 1px solid rgba(var(--ion-rgb),.7);
+      border-radius: 50%;
+      background: radial-gradient(circle, rgba(var(--ion-rgb),.1), #010402 68%);
+      box-shadow: inset 0 0 0 8px rgba(var(--ion-rgb),.025), 0 0 16px rgba(var(--ion-rgb),.16);
+    }
+    .settings-brand::before, .settings-brand::after {
+      content: "";
+      position: absolute;
+      left: 24px;
+      width: 24px;
+      height: 5px;
+      border-radius: 5px;
+      background: var(--ion);
+      box-shadow: 0 0 8px rgba(var(--ion-rgb),.55);
+    }
+    .settings-brand::before { top: 17px; }
+    .settings-brand::after { bottom: 17px; }
+    .settings-brand span {
+      width: 5px;
+      height: 25px;
+      overflow: hidden;
+      color: transparent;
+      border-radius: 5px;
+      background: var(--ion);
+      box-shadow: 0 0 8px rgba(var(--ion-rgb),.55);
+    }
+    .hero-copy { min-width: 0; }
+    .eyebrow { color: var(--ion); font-size: 9px; letter-spacing: .26em; }
+    h1 { margin: 7px 0 5px; font-size: 25px; font-weight: 690; letter-spacing: .015em; }
+    .intro { max-width: 480px; font-size: 12px; }
+    .hero-state {
+      position: relative;
+      z-index: 1;
+      align-self: start;
+      display: flex;
+      align-items: center;
+      gap: 7px;
+      color: #a8b1aa;
+      letter-spacing: .10em;
+      text-transform: uppercase;
+      white-space: nowrap;
+      font: 650 8px/1 ui-monospace, monospace;
+    }
+    .hero-state span {
+      width: 6px;
+      height: 6px;
+      border-radius: 50%;
+      background: var(--ion);
+      box-shadow: 0 0 9px rgba(var(--ion-rgb),.85);
+      animation: runtime-pulse 2s ease-in-out infinite;
+    }
+    @keyframes runtime-pulse { 50% { opacity: .38; box-shadow: 0 0 3px rgba(var(--ion-rgb),.45); } }
+    form { counter-reset: detector; gap: 11px; }
+    section {
+      position: relative;
+      padding: 17px 18px 18px;
+      overflow: hidden;
+      border-color: var(--line);
+      border-radius: 17px;
+      background:
+        linear-gradient(110deg, rgba(255,255,255,.012), transparent 35%),
+        var(--panel);
+      box-shadow: inset 0 1px rgba(255,255,255,.025), 0 9px 26px rgba(0,0,0,.16);
+      transition: border-color .18s ease, background .18s ease, transform .18s ease;
+    }
+    section:not(#dev-tools) { counter-increment: detector; }
+    section::after {
+      content: "0" counter(detector);
+      position: absolute;
+      top: 15px;
+      right: 18px;
+      color: rgba(var(--ion-rgb),.10);
+      letter-spacing: .08em;
+      font: 700 28px/1 ui-monospace, monospace;
+      pointer-events: none;
+    }
+    section:hover { border-color: rgba(var(--ion-rgb),.24); background-color: rgba(7,18,11,.96); }
+    section:focus-within {
+      border-color: rgba(var(--ion-rgb),.50);
+      box-shadow: inset 0 1px rgba(255,255,255,.03), 0 0 18px rgba(var(--ion-rgb),.06);
+    }
+    .section-head { position: relative; z-index: 1; margin-bottom: 13px; padding-right: 38px; }
+    h2 { display: flex; align-items: center; gap: 9px; font-size: 12px; letter-spacing: .085em; }
+    h2::before {
+      content: "";
+      width: 7px;
+      height: 7px;
+      border: 1px solid rgba(var(--ion-rgb),.75);
+      border-radius: 2px;
+      transform: rotate(45deg);
+      box-shadow: 0 0 7px rgba(var(--ion-rgb),.22);
+    }
+    .grid { gap: 10px; }
+    label.field { gap: 7px; color: #aeb8b0; font-size: 9px; letter-spacing: .075em; text-transform: uppercase; }
+    input[type="text"], input[type="password"], input[type="number"] {
+      min-height: 42px;
+      padding: 10px 12px;
+      color: #ecf4ee;
+      border-color: rgba(175,206,184,.13);
+      border-radius: 10px;
+      background: rgba(0,4,2,.74);
+      text-transform: none;
+      letter-spacing: normal;
+      font-size: 12px;
+    }
+    input:hover { border-color: rgba(var(--ion-rgb),.26); }
+    input:focus { border-color: rgba(var(--ion-rgb),.72); box-shadow: 0 0 0 3px rgba(var(--ion-rgb),.055), 0 0 13px rgba(var(--ion-rgb),.06); }
+    input:disabled, button:disabled { cursor: wait; opacity: .56; }
+    .switch { position: relative; z-index: 2; padding-right: 35px; font-size: 9px; letter-spacing: .08em; text-transform: uppercase; }
+    .track { width: 42px; height: 23px; }
+    .track::after { width: 15px; height: 15px; }
+    .switch input:checked + .track::after { left: 22px; }
+    .hint { margin-top: 9px; color: #7f8d83; font-size: 9px; }
+    button {
+      min-height: 40px;
+      border-color: rgba(173,205,182,.14);
+      background: linear-gradient(180deg, rgba(17,29,20,.92), rgba(5,13,8,.92));
+      letter-spacing: .04em;
+      font-size: 10px;
+      font-weight: 650;
+    }
+    button:hover { box-shadow: 0 0 14px rgba(var(--ion-rgb),.07); transform: translateY(-1px); }
+    button:active { transform: translateY(0); }
+    button.primary {
+      min-width: 188px;
+      color: #061005;
+      border-radius: 11px;
+      background: linear-gradient(135deg, #8dff55, var(--ion));
+      letter-spacing: .055em;
+      text-transform: uppercase;
+      font-size: 9px;
+    }
+    .status-dot { width: 5px; height: 5px; }
+    .platform-note {
+      margin-top: 2px;
+      padding: 13px 15px;
+      border: 1px solid rgba(var(--ion-rgb),.10);
+      border-left: 2px solid rgba(var(--ion-rgb),.55);
+      border-radius: 0 12px 12px 0;
+      background: rgba(var(--ion-rgb),.025);
+      font-size: 9px;
+    }
+    .actions {
+      bottom: 12px;
+      z-index: 5;
+      padding: 11px 12px 11px 16px;
+      border-color: rgba(var(--ion-rgb),.30);
+      border-radius: 15px;
+      background: rgba(2,8,5,.94);
+      box-shadow: 0 10px 35px rgba(0,0,0,.40), 0 0 20px rgba(var(--ion-rgb),.045);
+    }
+    #status { max-width: 430px; font-size: 9px; letter-spacing: .025em; }
+    #dev-tools { border-style: dashed; }
+    .dev-grid button { min-height: 36px; }
+    @media (max-width: 700px) {
+      .shell { padding: 18px 16px 36px; }
+      .settings-hero { grid-template-columns: 58px 1fr; padding: 17px; border-radius: 19px; }
+      .settings-brand { width: 58px; height: 58px; }
+      .settings-brand::before, .settings-brand::after { left: 19px; width: 20px; }
+      .settings-brand::before { top: 13px; }
+      .settings-brand::after { bottom: 13px; }
+      .settings-brand span { height: 21px; }
+      .hero-state { display: none; }
+      h1 { font-size: 21px; }
+      section { padding: 16px; }
+      .section-head { padding-right: 30px; }
+      .actions { align-items: stretch; flex-direction: column; }
+      button.primary { width: 100%; }
+    }
   </style>
 </head>
 <body>
   <div class="shell">
-    <header>
-      <div class="eyebrow">Ion Sense // Control plane</div>
-      <h1>Settings</h1>
-      <p class="intro">Detector switches and thresholds are stored locally. Passwords and tokens go directly to your operating system credential vault.</p>
+    <header class="settings-hero">
+      <div class="settings-brand" aria-hidden="true"><span>I</span></div>
+      <div class="hero-copy">
+        <div class="eyebrow">Ion Sense // Control plane</div>
+        <h1>System awareness</h1>
+        <p class="intro">Tune every detector from one quiet control surface. Secrets stay in your operating system vault.</p>
+      </div>
+      <div class="hero-state"><span></span>Runtime live</div>
     </header>
 
     <form id="settings-form">

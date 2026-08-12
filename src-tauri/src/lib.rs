@@ -19,8 +19,8 @@ use event::{IonSenseEvent, IonSenseEventType, Severity};
 use serde::Serialize;
 use settings::AppSettings;
 use tauri::{
-    App, AppHandle, Emitter, Manager, PhysicalPosition, Position, State, WebviewWindow,
-    WindowEvent,
+    App, AppHandle, Emitter, Manager, PhysicalPosition, PhysicalSize, Position, Size, State,
+    WebviewWindow, WindowEvent,
     menu::{Menu, MenuItem, PredefinedMenuItem},
     tray::{MouseButton, MouseButtonState, TrayIconBuilder, TrayIconEvent},
 };
@@ -515,12 +515,16 @@ fn position_hud(hud: &WebviewWindow) -> tauri::Result<()> {
     let Some(monitor) = hud.primary_monitor()? else {
         return Ok(());
     };
-    let work_area = monitor.work_area();
-    let size = hud.outer_size()?;
-    let margin = 16_i32;
-    let x = work_area.position.x + work_area.size.width as i32 - size.width as i32 - margin;
-    let y = work_area.position.y + margin;
-    hud.set_position(Position::Physical(PhysicalPosition::new(x, y)))
+    let monitor_position = monitor.position();
+    let monitor_size = monitor.size();
+    hud.set_position(Position::Physical(PhysicalPosition::new(
+        monitor_position.x,
+        monitor_position.y,
+    )))?;
+    hud.set_size(Size::Physical(PhysicalSize::new(
+        monitor_size.width,
+        monitor_size.height,
+    )))
 }
 
 fn setup_tray(app: &App) -> tauri::Result<()> {
