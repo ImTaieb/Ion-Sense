@@ -1,0 +1,20 @@
+[package]
+name = "ion-sense"
+version = "0.1.0"
+description = "A tray-resident desktop notification HUD"
+authors = ["Ion Sense"]
+edition = "2024"
+rust-version = "1.88"
+
+[lib]
+name = "ion_sense_lib"
+crate-type = ["staticlib", "cdylib", "rlib"]
+
+[build-dependencies]
+tauri-build = "=2.6.3"
+
+[dependencies]
+serde = { version = "1", features = ["derive"] }
+serde_json = "1"
+tauri = { version = "=2.11.5", features = ["tray-icon"] }
+

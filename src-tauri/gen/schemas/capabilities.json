@@ -1,0 +1,1 @@
+{"desktop":{"identifier":"desktop","description":"Window-scoped permissions for the Ion Sense HUD and settings UI.","local":true,"windows":["hud","settings"],"permissions":["core:event:allow-listen","core:event:allow-unlisten"]}}

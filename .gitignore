@@ -1,0 +1,26 @@
+# JavaScript tooling
+node_modules/
+dist/
+
+# Rust / Tauri build output
+target/
+src-tauri/target/
+
+# Local settings, secrets, and credentials
+.env
+.env.*
+!.env.example
+*.pem
+*.key
+*.p12
+*.pfx
+credentials.json
+secrets.json
+settings.local.json
+
+# Editors and operating systems
+.DS_Store
+Thumbs.db
+.idea/
+.vscode/
+

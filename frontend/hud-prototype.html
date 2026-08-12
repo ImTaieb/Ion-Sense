@@ -1,0 +1,1397 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="color-scheme" content="dark">
+  <title>Ion Sense — HUD Prototype</title>
+  <script>
+    if (new URLSearchParams(window.location.search).get("dev") === "1") {
+      document.documentElement.dataset.dev = "1";
+    }
+  </script>
+  <style>
+    :root {
+      --ion: #3dff6b;
+      --ion-bright: #3dff6b;
+      --ion-rgb: 61, 255, 107;
+      --ink: #020604;
+      --panel: rgba(3, 10, 7, 0.91);
+      --text: #f3f7f4;
+      --muted: #929c96;
+      --toast-width: min(760px, calc(100vw - 118px));
+      --badge-size: 214px;
+      --enter-ms: 270ms;
+      --exit-ms: 190ms;
+    }
+
+    * {
+      box-sizing: border-box;
+    }
+
+    html,
+    body {
+      width: 100%;
+      min-height: 100%;
+      margin: 0;
+    }
+
+    body {
+      overflow: hidden;
+      color: var(--text);
+      background: transparent;
+      font-family: "Segoe UI", Inter, Roboto, Helvetica, Arial, sans-serif;
+      -webkit-font-smoothing: antialiased;
+      text-rendering: geometricPrecision;
+    }
+
+    html[data-dev="1"] body {
+      background:
+        radial-gradient(circle at 78% 18%, rgba(var(--ion-rgb), 0.065), transparent 31%),
+        radial-gradient(circle at 15% 84%, rgba(36, 92, 55, 0.14), transparent 32%),
+        linear-gradient(142deg, #010302 0%, #07100b 47%, #020604 100%);
+    }
+
+    button,
+    input,
+    textarea,
+    select {
+      font: inherit;
+    }
+
+    button {
+      -webkit-tap-highlight-color: transparent;
+    }
+
+    [hidden] {
+      display: none !important;
+    }
+
+    /* Ambient desktop-like backdrop: enough contrast to judge the glass without
+       becoming part of the notification itself. */
+    .demo-backdrop {
+      position: fixed;
+      inset: 0;
+      display: none;
+      isolation: isolate;
+      overflow: hidden;
+      pointer-events: none;
+    }
+
+    html[data-dev="1"] .demo-backdrop {
+      display: block;
+    }
+
+    .demo-backdrop::before {
+      content: "";
+      position: absolute;
+      inset: -22%;
+      z-index: -2;
+      opacity: 0.42;
+      background-image:
+        linear-gradient(rgba(var(--ion-rgb), 0.027) 1px, transparent 1px),
+        linear-gradient(90deg, rgba(var(--ion-rgb), 0.027) 1px, transparent 1px);
+      background-size: 58px 58px;
+      transform: perspective(700px) rotateX(64deg) translateY(28%);
+      transform-origin: center bottom;
+      mask-image: linear-gradient(to bottom, transparent 0%, #000 42%, #000 100%);
+    }
+
+    .demo-backdrop::after {
+      content: "";
+      position: absolute;
+      inset: 0;
+      z-index: 4;
+      opacity: 0.11;
+      background: repeating-linear-gradient(
+        to bottom,
+        transparent 0,
+        transparent 3px,
+        rgba(255, 255, 255, 0.075) 4px
+      );
+      mix-blend-mode: soft-light;
+    }
+
+    .ambient-orbit {
+      position: absolute;
+      width: min(66vw, 980px);
+      aspect-ratio: 1;
+      right: -20vw;
+      top: -35vw;
+      border: 1px solid rgba(var(--ion-rgb), 0.065);
+      border-radius: 50%;
+      box-shadow:
+        0 0 0 82px rgba(var(--ion-rgb), 0.015),
+        0 0 0 190px rgba(var(--ion-rgb), 0.012);
+    }
+
+    .ambient-copy {
+      position: absolute;
+      left: clamp(22px, 4vw, 64px);
+      top: clamp(24px, 7vh, 72px);
+      color: rgba(179, 202, 187, 0.27);
+      letter-spacing: 0.27em;
+      text-transform: uppercase;
+      font: 600 10px/1.65 ui-monospace, "SFMono-Regular", Consolas, monospace;
+    }
+
+    .ambient-copy strong {
+      display: block;
+      margin-bottom: 5px;
+      color: rgba(var(--ion-rgb), 0.34);
+      font-size: 11px;
+      font-weight: 650;
+    }
+
+    .ambient-index {
+      position: absolute;
+      right: clamp(20px, 3.2vw, 52px);
+      bottom: clamp(86px, 12vh, 132px);
+      display: grid;
+      grid-template-columns: auto auto;
+      gap: 6px 18px;
+      color: rgba(166, 185, 173, 0.19);
+      letter-spacing: 0.18em;
+      text-transform: uppercase;
+      font: 600 9px/1.3 ui-monospace, "SFMono-Regular", Consolas, monospace;
+    }
+
+    .ambient-index span:nth-child(even) {
+      color: rgba(var(--ion-rgb), 0.2);
+      text-align: right;
+    }
+
+    .hud-layer {
+      position: fixed;
+      inset: 0;
+      z-index: 20;
+      pointer-events: none;
+    }
+
+    .hud-toast {
+      position: absolute;
+      top: clamp(24px, 7vh, 74px);
+      right: clamp(18px, 4vw, 64px);
+      width: var(--toast-width);
+      min-height: 224px;
+      opacity: 0;
+      visibility: hidden;
+      pointer-events: none;
+      transform-origin: 100% 0;
+      will-change: transform, opacity, clip-path;
+    }
+
+    .hud-toast.is-entering,
+    .hud-toast.is-visible,
+    .hud-toast.is-exiting {
+      visibility: visible;
+    }
+
+    .hud-toast.is-entering {
+      pointer-events: auto;
+      animation: hud-glitch-in var(--enter-ms) cubic-bezier(0.2, 0.82, 0.25, 1) both;
+    }
+
+    .hud-toast.is-visible {
+      opacity: 1;
+      pointer-events: auto;
+      transform: translate3d(0, 0, 0);
+      clip-path: inset(-30px -30px -30px -145px);
+    }
+
+    .hud-toast.is-exiting {
+      pointer-events: none;
+      animation: hud-out var(--exit-ms) cubic-bezier(0.5, 0, 0.8, 0.3) both;
+    }
+
+    @keyframes hud-glitch-in {
+      0% {
+        opacity: 0;
+        transform: translate3d(46px, -28px, 0) scaleX(0.94) skewX(-5deg);
+        clip-path: inset(0 0 84% 72%);
+      }
+      24% {
+        opacity: 0.85;
+        transform: translate3d(-7px, 3px, 0) scaleX(1.018) skewX(1.4deg);
+        clip-path: inset(0 0 52% 19%);
+      }
+      38% {
+        transform: translate3d(5px, -1px, 0) scaleX(0.993);
+        clip-path: inset(41% 0 21% 6%);
+      }
+      58% {
+        opacity: 1;
+        transform: translate3d(-2px, 0, 0) scaleX(1.005);
+        clip-path: inset(7% 0 3% 0);
+      }
+      100% {
+        opacity: 1;
+        transform: translate3d(0, 0, 0);
+        clip-path: inset(-30px -30px -30px -145px);
+      }
+    }
+
+    @keyframes hud-out {
+      0% {
+        opacity: 1;
+        transform: translate3d(0, 0, 0) scaleX(1);
+        clip-path: inset(-30px -30px -30px -145px);
+      }
+      45% {
+        opacity: 0.82;
+        transform: translate3d(7px, -2px, 0) scaleX(0.985);
+        clip-path: inset(18% 0 33% 12%);
+      }
+      100% {
+        opacity: 0;
+        transform: translate3d(40px, -18px, 0) scaleX(0.91);
+        clip-path: inset(0 0 91% 84%);
+      }
+    }
+
+    .panel-shell {
+      position: relative;
+      min-height: 224px;
+      overflow: hidden;
+      border: 1px solid rgba(var(--ion-rgb), 0.74);
+      border-radius: 30px;
+      background:
+        linear-gradient(104deg, rgba(1, 5, 3, 0.965), rgba(4, 13, 8, 0.925) 61%, rgba(4, 20, 9, 0.91)),
+        var(--panel);
+      box-shadow:
+        inset 0 1px 0 rgba(255, 255, 255, 0.035),
+        inset 0 -1px 0 rgba(var(--ion-rgb), 0.08);
+      filter:
+        drop-shadow(0 0 4px rgba(var(--ion-rgb), 0.21))
+        drop-shadow(0 0 18px rgba(var(--ion-rgb), 0.13));
+      backdrop-filter: blur(18px) saturate(115%);
+    }
+
+    .panel-shell::before {
+      content: "";
+      position: absolute;
+      inset: 0;
+      pointer-events: none;
+      background:
+        radial-gradient(circle at 91% 18%, rgba(var(--ion-rgb), 0.115), transparent 28%),
+        linear-gradient(90deg, transparent 12%, rgba(255, 255, 255, 0.017) 49%, transparent 77%);
+    }
+
+    .panel-shell::after {
+      content: "";
+      position: absolute;
+      top: 72px;
+      right: 22px;
+      width: 104px;
+      height: 68px;
+      opacity: 0.18;
+      pointer-events: none;
+      background-image: radial-gradient(circle, rgba(var(--ion-rgb), 0.62) 0 1px, transparent 1.3px);
+      background-size: 8px 8px;
+      mask-image: linear-gradient(90deg, transparent, #000 38%, #000);
+    }
+
+    .panel-content {
+      position: relative;
+      z-index: 2;
+      display: grid;
+      grid-template-rows: 48px 1fr 62px;
+      min-height: 222px;
+      padding-left: 144px;
+    }
+
+    .hud-header {
+      display: flex;
+      align-items: center;
+      min-width: 0;
+      padding: 7px 13px 0 18px;
+    }
+
+    .brand-name {
+      flex: 0 0 auto;
+      color: var(--ion);
+      letter-spacing: 0.29em;
+      text-transform: uppercase;
+      text-shadow: 0 0 10px rgba(var(--ion-rgb), 0.38);
+      font-family: "Arial Narrow", "Segoe UI", sans-serif;
+      font-size: 12px;
+      font-weight: 750;
+    }
+
+    .header-rule {
+      height: 1px;
+      min-width: 24px;
+      margin: 1px 14px 0 16px;
+      flex: 1;
+      background: linear-gradient(90deg, rgba(var(--ion-rgb), 0.82), rgba(var(--ion-rgb), 0.07));
+      box-shadow: 0 0 8px rgba(var(--ion-rgb), 0.25);
+    }
+
+    .close-button {
+      position: relative;
+      width: 34px;
+      height: 34px;
+      flex: 0 0 34px;
+      border: 0;
+      border-radius: 50%;
+      color: var(--ion);
+      background: transparent;
+      cursor: pointer;
+      transition: background 140ms ease, transform 140ms ease, box-shadow 140ms ease;
+    }
+
+    .close-button::before,
+    .close-button::after {
+      content: "";
+      position: absolute;
+      left: 9px;
+      top: 16px;
+      width: 16px;
+      height: 1.5px;
+      border-radius: 999px;
+      background: currentColor;
+      box-shadow: 0 0 7px rgba(var(--ion-rgb), 0.55);
+    }
+
+    .close-button::before {
+      transform: rotate(45deg);
+    }
+
+    .close-button::after {
+      transform: rotate(-45deg);
+    }
+
+    .close-button:hover {
+      background: rgba(var(--ion-rgb), 0.08);
+      box-shadow: inset 0 0 0 1px rgba(var(--ion-rgb), 0.2);
+      transform: rotate(4deg);
+    }
+
+    .close-button:focus-visible {
+      outline: 1px solid var(--ion);
+      outline-offset: 2px;
+      background: rgba(var(--ion-rgb), 0.1);
+    }
+
+    .hud-body {
+      display: grid;
+      grid-template-columns: 64px minmax(0, 1fr);
+      align-items: center;
+      gap: 18px;
+      min-width: 0;
+      padding: 2px 28px 12px 20px;
+    }
+
+    .event-icon-shell {
+      display: grid;
+      place-items: center;
+      width: 64px;
+      height: 64px;
+      border: 1px solid rgba(var(--ion-rgb), 0.5);
+      border-radius: 50%;
+      color: var(--ion);
+      background:
+        radial-gradient(circle, rgba(var(--ion-rgb), 0.1), transparent 68%),
+        rgba(0, 0, 0, 0.28);
+      box-shadow:
+        inset 0 0 0 7px rgba(var(--ion-rgb), 0.025),
+        0 0 16px rgba(var(--ion-rgb), 0.09);
+    }
+
+    .event-icon-shell svg {
+      width: 33px;
+      height: 33px;
+      overflow: visible;
+      fill: none;
+      stroke: currentColor;
+      stroke-width: 1.8;
+      stroke-linecap: round;
+      stroke-linejoin: round;
+      filter:
+        drop-shadow(0 0 2px rgba(var(--ion-rgb), 0.58))
+        drop-shadow(0 0 8px rgba(var(--ion-rgb), 0.22));
+    }
+
+    .event-copy {
+      min-width: 0;
+    }
+
+    .event-title {
+      overflow: hidden;
+      margin: 0 0 7px;
+      color: var(--text);
+      letter-spacing: 0.055em;
+      text-overflow: ellipsis;
+      text-transform: uppercase;
+      white-space: nowrap;
+      text-shadow: 0 1px 0 #000, 0 0 16px rgba(255, 255, 255, 0.04);
+      font-family: "Arial Narrow", "Segoe UI", sans-serif;
+      font-size: clamp(20px, 2.6vw, 29px);
+      font-weight: 730;
+      line-height: 1.05;
+    }
+
+    .event-message {
+      display: -webkit-box;
+      overflow: hidden;
+      margin: 0;
+      color: var(--muted);
+      letter-spacing: 0.01em;
+      -webkit-box-orient: vertical;
+      -webkit-line-clamp: 2;
+      font-size: 14px;
+      font-weight: 430;
+      line-height: 1.45;
+    }
+
+    .hud-footer {
+      display: grid;
+      grid-template-columns: 28px minmax(90px, 1fr) auto;
+      align-items: center;
+      gap: 16px;
+      min-width: 0;
+      padding: 0 25px 1px 21px;
+      border-top: 1px solid rgba(var(--ion-rgb), 0.23);
+      background: linear-gradient(90deg, rgba(var(--ion-rgb), 0.035), transparent 44%);
+    }
+
+    .speaker-icon {
+      width: 25px;
+      height: 25px;
+      color: var(--ion);
+      fill: none;
+      stroke: currentColor;
+      stroke-width: 1.7;
+      stroke-linecap: round;
+      stroke-linejoin: round;
+      filter:
+        drop-shadow(0 0 2px rgba(var(--ion-rgb), 0.52))
+        drop-shadow(0 0 7px rgba(var(--ion-rgb), 0.2));
+    }
+
+    .waveform {
+      position: relative;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 0;
+      height: 35px;
+      min-width: 0;
+      overflow: hidden;
+      color: var(--ion);
+      filter:
+        drop-shadow(0 0 2px rgba(var(--ion-rgb), 0.4))
+        drop-shadow(0 0 7px rgba(var(--ion-rgb), 0.14));
+    }
+
+    .waveform::after {
+      content: "";
+      position: absolute;
+      inset: 0;
+      opacity: 0;
+      transform: translateX(-110%);
+      background: linear-gradient(90deg, transparent, rgba(217, 255, 224, 0.35), transparent);
+      pointer-events: none;
+    }
+
+    .is-entering .waveform::after,
+    .is-visible .waveform::after {
+      animation: waveform-scan 1180ms 310ms ease-out both;
+    }
+
+    .wave-bar {
+      width: 2px;
+      height: var(--bar-height);
+      min-height: 2px;
+      flex: 0 0 2px;
+      border-radius: 999px;
+      opacity: 0.2;
+      transform: scaleY(0.24);
+      transform-origin: center;
+      background: currentColor;
+    }
+
+    .wave-bar.is-dot {
+      width: 3px;
+      height: 3px;
+      min-height: 3px;
+      flex-basis: 3px;
+      border-radius: 50%;
+      transform: scale(0.7);
+    }
+
+    .wave-bar.is-dotted {
+      width: 2px;
+      background: repeating-linear-gradient(
+        to bottom,
+        currentColor 0 2px,
+        transparent 2px 4px
+      );
+    }
+
+    .is-entering .wave-bar,
+    .is-visible .wave-bar {
+      animation: waveform-play 470ms cubic-bezier(0.2, 0.85, 0.28, 1) both;
+      animation-delay: calc(310ms + (var(--bar-index) * 22ms));
+    }
+
+    .spoken-line {
+      margin: 0;
+      color: var(--ion);
+      letter-spacing: 0.12em;
+      text-transform: uppercase;
+      white-space: nowrap;
+      text-shadow: 0 0 10px rgba(var(--ion-rgb), 0.3);
+      font-family: ui-monospace, "SFMono-Regular", Consolas, monospace;
+      font-size: 14px;
+      font-weight: 650;
+    }
+
+    @keyframes waveform-play {
+      0% {
+        opacity: 0.2;
+        transform: scaleY(0.24);
+      }
+      42% {
+        opacity: 1;
+        transform: scaleY(1.17);
+      }
+      100% {
+        opacity: 0.56;
+        transform: scaleY(0.82);
+      }
+    }
+
+    .wave-bar.is-dot {
+      animation-name: waveform-dot-play;
+    }
+
+    @keyframes waveform-dot-play {
+      0% {
+        opacity: 0.18;
+        transform: scale(0.55);
+      }
+      45% {
+        opacity: 1;
+        transform: scale(1.08);
+      }
+      100% {
+        opacity: 0.48;
+        transform: scale(0.76);
+      }
+    }
+
+    @keyframes waveform-scan {
+      0% {
+        opacity: 0;
+        transform: translateX(-110%);
+      }
+      25% {
+        opacity: 0.9;
+      }
+      100% {
+        opacity: 0;
+        transform: translateX(110%);
+      }
+    }
+
+    .brand-badge {
+      position: absolute;
+      top: 50%;
+      left: calc(var(--badge-size) * -0.48);
+      z-index: 8;
+      width: var(--badge-size);
+      height: var(--badge-size);
+      border-radius: 50%;
+      transform: translateY(-50%);
+      background:
+        radial-gradient(circle at 45% 40%, rgba(var(--ion-rgb), 0.09), transparent 45%),
+        radial-gradient(circle, #07100a 0%, #020503 70%, #000 100%);
+      box-shadow: 12px 0 28px rgba(0, 0, 0, 0.54);
+      filter:
+        drop-shadow(0 0 5px rgba(var(--ion-rgb), 0.2))
+        drop-shadow(0 0 18px rgba(var(--ion-rgb), 0.15));
+      pointer-events: none;
+    }
+
+    .brand-badge::after {
+      content: "";
+      position: absolute;
+      inset: 16%;
+      border-radius: 50%;
+      background: radial-gradient(circle, transparent 57%, rgba(var(--ion-rgb), 0.03) 58%, transparent 62%);
+    }
+
+    .badge-svg {
+      display: block;
+      width: 100%;
+      height: 100%;
+      overflow: visible;
+    }
+
+    .badge-outer,
+    .badge-arc,
+    .badge-mark,
+    .badge-bracket,
+    .badge-dot-bright {
+      stroke: var(--ion);
+      filter:
+        drop-shadow(0 0 2px rgba(var(--ion-rgb), 0.75))
+        drop-shadow(0 0 8px rgba(var(--ion-rgb), 0.32));
+    }
+
+    .badge-arc,
+    .badge-mark {
+      stroke: var(--ion-bright);
+    }
+
+    .badge-arc {
+      transform-box: fill-box;
+      transform-origin: center;
+    }
+
+    .is-entering .badge-arc,
+    .is-visible .badge-arc {
+      animation: badge-arc-pulse 720ms 90ms cubic-bezier(0.2, 0.9, 0.3, 1) both;
+    }
+
+    .is-entering .badge-arc.arc-secondary,
+    .is-visible .badge-arc.arc-secondary {
+      animation-delay: 155ms;
+    }
+
+    @keyframes badge-arc-pulse {
+      0% {
+        opacity: 0.35;
+        stroke-width: 7;
+      }
+      46% {
+        opacity: 1;
+        stroke-width: 12;
+      }
+      100% {
+        opacity: 0.96;
+        stroke-width: 9;
+      }
+    }
+
+    .glitch-slice {
+      position: absolute;
+      right: 5%;
+      top: 16%;
+      z-index: 11;
+      width: 68%;
+      height: 2px;
+      opacity: 0;
+      background: var(--ion);
+      box-shadow: 0 0 10px rgba(var(--ion-rgb), 0.8);
+      pointer-events: none;
+    }
+
+    .is-entering .glitch-slice {
+      animation: glitch-slice 270ms steps(2, jump-none) both;
+    }
+
+    @keyframes glitch-slice {
+      0%, 100% { opacity: 0; transform: translateX(0); }
+      18% { opacity: 0.7; transform: translateX(-13px); }
+      36% { opacity: 0; transform: translateX(8px); }
+      54% { opacity: 0.35; transform: translateX(-5px); top: 66%; }
+      72% { opacity: 0; transform: translateX(0); }
+    }
+
+    .dev-harness {
+      position: fixed;
+      left: 50%;
+      bottom: 20px;
+      z-index: 100;
+      width: min(1020px, calc(100vw - 28px));
+      transform: translateX(-50%);
+      color: #c7d2cb;
+      border: 1px solid rgba(187, 210, 195, 0.14);
+      border-radius: 14px;
+      background: rgba(2, 7, 4, 0.86);
+      box-shadow: 0 16px 44px rgba(0, 0, 0, 0.42);
+      backdrop-filter: blur(14px);
+    }
+
+    .dev-harness-inner {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      padding: 9px 10px;
+    }
+
+    .dev-label {
+      display: flex;
+      align-items: center;
+      gap: 7px;
+      padding: 0 6px 0 2px;
+      color: rgba(var(--ion-rgb), 0.76);
+      letter-spacing: 0.16em;
+      text-transform: uppercase;
+      white-space: nowrap;
+      font: 700 9px/1 ui-monospace, "SFMono-Regular", Consolas, monospace;
+    }
+
+    .dev-live-dot {
+      width: 6px;
+      height: 6px;
+      border-radius: 50%;
+      background: var(--ion);
+      box-shadow: 0 0 8px rgba(var(--ion-rgb), 0.8);
+    }
+
+    .dev-buttons {
+      display: flex;
+      flex: 1;
+      gap: 6px;
+      min-width: 0;
+    }
+
+    .dev-button {
+      min-width: 0;
+      flex: 1 1 auto;
+      padding: 8px 10px;
+      overflow: hidden;
+      color: #aab6ae;
+      border: 1px solid rgba(176, 199, 184, 0.12);
+      border-radius: 8px;
+      background: rgba(255, 255, 255, 0.025);
+      cursor: pointer;
+      letter-spacing: 0.035em;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+      font-size: 10px;
+      font-weight: 650;
+      transition: color 130ms ease, border-color 130ms ease, background 130ms ease, transform 130ms ease;
+    }
+
+    .dev-button:hover {
+      color: var(--ion);
+      border-color: rgba(var(--ion-rgb), 0.4);
+      background: rgba(var(--ion-rgb), 0.075);
+      transform: translateY(-1px);
+    }
+
+    .dev-button:active {
+      transform: translateY(0);
+    }
+
+    .dev-button:focus-visible {
+      outline: 1px solid var(--ion);
+      outline-offset: 2px;
+    }
+
+    .dev-status {
+      min-width: 68px;
+      padding-left: 8px;
+      color: rgba(187, 206, 193, 0.48);
+      border-left: 1px solid rgba(190, 210, 197, 0.1);
+      letter-spacing: 0.08em;
+      text-align: center;
+      text-transform: uppercase;
+      white-space: nowrap;
+      font: 650 8px/1.2 ui-monospace, "SFMono-Regular", Consolas, monospace;
+    }
+
+    @media (max-width: 920px) {
+      :root {
+        --badge-size: 178px;
+      }
+
+      .hud-toast {
+        right: 18px;
+        min-height: 216px;
+      }
+
+      .panel-shell {
+        min-height: 216px;
+        border-radius: 26px;
+      }
+
+      .panel-content {
+        min-height: 214px;
+        padding-left: 117px;
+      }
+
+      .hud-body {
+        grid-template-columns: 55px minmax(0, 1fr);
+        gap: 14px;
+        padding-right: 20px;
+      }
+
+      .event-icon-shell {
+        width: 55px;
+        height: 55px;
+      }
+
+      .hud-footer {
+        gap: 11px;
+        padding-right: 18px;
+      }
+
+      .dev-harness-inner {
+        align-items: stretch;
+      }
+
+      .dev-label,
+      .dev-status {
+        align-self: center;
+      }
+
+      .dev-buttons {
+        flex-wrap: wrap;
+      }
+
+      .dev-button {
+        flex-basis: calc(33.333% - 5px);
+      }
+    }
+
+    @media (max-width: 560px) {
+      :root {
+        --toast-width: calc(100vw - 28px);
+        --badge-size: 128px;
+      }
+
+      .hud-toast {
+        top: 14px;
+        right: 14px;
+        min-height: 236px;
+      }
+
+      .panel-shell {
+        min-height: 236px;
+        border-radius: 22px;
+      }
+
+      .panel-content {
+        grid-template-rows: 45px 1fr 58px;
+        min-height: 234px;
+        padding-left: 0;
+      }
+
+      .brand-badge {
+        top: 50%;
+        left: -6px;
+      }
+
+      .hud-header {
+        padding-left: 132px;
+      }
+
+      .brand-name {
+        font-size: 10px;
+      }
+
+      .header-rule {
+        margin-left: 10px;
+        margin-right: 6px;
+      }
+
+      .hud-body {
+        grid-template-columns: 48px minmax(0, 1fr);
+        gap: 11px;
+        padding: 14px 16px 14px 132px;
+      }
+
+      .event-icon-shell {
+        width: 48px;
+        height: 48px;
+      }
+
+      .event-icon-shell svg {
+        width: 27px;
+        height: 27px;
+      }
+
+      .event-title {
+        margin-bottom: 5px;
+        display: -webkit-box;
+        white-space: normal;
+        text-overflow: clip;
+        -webkit-box-orient: vertical;
+        -webkit-line-clamp: 2;
+        font-size: clamp(15px, 4.4vw, 20px);
+      }
+
+      .event-message {
+        font-size: 12px;
+      }
+
+      .hud-footer {
+        grid-template-columns: 23px minmax(52px, 1fr) auto;
+        gap: 8px;
+        padding: 0 14px;
+      }
+
+      .spoken-line {
+        font-size: 10px;
+      }
+
+      .wave-bar:nth-child(3n) {
+        display: none;
+      }
+
+      .dev-harness {
+        bottom: 10px;
+      }
+
+      .dev-harness-inner {
+        display: grid;
+        grid-template-columns: 1fr auto;
+      }
+
+      .dev-buttons {
+        grid-column: 1 / -1;
+        display: grid;
+        grid-template-columns: repeat(3, minmax(0, 1fr));
+        grid-row: 2;
+      }
+
+      .dev-button {
+        padding: 7px 5px;
+        font-size: 8px;
+      }
+
+      .dev-status {
+        border-left: 0;
+      }
+    }
+
+    @media (max-width: 410px) {
+      :root {
+        --badge-size: 98px;
+      }
+
+      .hud-header,
+      .hud-body {
+        padding-left: 104px;
+      }
+    }
+
+    @media (prefers-reduced-motion: reduce) {
+      *,
+      *::before,
+      *::after {
+        scroll-behavior: auto !important;
+      }
+
+      .hud-toast.is-entering {
+        animation: hud-fade-in 130ms ease-out both;
+      }
+
+      .hud-toast.is-exiting {
+        animation: hud-fade-out 100ms ease-in both;
+      }
+
+      .is-entering .badge-arc,
+      .is-visible .badge-arc,
+      .is-entering .wave-bar,
+      .is-visible .wave-bar,
+      .is-entering .waveform::after,
+      .is-visible .waveform::after,
+      .is-entering .glitch-slice {
+        animation: none;
+      }
+
+      .wave-bar {
+        opacity: 0.56;
+        transform: scaleY(0.8);
+      }
+
+      @keyframes hud-fade-in {
+        from { opacity: 0; transform: translateY(-8px); }
+        to { opacity: 1; transform: translateY(0); }
+      }
+
+      @keyframes hud-fade-out {
+        from { opacity: 1; }
+        to { opacity: 0; }
+      }
+    }
+  </style>
+</head>
+<body>
+  <div class="demo-backdrop" aria-hidden="true">
+    <div class="ambient-orbit"></div>
+    <div class="ambient-copy">
+      <strong>Ion Sense // HUD sandbox</strong>
+      Local visual systems test<br>
+      Awaiting notification event
+    </div>
+    <div class="ambient-index">
+      <span>Interface</span><span>Ready</span>
+      <span>Voice layer</span><span>Armed</span>
+      <span>Queue</span><span>FIFO</span>
+    </div>
+  </div>
+
+  <main class="hud-layer" aria-label="Ion Sense notification layer">
+    <section
+      id="ion-toast"
+      class="hud-toast"
+      aria-live="polite"
+      aria-atomic="true"
+      aria-hidden="true"
+      role="status"
+    >
+      <div class="panel-shell">
+        <div class="panel-content">
+          <header class="hud-header">
+            <span class="brand-name">Ion Sense</span>
+            <span class="header-rule" aria-hidden="true"></span>
+            <button id="close-toast" class="close-button" type="button" aria-label="Dismiss notification"></button>
+          </header>
+
+          <div class="hud-body">
+            <div id="event-icon" class="event-icon-shell" aria-hidden="true"></div>
+            <div class="event-copy">
+              <h1 id="event-title" class="event-title">Downloads finished</h1>
+              <p id="event-message" class="event-message">All downloads completed successfully.</p>
+            </div>
+          </div>
+
+          <footer class="hud-footer" aria-hidden="true">
+            <svg class="speaker-icon" viewBox="0 0 24 24" aria-hidden="true">
+              <path d="M4 9v6h4l5 4V5L8 9H4Z"></path>
+              <path d="M16 9.1a4.2 4.2 0 0 1 0 5.8"></path>
+              <path d="M18.7 6.5a8 8 0 0 1 0 11"></path>
+            </svg>
+            <div id="waveform" class="waveform" aria-hidden="true"></div>
+            <p class="spoken-line">"Warning."</p>
+          </footer>
+        </div>
+      </div>
+
+      <div class="brand-badge" aria-hidden="true">
+        <svg class="badge-svg" viewBox="0 0 240 240" role="img" aria-label="Ion Sense brand mark">
+          <circle cx="120" cy="120" r="110" fill="none" class="badge-outer" stroke-width="1.35"></circle>
+          <circle cx="120" cy="120" r="99" fill="none" stroke="rgba(61,255,107,.07)" stroke-width="1"></circle>
+          <circle cx="120" cy="120" r="91" fill="none" stroke="rgba(126,158,134,.22)" stroke-width="2.1" stroke-dasharray="2 8"></circle>
+          <circle cx="120" cy="120" r="78" fill="none" stroke="rgba(61,255,107,.075)" stroke-width="9"></circle>
+
+          <path class="badge-arc arc-primary" d="M82 51 A78 78 0 0 1 198 116" fill="none" stroke-width="9" stroke-linecap="round"></path>
+          <path class="badge-arc arc-secondary" d="M166 184 A78 78 0 0 1 43 126" fill="none" stroke-width="9" stroke-linecap="round"></path>
+
+          <path class="badge-bracket" d="M69 88 A58 58 0 0 0 65 151" fill="none" stroke-width="3.2" stroke-linecap="round" stroke-dasharray="1 7"></path>
+          <circle class="badge-dot-bright" cx="68" cy="78" r="3.8" fill="var(--ion)" stroke="none"></circle>
+
+          <g fill="var(--ion)">
+            <circle cx="120" cy="24" r="2.4" opacity=".92"></circle>
+            <circle cx="163" cy="34" r="1.5" opacity=".72"></circle>
+            <circle cx="188" cy="53" r="2.3" opacity=".95"></circle>
+            <circle cx="207" cy="77" r="1.2" opacity=".55"></circle>
+            <circle cx="216" cy="120" r="2.6" opacity=".9"></circle>
+            <circle cx="202" cy="165" r="1.4" opacity=".56"></circle>
+            <circle cx="176" cy="197" r="2.1" opacity=".8"></circle>
+            <circle cx="120" cy="216" r="2.8" opacity=".96"></circle>
+            <circle cx="76" cy="204" r="1.25" opacity=".5"></circle>
+            <circle cx="43" cy="181" r="2.2" opacity=".84"></circle>
+            <circle cx="25" cy="120" r="2.4" opacity=".92"></circle>
+            <circle cx="38" cy="81" r="1.3" opacity=".46"></circle>
+          </g>
+
+          <g class="badge-mark" fill="none" stroke-width="11" stroke-linecap="round">
+            <path d="M96 82H144"></path>
+            <path d="M120 99V147"></path>
+            <path d="M96 164H144"></path>
+          </g>
+        </svg>
+      </div>
+      <span class="glitch-slice" aria-hidden="true"></span>
+    </section>
+  </main>
+
+  <aside id="dev-harness" class="dev-harness" aria-label="Ion Sense event test harness" hidden>
+    <div class="dev-harness-inner">
+      <div class="dev-label"><span class="dev-live-dot"></span> Test events</div>
+      <div class="dev-buttons">
+        <button class="dev-button" type="button" data-event="battery_low">Battery low</button>
+        <button class="dev-button" type="button" data-event="overheating">Overheating</button>
+        <button class="dev-button" type="button" data-event="download_finished">Download done</button>
+        <button class="dev-button" type="button" data-event="new_email">New email</button>
+        <button class="dev-button" type="button" data-event="friend_message">Friend message</button>
+        <button class="dev-button" type="button" data-event="package_delivered">Package · v2</button>
+      </div>
+      <output id="dev-status" class="dev-status" aria-live="polite">Idle · Q0</output>
+    </div>
+  </aside>
+
+  <script>
+    (() => {
+      "use strict";
+
+      const DISPLAY = Object.freeze({
+        battery_low: {
+          title: "BATTERY LOW",
+          icon: `<svg viewBox="0 0 32 32"><rect x="4" y="9" width="22" height="14" rx="2.5"></rect><path d="M28 13v6"></path><path d="M8 16h5"></path><path d="M10.5 13.5v5"></path></svg>`
+        },
+        overheating: {
+          title: "PC OVERHEATING",
+          icon: `<svg viewBox="0 0 32 32"><path d="M13 18.2V7a4 4 0 0 1 8 0v11.2a7 7 0 1 1-8 0Z"></path><path d="M17 9v12"></path><circle cx="17" cy="24" r="2.5"></circle><path d="M24.5 8.5h3M24.5 13h2"></path></svg>`
+        },
+        download_finished: {
+          title: "DOWNLOADS FINISHED",
+          icon: `<svg viewBox="0 0 32 32"><path d="m7 16 6 6L25 9"></path></svg>`
+        },
+        new_email: {
+          title: "NEW EMAIL",
+          icon: `<svg viewBox="0 0 32 32"><rect x="4" y="7" width="24" height="18" rx="3"></rect><path d="m6 10 10 8 10-8"></path><path d="m6 23 7.3-7M26 23l-7.3-7"></path></svg>`
+        },
+        friend_message: {
+          title: "FRIEND MESSAGE",
+          icon: `<svg viewBox="0 0 32 32"><path d="M6 7.5h20v14H14l-6.5 4v-4H6v-14Z"></path><path d="M11 14h.1M16 14h.1M21 14h.1" stroke-width="2.6"></path></svg>`
+        },
+        package_delivered: {
+          title: "PACKAGE DELIVERED",
+          icon: `<svg viewBox="0 0 32 32"><path d="m5 10 11-6 11 6v13L16 29 5 23V10Z"></path><path d="m5 10 11 6 11-6M16 16v13M11 7l11 6"></path></svg>`
+        }
+      });
+
+      const SEVERITIES = new Set(["info", "warning", "critical"]);
+      const AUTO_DISMISS_MS = 5600;
+      const EXIT_MS = 190;
+      const ENTER_MS = 270;
+      const queue = [];
+
+      const toast = document.getElementById("ion-toast");
+      const titleNode = document.getElementById("event-title");
+      const messageNode = document.getElementById("event-message");
+      const iconNode = document.getElementById("event-icon");
+      const closeButton = document.getElementById("close-toast");
+      const waveform = document.getElementById("waveform");
+      const devHarness = document.getElementById("dev-harness");
+      const devStatus = document.getElementById("dev-status");
+
+      let activeEvent = null;
+      let lifecycle = "idle";
+      let dismissTimer = 0;
+      let phaseTimer = 0;
+      let speechTimer = 0;
+
+      function makeWaveform() {
+        // A fixed seed keeps the voice signature organic but stable between loads.
+        let seed = 0x10A5E;
+        const random = () => {
+          seed = (seed * 1664525 + 1013904223) >>> 0;
+          return seed / 4294967296;
+        };
+
+        const fragment = document.createDocumentFragment();
+        for (let index = 0; index < 31; index += 1) {
+          const bar = document.createElement("span");
+          const punctuation = index % 7 === 0 || index % 11 === 0;
+          const dotted = !punctuation && index % 5 === 0;
+          const height = punctuation ? 3 : Math.round(5 + random() * 27);
+          bar.className = `wave-bar${punctuation ? " is-dot" : ""}${dotted ? " is-dotted" : ""}`;
+          bar.style.setProperty("--bar-index", index);
+          bar.style.setProperty("--bar-height", `${height}px`);
+          fragment.appendChild(bar);
+        }
+        waveform.replaceChildren(fragment);
+      }
+
+      function normalizeEvent(candidate) {
+        if (!candidate || typeof candidate !== "object" || Array.isArray(candidate)) {
+          throw new TypeError("Ion Sense event must be an object.");
+        }
+        if (!Object.prototype.hasOwnProperty.call(DISPLAY, candidate.type)) {
+          throw new TypeError(`Unknown Ion Sense event type: ${String(candidate.type)}`);
+        }
+        if (typeof candidate.message !== "string") {
+          throw new TypeError("Ion Sense event.message must be a string.");
+        }
+        if (!SEVERITIES.has(candidate.severity)) {
+          throw new TypeError(`Unknown Ion Sense severity: ${String(candidate.severity)}`);
+        }
+        if (typeof candidate.timestamp !== "number" || !Number.isFinite(candidate.timestamp)) {
+          throw new TypeError("Ion Sense event.timestamp must be a finite number.");
+        }
+
+        return Object.freeze({
+          type: candidate.type,
+          message: candidate.message,
+          severity: candidate.severity,
+          timestamp: candidate.timestamp
+        });
+      }
+
+      function updateDevStatus() {
+        if (devHarness.hidden) return;
+        const state = lifecycle === "idle" ? "Idle" : lifecycle === "dismissing" ? "Next" : "Live";
+        devStatus.value = `${state} · Q${queue.length}`;
+        devStatus.textContent = `${state} · Q${queue.length}`;
+      }
+
+      function speakWarning() {
+        if (!("speechSynthesis" in window) || typeof window.SpeechSynthesisUtterance !== "function") return;
+        try {
+          window.speechSynthesis.cancel();
+          const utterance = new SpeechSynthesisUtterance("Warning.");
+          utterance.rate = 0.9;
+          utterance.pitch = 0.82;
+          utterance.volume = 0.72;
+          window.speechSynthesis.speak(utterance);
+        } catch (error) {
+          console.info("Ion Sense voice preview is unavailable in this browser.", error);
+        }
+      }
+
+      function renderEvent(event) {
+        const display = DISPLAY[event.type];
+        titleNode.textContent = display.title;
+        messageNode.textContent = event.message;
+        iconNode.innerHTML = display.icon;
+        iconNode.dataset.icon = event.type;
+        toast.dataset.eventType = event.type;
+        toast.dataset.severity = event.severity;
+        toast.dataset.timestamp = String(event.timestamp);
+        toast.setAttribute("aria-live", event.severity === "critical" ? "assertive" : "polite");
+        toast.setAttribute("role", event.severity === "critical" ? "alert" : "status");
+      }
+
+      function clearLifecycleTimers() {
+        window.clearTimeout(dismissTimer);
+        window.clearTimeout(phaseTimer);
+        window.clearTimeout(speechTimer);
+        dismissTimer = 0;
+        phaseTimer = 0;
+        speechTimer = 0;
+      }
+
+      function showNext() {
+        if (lifecycle !== "idle" || queue.length === 0) {
+          updateDevStatus();
+          return;
+        }
+
+        activeEvent = queue.shift();
+        lifecycle = "entering";
+        renderEvent(activeEvent);
+        makeWaveform();
+
+        toast.classList.remove("is-visible", "is-exiting");
+        // Flush style so repeated notifications reliably replay all entry animations.
+        void toast.offsetWidth;
+        toast.classList.add("is-entering");
+        toast.setAttribute("aria-hidden", "false");
+        updateDevStatus();
+
+        phaseTimer = window.setTimeout(() => {
+          if (lifecycle !== "entering") return;
+          toast.classList.remove("is-entering");
+          toast.classList.add("is-visible");
+          lifecycle = "visible";
+          updateDevStatus();
+        }, ENTER_MS);
+
+        speechTimer = window.setTimeout(speakWarning, 230);
+        dismissTimer = window.setTimeout(() => dismissCurrent("timeout"), AUTO_DISMISS_MS);
+      }
+
+      function dismissCurrent(reason = "manual") {
+        if (lifecycle === "idle" || lifecycle === "dismissing") return false;
+
+        clearLifecycleTimers();
+        lifecycle = "dismissing";
+        toast.classList.remove("is-entering", "is-visible");
+        toast.classList.add("is-exiting");
+        toast.dataset.dismissReason = reason;
+        updateDevStatus();
+
+        if ("speechSynthesis" in window) {
+          window.speechSynthesis.cancel();
+        }
+
+        phaseTimer = window.setTimeout(() => {
+          toast.classList.remove("is-exiting");
+          toast.setAttribute("aria-hidden", "true");
+          activeEvent = null;
+          lifecycle = "idle";
+          updateDevStatus();
+          showNext();
+        }, EXIT_MS);
+        return true;
+      }
+
+      /**
+       * Phase 2 integration contract. This is the only public entry point.
+       * @param {{type: 'battery_low'|'overheating'|'download_finished'|'new_email'|'friend_message'|'package_delivered', message: string, severity: 'info'|'warning'|'critical', timestamp: number}} event
+       * @returns {number} The event's 1-based position in the active + queued sequence.
+       */
+      window.ionSenseTrigger = function ionSenseTrigger(event) {
+        const normalized = normalizeEvent(event);
+        queue.push(normalized);
+        const position = queue.length + (lifecycle === "idle" ? 0 : 1);
+        updateDevStatus();
+        showNext();
+        return position;
+      };
+
+      closeButton.addEventListener("click", () => dismissCurrent("close"));
+
+      document.addEventListener("keydown", (event) => {
+        if (event.key === "Escape" && lifecycle !== "idle") {
+          dismissCurrent("escape");
+        }
+      });
+
+      window.addEventListener("pagehide", (event) => {
+        // Keep lifecycle timers intact for back/forward-cache restores; the
+        // browser pauses them and resumes the active toast on pageshow.
+        if (!event.persisted) clearLifecycleTimers();
+        if ("speechSynthesis" in window) window.speechSynthesis.cancel();
+      });
+
+      const mockEvents = Object.freeze({
+        battery_low: {
+          message: "Battery at 12%. Connect a power source.",
+          severity: "warning"
+        },
+        overheating: {
+          message: "CPU package temperature reached 94°C.",
+          severity: "critical"
+        },
+        download_finished: {
+          message: "All downloads completed successfully.",
+          severity: "info"
+        },
+        new_email: {
+          message: "Maya Chen sent “Project Aurora — final notes”.",
+          severity: "info"
+        },
+        friend_message: {
+          message: "Nadia: “You around for a quick co-op run?”",
+          severity: "info"
+        },
+        package_delivered: {
+          message: "Your parcel was left at the front door.",
+          severity: "info"
+        }
+      });
+
+      const isDev = new URLSearchParams(window.location.search).get("dev") === "1";
+      if (isDev) {
+        devHarness.hidden = false;
+        devHarness.addEventListener("click", (event) => {
+          const button = event.target.closest("[data-event]");
+          if (!button) return;
+          const type = button.dataset.event;
+          const mock = mockEvents[type];
+          window.ionSenseTrigger({
+            type,
+            message: mock.message,
+            severity: mock.severity,
+            timestamp: Date.now()
+          });
+        });
+      }
+
+      makeWaveform();
+      updateDevStatus();
+    })();
+  </script>
+</body>
+</html>
