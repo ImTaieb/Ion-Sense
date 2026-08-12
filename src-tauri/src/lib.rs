@@ -18,8 +18,6 @@ use dispatcher::EventDispatcher;
 use event::{IonSenseEvent, IonSenseEventType, Severity};
 use serde::Serialize;
 use settings::AppSettings;
-#[cfg(any(target_os = "windows", target_os = "macos"))]
-use tauri::window::{Color, Effect, EffectState, EffectsBuilder};
 use tauri::{
     App, AppHandle, Emitter, Manager, PhysicalPosition, PhysicalSize, Position, Size, State,
     WebviewWindow, WindowEvent,
@@ -450,28 +448,11 @@ fn setup_app(app: &mut App) -> Result<(), Box<dyn std::error::Error>> {
 
     setup_tray(app)?;
     if let Some(hud) = app.get_webview_window("hud") {
-        configure_hud_backdrop(&hud)?;
         hud.set_ignore_cursor_events(true)?;
     }
 
     let app_handle = app.handle().clone();
     tauri::async_runtime::spawn(forward_events(app_handle, receiver, hud));
-    Ok(())
-}
-
-#[cfg(any(target_os = "windows", target_os = "macos"))]
-fn configure_hud_backdrop(hud: &WebviewWindow) -> tauri::Result<()> {
-    hud.set_effects(
-        EffectsBuilder::new()
-            .effects([Effect::FullScreenUI, Effect::Blur])
-            .state(EffectState::Active)
-            .color(Color(2, 12, 5, 118))
-            .build(),
-    )
-}
-
-#[cfg(not(any(target_os = "windows", target_os = "macos")))]
-fn configure_hud_backdrop(_hud: &WebviewWindow) -> tauri::Result<()> {
     Ok(())
 }
 
