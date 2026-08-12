@@ -524,7 +524,10 @@ fn position_hud(hud: &WebviewWindow) -> tauri::Result<()> {
     hud.set_size(Size::Physical(PhysicalSize::new(
         monitor_size.width,
         monitor_size.height,
-    )))
+    )))?;
+    // Reassert the native topmost band for every notification. Some Windows
+    // apps adjust their own z-order after the tray HUD was first created.
+    hud.set_always_on_top(true)
 }
 
 fn setup_tray(app: &App) -> tauri::Result<()> {

@@ -1013,14 +1013,14 @@
     }
     /* 2026 full-screen warning composition. */
     :root {
-      --toast-width: min(1400px, 74vw);
-      --badge-size: 352px;
-      --panel-height: 410px;
-      --panel-radius: 68px;
+      --toast-width: min(1280px, 67vw);
+      --badge-size: 314px;
+      --panel-height: 326px;
+      --panel-radius: 52px;
       --ion: #65ff23;
       --ion-bright: #82ff35;
       --ion-rgb: 101, 255, 35;
-      --panel: rgba(1, 8, 5, 0.84);
+      --panel: rgba(1, 8, 5, 0.62);
       --text: #e4e8e5;
       --muted: #a7ada9;
       --enter-ms: 560ms;
@@ -1092,8 +1092,8 @@
     }
 
     .hud-toast {
-      top: 48.6%;
-      left: 50%;
+      top: 49%;
+      left: calc(50% + 54px);
       right: auto;
       width: var(--toast-width);
       min-height: var(--panel-height);
@@ -1129,21 +1129,21 @@
 
     .panel-shell {
       min-height: var(--panel-height);
-      border-color: rgba(var(--ion-rgb), .58);
+      border-color: rgba(var(--ion-rgb), .54);
       border-radius: var(--panel-radius);
       background:
-        radial-gradient(circle at 17% 48%, rgba(var(--ion-rgb), .07), transparent 26%),
-        radial-gradient(circle at 92% 2%, rgba(var(--ion-rgb), .075), transparent 32%),
-        linear-gradient(110deg, rgba(0, 7, 4, .94), rgba(1, 10, 6, .88) 58%, rgba(1, 13, 6, .84)),
+        radial-gradient(circle at 10% 48%, rgba(var(--ion-rgb), .055), transparent 25%),
+        radial-gradient(circle at 92% 2%, rgba(var(--ion-rgb), .065), transparent 32%),
+        linear-gradient(110deg, rgba(0, 7, 4, .78), rgba(1, 10, 6, .68) 58%, rgba(1, 13, 6, .62)),
         var(--panel);
       box-shadow:
         inset 0 1px 0 rgba(230, 255, 235, .055),
         inset 0 -1px 0 rgba(var(--ion-rgb), .10),
         0 0 5px rgba(var(--ion-rgb), .30),
-        0 0 23px rgba(var(--ion-rgb), .17),
-        0 0 68px rgba(var(--ion-rgb), .075);
+        0 0 20px rgba(var(--ion-rgb), .15),
+        0 0 52px rgba(var(--ion-rgb), .065);
       filter: none;
-      backdrop-filter: blur(18px) saturate(112%);
+      backdrop-filter: blur(16px) saturate(108%);
     }
 
     .panel-shell::before {
@@ -1151,19 +1151,19 @@
         radial-gradient(circle at 88% 14%, rgba(var(--ion-rgb), .11), transparent 28%);
     }
 
-    .panel-shell::after { top: 100px; right: 42px; width: 146px; height: 102px; opacity: .065; background-size: 9px 9px; }
-    .panel-content { grid-template-rows: 82px 1fr 94px; min-height: calc(var(--panel-height) - 2px); padding-left: 0; }
-    .hud-header { padding: 16px 86px 0 398px; }
-    .brand-name { font-size: 16px; font-weight: 690; letter-spacing: .30em; }
+    .panel-shell::after { top: 78px; right: 34px; width: 132px; height: 88px; opacity: .055; background-size: 9px 9px; }
+    .panel-content { grid-template-rows: 66px 1fr 76px; min-height: calc(var(--panel-height) - 2px); padding-left: 0; }
+    .hud-header { padding: 12px 54px 0 292px; }
+    .brand-name { font-size: 14px; font-weight: 690; letter-spacing: .30em; }
     .header-rule { margin-right: 14px; background: linear-gradient(90deg, rgba(var(--ion-rgb), .90), rgba(var(--ion-rgb), .06)); }
-    .close-button { width: 44px; height: 44px; flex-basis: 44px; }
-    .close-button::before, .close-button::after { left: 10px; top: 21px; width: 24px; height: 2px; }
-    .hud-body { grid-template-columns: 116px 1px minmax(0, 1fr); gap: 34px; padding: 2px 62px 22px 425px; }
+    .close-button { width: 40px; height: 40px; flex-basis: 40px; }
+    .close-button::before, .close-button::after { left: 9px; top: 19px; width: 22px; height: 2px; }
+    .hud-body { grid-template-columns: 92px 1px minmax(0, 1fr); gap: 26px; padding: 2px 46px 15px 292px; }
     .hud-body::before {
       content: "";
       grid-column: 2;
       width: 1px;
-      height: 98px;
+      height: 78px;
       align-self: center;
       background: linear-gradient(180deg, transparent, rgba(var(--ion-rgb), .54) 18%, rgba(var(--ion-rgb), .30) 82%, transparent);
       box-shadow: 0 0 8px rgba(var(--ion-rgb), .20);
@@ -1171,35 +1171,35 @@
     .event-icon-shell {
       grid-column: 1;
       grid-row: 1;
-      width: 116px;
-      height: 116px;
-      border-width: 1.5px;
+      width: 92px;
+      height: 92px;
+      border-width: 1.25px;
       border-color: rgba(var(--ion-rgb), .36);
       background: radial-gradient(circle at 50% 45%, rgba(var(--ion-rgb), .075), transparent 62%), rgba(0, 4, 2, .30);
       box-shadow: inset 0 0 0 8px rgba(var(--ion-rgb), .014), inset 0 0 20px rgba(var(--ion-rgb), .035), 0 0 13px rgba(var(--ion-rgb), .065);
     }
-    .event-icon-shell svg { width: 58px; height: 58px; stroke-width: 2.4; }
+    .event-icon-shell svg { width: 46px; height: 46px; stroke-width: 2.3; }
     .event-copy { grid-column: 3; grid-row: 1; }
-    .event-title { margin-bottom: 12px; font-size: clamp(32px, 2.35vw, 43px); font-weight: 650; letter-spacing: .03em; }
-    .event-message { color: #aeb4b0; font-size: 24px; line-height: 1.35; }
+    .event-title { margin-bottom: 9px; font-size: clamp(29px, 2vw, 38px); font-weight: 640; letter-spacing: .035em; }
+    .event-message { color: #aeb4b0; font-size: 20px; line-height: 1.35; }
     .hud-footer {
-      grid-template-columns: 34px minmax(180px, 1fr) auto;
-      gap: 28px;
-      padding: 0 80px 0 370px;
+      grid-template-columns: 29px minmax(180px, 1fr) auto;
+      gap: 22px;
+      padding: 0 48px 0 264px;
       border-top-color: rgba(var(--ion-rgb), .28);
       background: linear-gradient(90deg, rgba(var(--ion-rgb), .025), transparent 42%), rgba(0, 0, 0, .07);
     }
-    .speaker-icon { width: 34px; height: 34px; stroke-width: 1.9; }
-    .waveform { height: 48px; }
-    .spoken-line { font-size: 25px; font-weight: 650; letter-spacing: .085em; }
+    .speaker-icon { width: 29px; height: 29px; stroke-width: 1.9; }
+    .waveform { height: 38px; }
+    .spoken-line { font-size: 19px; font-weight: 650; letter-spacing: .085em; }
     .brand-badge {
       top: 50%;
-      left: 7px;
+      left: calc(var(--badge-size) * -.38);
       width: var(--badge-size);
       height: var(--badge-size);
       transform: translateY(-50%);
-      background: radial-gradient(circle at 46% 42%, rgba(var(--ion-rgb), .13), transparent 42%), radial-gradient(circle, #071208 0%, #020604 69%, #000 100%);
-      box-shadow: 16px 0 34px rgba(0, 0, 0, .48), inset 0 0 42px rgba(var(--ion-rgb), .025);
+      background: radial-gradient(circle at 46% 42%, rgba(var(--ion-rgb), .11), transparent 42%), radial-gradient(circle, rgba(7, 18, 8, .92) 0%, rgba(2, 6, 4, .92) 69%, rgba(0, 0, 0, .94) 100%);
+      box-shadow: 15px 0 32px rgba(0, 0, 0, .42), inset 0 0 38px rgba(var(--ion-rgb), .02);
       filter: drop-shadow(0 0 3px rgba(var(--ion-rgb), .28)) drop-shadow(0 0 17px rgba(var(--ion-rgb), .14));
     }
     .badge-outer { stroke-width: 1.35; opacity: .72; }
@@ -1223,17 +1223,17 @@
     }
 
     @media (max-width: 1180px), (max-height: 660px) {
-      :root { --toast-width: min(1020px, calc(100vw - 7vw)); --badge-size: 246px; --panel-height: 288px; --panel-radius: 62px; }
-      .hud-toast { top: 50%; }
+      :root { --toast-width: min(960px, calc(100vw - 15vw)); --badge-size: 238px; --panel-height: 272px; --panel-radius: 48px; }
+      .hud-toast { top: 50%; left: calc(50% + 38px); }
       .panel-content { grid-template-rows: 62px 1fr 70px; }
-      .hud-header { padding-left: 274px; }
-      .hud-body { grid-template-columns: 88px 1px minmax(0, 1fr); gap: 24px; padding: 2px 36px 15px 274px; }
+      .hud-header { padding-left: 222px; }
+      .hud-body { grid-template-columns: 78px 1px minmax(0, 1fr); gap: 20px; padding: 2px 34px 15px 222px; }
       .hud-body::before { height: 72px; }
-      .event-icon-shell { width: 88px; height: 88px; }
-      .event-icon-shell svg { width: 45px; height: 45px; }
+      .event-icon-shell { width: 78px; height: 78px; }
+      .event-icon-shell svg { width: 40px; height: 40px; }
       .event-title { font-size: clamp(23px, 3vw, 31px); }
       .event-message { font-size: 16px; }
-      .hud-footer { padding-left: 274px; padding-right: 36px; }
+      .hud-footer { padding-left: 190px; padding-right: 36px; }
       .spoken-line { font-size: 15px; }
       .panel-notch { width: 8px; height: 34px; }
     }
