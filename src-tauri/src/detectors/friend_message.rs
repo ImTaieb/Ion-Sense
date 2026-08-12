@@ -1,0 +1,125 @@
+use std::collections::HashSet;
+use std::sync::{
+    Arc,
+    atomic::{AtomicBool, Ordering},
+};
+use std::thread::{self, JoinHandle};
+use std::time::Duration;
+
+use serenity::{
+    Client, async_trait,
+    model::{channel::Message, gateway::GatewayIntents},
+    prelude::{Context, EventHandler},
+};
+
+use crate::{
+    credentials::{SecretKind, credential_account, get_secret},
+    dispatcher::EventDispatcher,
+    event::{IonSenseEvent, IonSenseEventType, Severity},
+    settings::DiscordSettings,
+};
+
+struct Handler {
+    dispatcher: EventDispatcher,
+    allowed_channels: HashSet<u64>,
+}
+
+#[async_trait]
+impl EventHandler for Handler {
+    async fn message(&self, _context: Context, message: Message) {
+        if message.author.bot || message.webhook_id.is_some() {
+            return;
+        }
+
+        let is_direct_message = message.guild_id.is_none();
+        if !is_direct_message && !self.allowed_channels.contains(&message.channel_id.get()) {
+            return;
+        }
+
+        let body = if message.content.trim().is_empty() {
+            "(attachment, embed, or message content unavailable)".into()
+        } else {
+            truncate(message.content.trim(), 160)
+        };
+        let event = IonSenseEvent::new(
+            IonSenseEventType::FriendMessage,
+            format!("{}: {body}", message.author.name),
+            Severity::Info,
+        );
+        let _ = self.dispatcher.dispatch(event).await;
+    }
+}
+
+pub fn spawn(
+    settings: DiscordSettings,
+    dispatcher: EventDispatcher,
+    stop: Arc<AtomicBool>,
+) -> JoinHandle<()> {
+    thread::Builder::new()
+        .name("ion-discord-detector".into())
+        .spawn(move || {
+            let runtime = tokio::runtime::Builder::new_current_thread()
+                .enable_all()
+                .build()
+                .expect("create Discord detector runtime");
+            runtime.block_on(run(settings, dispatcher, stop));
+        })
+        .expect("failed to spawn Discord detector")
+}
+
+async fn run(settings: DiscordSettings, dispatcher: EventDispatcher, stop: Arc<AtomicBool>) {
+    let credential = credential_account(SecretKind::DiscordBotToken, "discord-bot");
+    let token = match get_secret(SecretKind::DiscordBotToken, &credential) {
+        Ok(token) => token,
+        Err(error) => {
+            eprintln!("Ion Sense Discord detector needs an OS-keychain token: {error:#}");
+            return;
+        }
+    };
+
+    let handler = Handler {
+        dispatcher,
+        allowed_channels: settings.allowed_channel_ids.into_iter().collect(),
+    };
+    let intents = GatewayIntents::DIRECT_MESSAGES
+        | GatewayIntents::GUILD_MESSAGES
+        | GatewayIntents::MESSAGE_CONTENT;
+    let mut client = match Client::builder(token, intents).event_handler(handler).await {
+        Ok(client) => client,
+        Err(error) => {
+            eprintln!("Ion Sense Discord client setup failed: {error}");
+            return;
+        }
+    };
+
+    let shard_manager = client.shard_manager.clone();
+    tokio::spawn(async move {
+        while !stop.load(Ordering::Acquire) {
+            tokio::time::sleep(Duration::from_secs(1)).await;
+        }
+        shard_manager.shutdown_all().await;
+    });
+
+    if let Err(error) = client.start().await {
+        eprintln!("Ion Sense Discord detector stopped: {error}");
+    }
+}
+
+fn truncate(value: &str, max_chars: usize) -> String {
+    let mut result: String = value.chars().take(max_chars).collect();
+    if value.chars().count() > max_chars {
+        result.push('…');
+    }
+    result
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn truncation_never_slices_inside_utf8() {
+        assert_eq!(truncate("hello", 5), "hello");
+        assert_eq!(truncate("🙂🙂🙂", 2), "🙂🙂…");
+    }
+}

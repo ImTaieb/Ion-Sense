@@ -1,3 +1,4 @@
+mod credentials;
 mod detectors;
 mod dispatcher;
 mod event;

@@ -7,6 +7,9 @@ use std::thread::JoinHandle;
 use crate::{dispatcher::EventDispatcher, settings::AppSettings};
 
 mod battery_low;
+mod downloads;
+mod email;
+mod friend_message;
 mod overheating;
 
 pub struct DetectorRuntime {
@@ -30,6 +33,30 @@ impl DetectorRuntime {
         if settings.temperature.enabled {
             workers.push(overheating::spawn(
                 settings.temperature.clone(),
+                dispatcher.clone(),
+                stop.clone(),
+            ));
+        }
+
+        if settings.downloads.enabled {
+            workers.push(downloads::spawn(
+                settings.downloads.clone(),
+                dispatcher.clone(),
+                stop.clone(),
+            ));
+        }
+
+        if settings.email.enabled && !settings.email.username.trim().is_empty() {
+            workers.push(email::spawn(
+                settings.email.clone(),
+                dispatcher.clone(),
+                stop.clone(),
+            ));
+        }
+
+        if settings.discord.enabled {
+            workers.push(friend_message::spawn(
+                settings.discord.clone(),
                 dispatcher,
                 stop.clone(),
             ));
