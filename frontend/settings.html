@@ -6,21 +6,356 @@
   <meta name="color-scheme" content="dark">
   <title>Ion Sense Settings</title>
   <style>
-    :root { color: #edf7ef; background: #050907; font-family: "Segoe UI", sans-serif; }
+    :root {
+      --ion: #3dff6b;
+      --ion-rgb: 61, 255, 107;
+      --panel: #08100b;
+      --line: rgba(176, 205, 185, 0.14);
+      --text: #edf5ef;
+      --muted: #8e9a92;
+      color: var(--text);
+      background: #040806;
+      font-family: "Segoe UI", Inter, sans-serif;
+    }
     * { box-sizing: border-box; }
-    body { min-height: 100vh; margin: 0; display: grid; place-items: center; padding: 32px; background: radial-gradient(circle at 50% 0, #102016, #050907 52%); }
-    main { width: min(520px, 100%); padding: 30px; border: 1px solid rgba(61,255,107,.35); border-radius: 24px; background: rgba(4,12,8,.94); box-shadow: 0 0 28px rgba(61,255,107,.08); }
-    p { color: #94a198; line-height: 1.55; }
-    .eyebrow { color: #3dff6b; font: 700 11px/1 ui-monospace, monospace; letter-spacing: .2em; text-transform: uppercase; }
-    h1 { margin: 12px 0; font-size: 28px; }
+    body { min-height: 100vh; margin: 0; background: radial-gradient(circle at 80% -10%, rgba(var(--ion-rgb), .11), transparent 35%), #040806; }
+    button, input, select { font: inherit; }
+    .shell { width: min(700px, 100%); margin: auto; padding: 30px 28px 44px; }
+    header { margin-bottom: 24px; }
+    .eyebrow { color: var(--ion); font: 700 10px/1 ui-monospace, monospace; letter-spacing: .22em; text-transform: uppercase; }
+    h1 { margin: 9px 0 6px; font-size: 29px; letter-spacing: .02em; }
+    .intro, .hint, .platform-note { color: var(--muted); line-height: 1.5; }
+    .intro { margin: 0; font-size: 13px; }
+    form { display: grid; gap: 14px; }
+    section { padding: 19px; border: 1px solid var(--line); border-radius: 17px; background: rgba(7, 15, 10, .92); box-shadow: inset 0 1px rgba(255,255,255,.025); }
+    section:focus-within { border-color: rgba(var(--ion-rgb), .31); }
+    .section-head { display: flex; align-items: center; justify-content: space-between; gap: 16px; margin-bottom: 15px; }
+    h2 { margin: 0; font-size: 15px; letter-spacing: .045em; text-transform: uppercase; }
+    .grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 12px; }
+    .span-2 { grid-column: 1 / -1; }
+    label.field { display: grid; gap: 6px; color: #b8c3bb; font-size: 11px; font-weight: 650; letter-spacing: .035em; }
+    input[type="text"], input[type="password"], input[type="number"] { width: 100%; min-height: 39px; padding: 9px 11px; color: var(--text); border: 1px solid rgba(177,199,184,.17); border-radius: 9px; outline: none; background: #040806; }
+    input:focus { border-color: rgba(var(--ion-rgb), .68); box-shadow: 0 0 0 3px rgba(var(--ion-rgb), .07); }
+    input::placeholder { color: #536057; }
+    .switch { position: relative; display: inline-flex; align-items: center; gap: 9px; color: var(--muted); cursor: pointer; font-size: 11px; }
+    .switch input { position: absolute; opacity: 0; pointer-events: none; }
+    .track { position: relative; width: 38px; height: 21px; border: 1px solid rgba(181,203,188,.2); border-radius: 999px; background: #030604; transition: .16s ease; }
+    .track::after { content: ""; position: absolute; top: 3px; left: 3px; width: 13px; height: 13px; border-radius: 50%; background: #68736b; transition: .16s ease; }
+    .switch input:checked + .track { border-color: rgba(var(--ion-rgb), .55); background: rgba(var(--ion-rgb), .1); }
+    .switch input:checked + .track::after { left: 20px; background: var(--ion); box-shadow: 0 0 8px rgba(var(--ion-rgb), .45); }
+    .switch input:focus-visible + .track { outline: 2px solid var(--ion); outline-offset: 3px; }
+    .hint { margin: 8px 0 0; font-size: 10px; }
+    .credential-row { display: grid; grid-template-columns: 1fr auto; gap: 8px; align-items: end; }
+    button { min-height: 38px; padding: 0 14px; color: #b9c5bd; border: 1px solid rgba(181,203,188,.17); border-radius: 9px; background: #0b130e; cursor: pointer; transition: .14s ease; }
+    button:hover { color: var(--ion); border-color: rgba(var(--ion-rgb), .46); background: rgba(var(--ion-rgb), .07); }
+    button.primary { color: #041007; border-color: var(--ion); background: var(--ion); font-weight: 750; box-shadow: 0 0 13px rgba(var(--ion-rgb), .2); }
+    button.primary:hover { color: #020904; background: #74ff91; }
+    .status-dot { display: inline-block; width: 6px; height: 6px; margin-right: 5px; border-radius: 50%; background: #677168; }
+    .status-dot.saved { background: var(--ion); box-shadow: 0 0 7px rgba(var(--ion-rgb), .7); }
+    .dev-grid { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 7px; }
+    .actions { position: sticky; bottom: 14px; display: flex; align-items: center; justify-content: space-between; gap: 16px; padding: 12px; border: 1px solid rgba(var(--ion-rgb), .18); border-radius: 14px; background: rgba(3, 8, 5, .91); backdrop-filter: blur(14px); }
+    #status { color: var(--muted); font-size: 11px; }
+    .platform-note { padding: 12px 14px; border-left: 2px solid rgba(var(--ion-rgb), .55); background: rgba(var(--ion-rgb), .035); font-size: 10px; }
+    code { color: #b7ffc7; font-family: ui-monospace, monospace; }
+    [hidden] { display: none !important; }
+    @media (max-width: 600px) { .shell { padding: 20px 15px 34px; } .grid { grid-template-columns: 1fr; } .span-2 { grid-column: auto; } .dev-grid { grid-template-columns: repeat(2, 1fr); } }
   </style>
 </head>
 <body>
-  <main>
-    <div class="eyebrow">Ion Sense // Desktop</div>
-    <h1>Settings</h1>
-    <p>The native settings controls are added in the final wiring pass. This window intentionally starts hidden and is opened from the tray.</p>
-  </main>
+  <div class="shell">
+    <header>
+      <div class="eyebrow">Ion Sense // Control plane</div>
+      <h1>Settings</h1>
+      <p class="intro">Detector switches and thresholds are stored locally. Passwords and tokens go directly to your operating system credential vault.</p>
+    </header>
+
+    <form id="settings-form">
+      <section>
+        <div class="section-head">
+          <h2>System</h2>
+          <label class="switch"><input id="launch-at-login" type="checkbox"><span class="track"></span>Launch at login</label>
+        </div>
+        <p id="settings-path" class="hint"></p>
+      </section>
+
+      <section>
+        <div class="section-head">
+          <h2>Battery low</h2>
+          <label class="switch"><input id="battery-enabled" type="checkbox"><span class="track"></span>Enabled</label>
+        </div>
+        <div class="grid">
+          <label class="field">Threshold (%)<input id="battery-threshold" type="number" min="1" max="100" step="1" required></label>
+          <label class="field">Poll interval (seconds)<input id="battery-poll" type="number" min="5" max="3600" step="1" required></label>
+        </div>
+      </section>
+
+      <section>
+        <div class="section-head">
+          <h2>PC overheating</h2>
+          <label class="switch"><input id="temperature-enabled" type="checkbox"><span class="track"></span>Enabled</label>
+        </div>
+        <div class="grid">
+          <label class="field">Threshold (°C)<input id="temperature-threshold" type="number" min="40" max="120" step="1" required></label>
+          <label class="field">Poll interval (seconds)<input id="temperature-poll" type="number" min="2" max="300" step="1" required></label>
+        </div>
+        <p class="hint">Windows exposes ACPI thermal zones inconsistently; the detector reports the hottest sensor available to sysinfo.</p>
+      </section>
+
+      <section>
+        <div class="section-head">
+          <h2>Downloads</h2>
+          <label class="switch"><input id="downloads-enabled" type="checkbox"><span class="track"></span>Enabled</label>
+        </div>
+        <label class="field">Folder override<input id="downloads-directory" type="text" placeholder="Leave blank for the OS Downloads folder"></label>
+        <p class="hint">Completion requires a tracked <code>.crdownload</code> or <code>.part</code> file to disappear or rename.</p>
+      </section>
+
+      <section>
+        <div class="section-head">
+          <h2>New email · IMAP</h2>
+          <label class="switch"><input id="email-enabled" type="checkbox"><span class="track"></span>Enabled</label>
+        </div>
+        <div class="grid">
+          <label class="field span-2">IMAP host<input id="email-host" type="text" placeholder="imap.example.com"></label>
+          <label class="field">Port<input id="email-port" type="number" min="1" max="65535" required></label>
+          <label class="field">Mailbox<input id="email-mailbox" type="text" placeholder="INBOX"></label>
+          <label class="field span-2">Username<input id="email-username" type="text" autocomplete="username"></label>
+          <div class="credential-row span-2">
+            <label class="field">Password / app password<input id="email-password" type="password" autocomplete="new-password" placeholder="Stored in OS keychain"></label>
+            <button id="clear-email-password" type="button">Clear</button>
+          </div>
+        </div>
+        <p class="hint"><span id="email-credential-dot" class="status-dot"></span><span id="email-credential-status">No keychain password detected.</span> IMAP IDLE is used when the server advertises it; otherwise Ion Sense polls.</p>
+      </section>
+
+      <section>
+        <div class="section-head">
+          <h2>Discord bot message</h2>
+          <label class="switch"><input id="discord-enabled" type="checkbox"><span class="track"></span>Enabled</label>
+        </div>
+        <div class="grid">
+          <label class="field span-2">Allowed guild channel IDs<input id="discord-channels" type="text" placeholder="123456789012345678, 234567890123456789"></label>
+          <div class="credential-row span-2">
+            <label class="field">Bot token<input id="discord-token" type="password" autocomplete="new-password" placeholder="Stored in OS keychain"></label>
+            <button id="clear-discord-token" type="button">Clear</button>
+          </div>
+        </div>
+        <p class="hint"><span id="discord-credential-dot" class="status-dot"></span><span id="discord-credential-status">No keychain token detected.</span> This receives DMs sent to the bot and allowed guild-channel messages—not a normal user account’s private friend DMs.</p>
+      </section>
+
+      <section id="dev-tools" hidden>
+        <div class="section-head"><h2>Developer test events</h2><span class="eyebrow">tauri dev only</span></div>
+        <div class="dev-grid">
+          <button type="button" data-test-event="battery_low">Battery low</button>
+          <button type="button" data-test-event="overheating">Overheating</button>
+          <button type="button" data-test-event="download_finished">Download done</button>
+          <button type="button" data-test-event="new_email">New email</button>
+          <button type="button" data-test-event="friend_message">Friend message</button>
+          <button type="button" data-test-event="package_delivered">Package · v2</button>
+        </div>
+      </section>
+
+      <div id="platform-note" class="platform-note"></div>
+      <div class="actions"><output id="status" aria-live="polite">Loading settings…</output><button class="primary" type="submit">Save & restart detectors</button></div>
+    </form>
+  </div>
+
+  <script>
+    (() => {
+      "use strict";
+      const invoke = window.__TAURI__.core.invoke;
+      const form = document.getElementById("settings-form");
+      const status = document.getElementById("status");
+      let currentSettings = null;
+
+      const field = (id) => document.getElementById(id);
+      const number = (id) => field(id).valueAsNumber;
+      const checked = (id) => field(id).checked;
+      const wait = (milliseconds) => new Promise((resolve) => window.setTimeout(resolve, milliseconds));
+
+      async function invokeAfterNativeSetup(command, args) {
+        let lastError;
+        for (let attempt = 0; attempt < 80; attempt += 1) {
+          try { return await invoke(command, args); }
+          catch (error) {
+            lastError = error;
+            if (!String(error).includes("state not managed")) throw error;
+            await wait(50);
+          }
+        }
+        throw lastError;
+      }
+
+      function setStatus(message, error = false) {
+        status.textContent = message;
+        status.style.color = error ? "#ff8d8d" : "";
+      }
+
+      function setBusy(busy) {
+        form.querySelectorAll("button, input").forEach((control) => {
+          control.disabled = busy;
+        });
+        form.setAttribute("aria-busy", String(busy));
+      }
+
+      function populate(settings) {
+        field("launch-at-login").checked = settings.launch_at_login;
+        field("battery-enabled").checked = settings.battery.enabled;
+        field("battery-threshold").value = settings.battery.threshold_percent;
+        field("battery-poll").value = settings.battery.poll_seconds;
+        field("temperature-enabled").checked = settings.temperature.enabled;
+        field("temperature-threshold").value = settings.temperature.threshold_celsius;
+        field("temperature-poll").value = settings.temperature.poll_seconds;
+        field("downloads-enabled").checked = settings.downloads.enabled;
+        field("downloads-directory").value = settings.downloads.directory || "";
+        field("email-enabled").checked = settings.email.enabled;
+        field("email-host").value = settings.email.host;
+        field("email-port").value = settings.email.port;
+        field("email-mailbox").value = settings.email.mailbox;
+        field("email-username").value = settings.email.username;
+        field("discord-enabled").checked = settings.discord.enabled;
+        field("discord-channels").value = settings.discord.allowed_channel_ids.join(", ");
+      }
+
+      function collect() {
+        if (!currentSettings) throw new Error("Settings are still loading.");
+        return {
+          ...currentSettings,
+          launch_at_login: checked("launch-at-login"),
+          battery: {
+            enabled: checked("battery-enabled"),
+            threshold_percent: number("battery-threshold"),
+            poll_seconds: number("battery-poll")
+          },
+          temperature: {
+            enabled: checked("temperature-enabled"),
+            threshold_celsius: number("temperature-threshold"),
+            poll_seconds: number("temperature-poll")
+          },
+          downloads: {
+            enabled: checked("downloads-enabled"),
+            directory: field("downloads-directory").value.trim() || null
+          },
+          email: {
+            enabled: checked("email-enabled"),
+            host: field("email-host").value.trim(),
+            port: number("email-port"),
+            username: field("email-username").value.trim(),
+            mailbox: field("email-mailbox").value.trim(),
+            poll_seconds: currentSettings.email.poll_seconds
+          },
+          discord: {
+            enabled: checked("discord-enabled"),
+            allowed_channel_ids: field("discord-channels").value.split(",").map((value) => value.trim()).filter(Boolean)
+          }
+        };
+      }
+
+      function validate(settings) {
+        const numbers = [
+          settings.battery.threshold_percent,
+          settings.battery.poll_seconds,
+          settings.temperature.threshold_celsius,
+          settings.temperature.poll_seconds,
+          settings.email.port
+        ];
+        if (!numbers.every(Number.isFinite)) throw new Error("Every numeric setting needs a value.");
+        if (settings.email.enabled) {
+          if (!settings.email.host) throw new Error("IMAP host is required while email is enabled.");
+          if (!settings.email.username) throw new Error("IMAP username is required while email is enabled.");
+          if (!settings.email.mailbox) throw new Error("IMAP mailbox is required while email is enabled.");
+        }
+      }
+
+      async function refreshCredentialStatus() {
+        const credentials = await invoke("get_credential_status");
+        field("email-credential-dot").classList.toggle("saved", credentials.imapConfigured);
+        field("email-credential-status").textContent = credentials.imapConfigured ? "Password saved in OS keychain." : "No keychain password detected.";
+        field("discord-credential-dot").classList.toggle("saved", credentials.discordConfigured);
+        field("discord-credential-status").textContent = credentials.discordConfigured ? "Token saved in OS keychain." : "No keychain token detected.";
+      }
+
+      async function load() {
+        const [settings, info] = await Promise.all([
+          invokeAfterNativeSetup("get_settings"),
+          invokeAfterNativeSetup("get_runtime_info")
+        ]);
+        currentSettings = settings;
+        populate(settings);
+        field("settings-path").textContent = `Settings file: ${info.settingsPath}`;
+        field("dev-tools").hidden = !info.dev;
+        field("platform-note").textContent = info.platform === "windows"
+          ? "Windows note: temperature readings depend on ACPI sensor exposure; many systems do not expose CPU package temperature through standard APIs."
+          : info.platform === "macos"
+            ? "macOS note: transparent windows use platform-specific behavior, and tray-only mode runs as an accessory app."
+            : "Linux note: transparency, tray support, hardware sensors, and keychain availability depend on the desktop compositor and session services.";
+        await refreshCredentialStatus();
+        setStatus("Settings loaded.");
+      }
+
+      form.addEventListener("submit", async (event) => {
+        event.preventDefault();
+        if (!form.reportValidity()) return;
+        try {
+          const next = collect();
+          validate(next);
+          const emailPassword = field("email-password").value;
+          const discordToken = field("discord-token").value;
+          setBusy(true);
+          setStatus("Saving and restarting detectors…");
+          currentSettings = await invoke("save_settings", {
+            settings: next,
+            imapPassword: emailPassword || null,
+            discordToken: discordToken || null
+          });
+          field("email-password").value = "";
+          field("discord-token").value = "";
+          populate(currentSettings);
+          await refreshCredentialStatus();
+          setStatus("Saved. Detectors are restarting in the background.");
+        } catch (error) {
+          setStatus(String(error), true);
+        } finally {
+          setBusy(false);
+        }
+      });
+
+      field("clear-email-password").addEventListener("click", async () => {
+        setBusy(true);
+        try {
+          currentSettings = await invoke("clear_imap_password");
+          populate(currentSettings);
+          await refreshCredentialStatus();
+          setStatus("Email disabled and its password removed from the OS keychain.");
+        } catch (error) { setStatus(String(error), true); }
+        finally { setBusy(false); }
+      });
+
+      field("clear-discord-token").addEventListener("click", async () => {
+        setBusy(true);
+        try {
+          currentSettings = await invoke("clear_discord_token");
+          populate(currentSettings);
+          await refreshCredentialStatus();
+          setStatus("Discord disabled and its token removed from the OS keychain.");
+        } catch (error) { setStatus(String(error), true); }
+        finally { setBusy(false); }
+      });
+
+      field("dev-tools").addEventListener("click", async (event) => {
+        const button = event.target.closest("[data-test-event]");
+        if (!button) return;
+        try {
+          await invoke("fire_test_event", { eventType: button.dataset.testEvent });
+          setStatus(`Triggered ${button.textContent.trim()}.`);
+        } catch (error) { setStatus(String(error), true); }
+      });
+
+      setBusy(true);
+      load()
+        .catch((error) => setStatus(String(error), true))
+        .finally(() => setBusy(false));
+    })();
+  </script>
 </body>
 </html>
-

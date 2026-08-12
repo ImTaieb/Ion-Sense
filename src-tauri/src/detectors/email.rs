@@ -24,6 +24,7 @@ use crate::{
 };
 
 type ImapSession = Session<TlsStream<TcpStream>>;
+const IMAP_IO_TIMEOUT: Duration = Duration::from_secs(20);
 
 #[derive(Default)]
 struct MailboxCursor {
@@ -80,33 +81,38 @@ async fn monitor_connection(
     stop: &AtomicBool,
     cursor: &mut MailboxCursor,
 ) -> Result<()> {
-    let mut session = connect(settings, password).await?;
-    let mailbox = session
-        .examine(&settings.mailbox)
+    let mut session = tokio::time::timeout(IMAP_IO_TIMEOUT, connect(settings, password))
         .await
+        .context("IMAP connection timed out")??;
+    let mailbox = tokio::time::timeout(IMAP_IO_TIMEOUT, session.examine(&settings.mailbox))
+        .await
+        .context("opening the IMAP mailbox timed out")?
         .with_context(|| format!("open IMAP mailbox {}", settings.mailbox))?;
-    let capabilities = session
-        .capabilities()
+    let capabilities = tokio::time::timeout(IMAP_IO_TIMEOUT, session.capabilities())
         .await
+        .context("reading IMAP capabilities timed out")?
         .context("read IMAP capabilities")?;
     let supports_idle = capabilities.has_str("IDLE");
 
     if cursor.uid_validity != mailbox.uid_validity || cursor.last_uid.is_none() {
         cursor.uid_validity = mailbox.uid_validity;
-        cursor.last_uid = session
-            .uid_search("ALL")
+        cursor.last_uid = tokio::time::timeout(IMAP_IO_TIMEOUT, session.uid_search("ALL"))
             .await
+            .context("baselining the IMAP cursor timed out")?
             .context("baseline IMAP UID cursor")?
             .into_iter()
             .max();
     }
 
     while !stop.load(Ordering::Acquire) {
-        emit_new_messages(&mut session, cursor, dispatcher).await?;
+        emit_new_messages(&mut session, cursor, dispatcher, stop).await?;
 
         if supports_idle {
             let mut idle = session.idle();
-            idle.init().await.context("start IMAP IDLE")?;
+            tokio::time::timeout(IMAP_IO_TIMEOUT, idle.init())
+                .await
+                .context("starting IMAP IDLE timed out")?
+                .context("start IMAP IDLE")?;
             {
                 let (wait, stop_source) = idle.wait_with_timeout(Duration::from_secs(60));
                 tokio::pin!(wait);
@@ -115,20 +121,29 @@ async fn monitor_connection(
                     result = &mut wait => { result.context("wait for IMAP IDLE update")?; }
                     _ = sleep_until_stopped(stop) => {
                         drop(interrupt.take());
-                        wait.await.context("interrupt IMAP IDLE")?;
+                        tokio::time::timeout(Duration::from_secs(5), wait)
+                            .await
+                            .context("interrupting IMAP IDLE timed out")?
+                            .context("interrupt IMAP IDLE")?;
                     }
                 }
             }
-            session = idle.done().await.context("finish IMAP IDLE")?;
+            session = tokio::time::timeout(IMAP_IO_TIMEOUT, idle.done())
+                .await
+                .context("finishing IMAP IDLE timed out")?
+                .context("finish IMAP IDLE")?;
         } else {
             sleep_with_stop(stop, Duration::from_secs(settings.poll_seconds)).await;
             if !stop.load(Ordering::Acquire) {
-                session.noop().await.context("poll IMAP mailbox")?;
+                tokio::time::timeout(IMAP_IO_TIMEOUT, session.noop())
+                    .await
+                    .context("polling the IMAP mailbox timed out")?
+                    .context("poll IMAP mailbox")?;
             }
         }
     }
 
-    let _ = session.logout().await;
+    let _ = tokio::time::timeout(Duration::from_secs(5), session.logout()).await;
     Ok(())
 }
 
@@ -159,23 +174,40 @@ async fn emit_new_messages(
     session: &mut ImapSession,
     cursor: &mut MailboxCursor,
     dispatcher: &EventDispatcher,
+    stop: &AtomicBool,
 ) -> Result<()> {
     let first_uid = cursor.last_uid.unwrap_or(0).saturating_add(1);
-    let mut uids: Vec<u32> = session
-        .uid_search(format!("UID {first_uid}:*"))
-        .await
-        .context("search for new email UIDs")?
-        .into_iter()
-        .filter(|uid| cursor.last_uid.is_none_or(|known| *uid > known))
-        .collect();
+    let mut uids: Vec<u32> = tokio::time::timeout(
+        IMAP_IO_TIMEOUT,
+        session.uid_search(format!("UID {first_uid}:*")),
+    )
+    .await
+    .context("searching for new email timed out")?
+    .context("search for new email UIDs")?
+    .into_iter()
+    .filter(|uid| cursor.last_uid.is_none_or(|known| *uid > known))
+    .collect();
     uids.sort_unstable();
 
     for uid in uids {
-        let mut rows = session
-            .uid_fetch(uid.to_string(), "(UID ENVELOPE)")
+        if stop.load(Ordering::Acquire) {
+            return Ok(());
+        }
+        let mut rows = tokio::time::timeout(
+            IMAP_IO_TIMEOUT,
+            session.uid_fetch(uid.to_string(), "(UID ENVELOPE)"),
+        )
+        .await
+        .with_context(|| format!("fetch email UID {uid} timed out"))?
+        .with_context(|| format!("fetch email UID {uid}"))?;
+        while let Some(fetch) = tokio::time::timeout(IMAP_IO_TIMEOUT, rows.try_next())
             .await
-            .with_context(|| format!("fetch email UID {uid}"))?;
-        while let Some(fetch) = rows.try_next().await.context("read email envelope")? {
+            .context("reading an email envelope timed out")?
+            .context("read email envelope")?
+        {
+            if stop.load(Ordering::Acquire) {
+                return Ok(());
+            }
             if let Some(envelope) = fetch.envelope() {
                 let subject = envelope
                     .subject
@@ -190,14 +222,24 @@ async fn emit_new_messages(
                     .and_then(|address| address.name.as_ref().or(address.mailbox.as_ref()))
                     .map(|value| String::from_utf8_lossy(value.as_ref()).into_owned())
                     .unwrap_or_else(|| "A sender".into());
-                dispatcher
-                    .dispatch(IonSenseEvent::new(
-                        IonSenseEventType::NewEmail,
-                        format!("{sender} sent “{}”.", truncate(&subject, 120)),
-                        Severity::Info,
-                    ))
-                    .await
-                    .map_err(|_| anyhow!("central event dispatcher closed"))?;
+                let event = IonSenseEvent::new(
+                    IonSenseEventType::NewEmail,
+                    format!("{sender} sent “{}”.", truncate(&subject, 120)),
+                    Severity::Info,
+                );
+                if stop.load(Ordering::Acquire) {
+                    return Ok(());
+                }
+                if let Err(error) = dispatcher.try_dispatch(event) {
+                    match error {
+                        tokio::sync::mpsc::error::TrySendError::Closed(_) => {
+                            return Err(anyhow!("central event dispatcher closed"));
+                        }
+                        tokio::sync::mpsc::error::TrySendError::Full(_) => eprintln!(
+                            "Ion Sense dropped an email alert because the event queue is full"
+                        ),
+                    }
+                }
             }
         }
         drop(rows);

@@ -56,9 +56,9 @@ fn run(
         .or_else(dirs::download_dir)
         .context("the operating system did not provide a Downloads directory")?;
 
-    let (raw_sender, raw_receiver) = mpsc::channel::<notify::Result<Event>>();
+    let (raw_sender, raw_receiver) = mpsc::sync_channel::<notify::Result<Event>>(256);
     let mut watcher: RecommendedWatcher = notify::recommended_watcher(move |result| {
-        let _ = raw_sender.send(result);
+        let _ = raw_sender.try_send(result);
     })
     .context("create file-system watcher")?;
     watcher
@@ -98,8 +98,13 @@ fn run(
                 format!("{name} finished downloading."),
                 Severity::Info,
             );
-            if dispatcher.dispatch_blocking(event).is_err() {
-                return Ok(());
+            if let Err(error) = dispatcher.try_dispatch(event) {
+                match error {
+                    tokio::sync::mpsc::error::TrySendError::Closed(_) => return Ok(()),
+                    tokio::sync::mpsc::error::TrySendError::Full(_) => eprintln!(
+                        "Ion Sense dropped a download alert because the event queue is full"
+                    ),
+                }
             }
             emitted.insert(candidate, Instant::now());
         }

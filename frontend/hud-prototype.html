@@ -1393,5 +1393,153 @@
       updateDevStatus();
     })();
   </script>
+  <script>
+    (() => {
+      "use strict";
+
+      const tauri = window.__TAURI__;
+      if (!tauri) return;
+
+      const EVENT_NAME = "ion-sense://trigger";
+      const invoke = tauri.core.invoke;
+      const appWindow = tauri.window.getCurrentWindow();
+      const toast = document.getElementById("ion-toast");
+      const closeButton = document.getElementById("close-toast");
+      let cursorTimer = 0;
+      let appliedIgnore = null;
+      let ignoreChain = Promise.resolve();
+      let cursorGeneration = 0;
+      let cursorPollInFlight = false;
+      let unlisten = null;
+
+      const wait = (milliseconds) =>
+        new Promise((resolve) => window.setTimeout(resolve, milliseconds));
+
+      async function invokeAfterNativeSetup(command, args) {
+        let lastError;
+        for (let attempt = 0; attempt < 80; attempt += 1) {
+          try {
+            return await invoke(command, args);
+          } catch (error) {
+            lastError = error;
+            if (!String(error).includes("state not managed")) throw error;
+            await wait(50);
+          }
+        }
+        throw lastError;
+      }
+
+      function setClickThrough(ignore) {
+        ignoreChain = ignoreChain
+          .then(async () => {
+            if (appliedIgnore === ignore) return;
+            try {
+              await appWindow.setIgnoreCursorEvents(ignore);
+              appliedIgnore = ignore;
+            } catch (error) {
+              appliedIgnore = null;
+              throw error;
+            }
+          })
+          .catch((error) => console.error("Ion Sense cursor routing failed", error));
+        return ignoreChain;
+      }
+
+      async function updateCloseHitTarget(generation) {
+        if (generation !== cursorGeneration || cursorPollInFlight) return;
+        cursorPollInFlight = true;
+        if (toast.getAttribute("aria-hidden") !== "false") {
+          await setClickThrough(true);
+          cursorPollInFlight = false;
+          return;
+        }
+
+        try {
+          const [cursor, origin, scaleFactor] = await Promise.all([
+            tauri.window.cursorPosition(),
+            appWindow.innerPosition(),
+            appWindow.scaleFactor()
+          ]);
+          if (generation !== cursorGeneration || toast.getAttribute("aria-hidden") !== "false") {
+            return;
+          }
+          const localX = (cursor.x - origin.x) / scaleFactor;
+          const localY = (cursor.y - origin.y) / scaleFactor;
+          const rect = closeButton.getBoundingClientRect();
+          const padding = 10;
+          const overClose =
+            localX >= rect.left - padding &&
+            localX <= rect.right + padding &&
+            localY >= rect.top - padding &&
+            localY <= rect.bottom + padding;
+          await setClickThrough(!overClose);
+        } catch (error) {
+          console.error("Ion Sense close-button hit test failed", error);
+          if (generation === cursorGeneration) await setClickThrough(true);
+        } finally {
+          cursorPollInFlight = false;
+        }
+      }
+
+      function startCursorGate() {
+        window.clearInterval(cursorTimer);
+        const generation = ++cursorGeneration;
+        updateCloseHitTarget(generation);
+        cursorTimer = window.setInterval(() => updateCloseHitTarget(generation), 40);
+      }
+
+      async function stopCursorGateAndHide() {
+        const generation = ++cursorGeneration;
+        const timestamp = Number(toast.dataset.timestamp);
+        window.clearInterval(cursorTimer);
+        cursorTimer = 0;
+        await setClickThrough(true);
+        if (
+          generation !== cursorGeneration ||
+          toast.getAttribute("aria-hidden") !== "true" ||
+          Number(toast.dataset.timestamp) !== timestamp ||
+          !Number.isSafeInteger(timestamp)
+        ) return;
+        await invoke("hud_idle", { timestamp });
+      }
+
+      const visibilityObserver = new MutationObserver(() => {
+        if (toast.getAttribute("aria-hidden") === "false") {
+          startCursorGate();
+        } else {
+          stopCursorGateAndHide().catch((error) =>
+            console.error("Ion Sense could not hide the idle HUD", error)
+          );
+        }
+      });
+      visibilityObserver.observe(toast, {
+        attributes: true,
+        attributeFilter: ["aria-hidden"]
+      });
+
+      async function connectNativeBridge() {
+        unlisten = await tauri.event.listen(EVENT_NAME, ({ payload }) => {
+          window.ionSenseTrigger(payload);
+        });
+        const isDev = await invokeAfterNativeSetup("hud_ready");
+        if (isDev) {
+          window.ionSenseTest = (eventType) =>
+            invoke("fire_test_event", { eventType });
+        }
+        await setClickThrough(true);
+      }
+
+      window.addEventListener("pagehide", () => {
+        cursorGeneration += 1;
+        window.clearInterval(cursorTimer);
+        visibilityObserver.disconnect();
+        if (typeof unlisten === "function") unlisten();
+      });
+
+      connectNativeBridge().catch((error) =>
+        console.error("Ion Sense native bridge failed", error)
+      );
+    })();
+  </script>
 </body>
 </html>

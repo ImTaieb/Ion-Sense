@@ -68,8 +68,13 @@ fn run(settings: BatterySettings, dispatcher: EventDispatcher, stop: Arc<AtomicB
                         ),
                         Severity::Warning,
                     );
-                    if dispatcher.dispatch_blocking(event).is_err() {
-                        return;
+                    if let Err(error) = dispatcher.try_dispatch(event) {
+                        match error {
+                            tokio::sync::mpsc::error::TrySendError::Closed(_) => return,
+                            tokio::sync::mpsc::error::TrySendError::Full(_) => eprintln!(
+                                "Ion Sense dropped a battery alert because the event queue is full"
+                            ),
+                        }
                     }
                     armed = false;
                 }

@@ -34,9 +34,10 @@ pub fn set_secret(kind: SecretKind, account: &str, secret: &str) -> Result<()> {
 
 pub fn delete_secret(kind: SecretKind, account: &str) -> Result<()> {
     let entry = Entry::new(kind.service(), account).context("open OS credential entry")?;
-    entry
-        .delete_credential()
-        .context("delete secret from OS keychain")
+    match entry.delete_credential() {
+        Ok(()) | Err(keyring::Error::NoEntry) => Ok(()),
+        Err(error) => Err(error).context("delete secret from OS keychain"),
+    }
 }
 
 pub fn credential_account(kind: SecretKind, configured_account: &str) -> String {

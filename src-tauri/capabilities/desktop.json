@@ -1,11 +1,14 @@
 {
   "$schema": "../gen/schemas/desktop-schema.json",
-  "identifier": "desktop",
-  "description": "Window-scoped permissions for the Ion Sense HUD and settings UI.",
-  "windows": ["hud", "settings"],
+  "identifier": "hud",
+  "description": "Least-privilege event and cursor routing permissions for the HUD only.",
+  "windows": ["hud"],
   "permissions": [
     "core:event:allow-listen",
-    "core:event:allow-unlisten"
+    "core:event:allow-unlisten",
+    "core:window:allow-cursor-position",
+    "core:window:allow-inner-position",
+    "core:window:allow-scale-factor",
+    "core:window:allow-set-ignore-cursor-events"
   ]
 }
-

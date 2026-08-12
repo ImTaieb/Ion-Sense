@@ -16,6 +16,7 @@
         "width": 940,
         "height": 300,
         "visible": false,
+        "closable": false,
         "decorations": false,
         "resizable": false,
         "maximizable": false,

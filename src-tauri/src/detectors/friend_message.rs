@@ -46,7 +46,11 @@ impl EventHandler for Handler {
             format!("{}: {body}", message.author.name),
             Severity::Info,
         );
-        let _ = self.dispatcher.dispatch(event).await;
+        if let Err(tokio::sync::mpsc::error::TrySendError::Full(_)) =
+            self.dispatcher.try_dispatch(event)
+        {
+            eprintln!("Ion Sense dropped a Discord alert because the event queue is full");
+        }
     }
 }
 
@@ -79,14 +83,23 @@ async fn run(settings: DiscordSettings, dispatcher: EventDispatcher, stop: Arc<A
 
     let handler = Handler {
         dispatcher,
-        allowed_channels: settings.allowed_channel_ids.into_iter().collect(),
+        allowed_channels: settings
+            .allowed_channel_ids
+            .into_iter()
+            .filter_map(|channel| channel.parse::<u64>().ok())
+            .collect(),
     };
     let intents = GatewayIntents::DIRECT_MESSAGES
         | GatewayIntents::GUILD_MESSAGES
         | GatewayIntents::MESSAGE_CONTENT;
-    let mut client = match Client::builder(token, intents).event_handler(handler).await {
-        Ok(client) => client,
-        Err(error) => {
+    let client_setup = Client::builder(token, intents).event_handler(handler);
+    let mut client = match tokio::time::timeout(Duration::from_secs(20), client_setup).await {
+        Err(_) => {
+            eprintln!("Ion Sense Discord client setup timed out");
+            return;
+        }
+        Ok(Ok(client)) => client,
+        Ok(Err(error)) => {
             eprintln!("Ion Sense Discord client setup failed: {error}");
             return;
         }

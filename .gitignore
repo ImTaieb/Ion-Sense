@@ -23,4 +23,4 @@ settings.local.json
 Thumbs.db
 .idea/
 .vscode/
-
+.tmp/

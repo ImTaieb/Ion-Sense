@@ -62,8 +62,13 @@ fn run(settings: TemperatureSettings, dispatcher: EventDispatcher, stop: Arc<Ato
                             format!("{sensor} reached {temperature:.0}°C."),
                             Severity::Critical,
                         );
-                        if dispatcher.dispatch_blocking(event).is_err() {
-                            return;
+                        if let Err(error) = dispatcher.try_dispatch(event) {
+                            match error {
+                                tokio::sync::mpsc::error::TrySendError::Closed(_) => return,
+                                tokio::sync::mpsc::error::TrySendError::Full(_) => eprintln!(
+                                    "Ion Sense dropped a temperature alert because the event queue is full"
+                                ),
+                            }
                         }
                         latched = true;
                     }

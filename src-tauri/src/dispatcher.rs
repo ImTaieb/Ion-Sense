@@ -22,10 +22,10 @@ impl EventDispatcher {
         self.sender.send(event).await
     }
 
-    pub fn dispatch_blocking(
+    pub fn try_dispatch(
         &self,
         event: IonSenseEvent,
-    ) -> Result<(), mpsc::error::SendError<IonSenseEvent>> {
-        self.sender.blocking_send(event)
+    ) -> Result<(), mpsc::error::TrySendError<IonSenseEvent>> {
+        self.sender.try_send(event)
     }
 }

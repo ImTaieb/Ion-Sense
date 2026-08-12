@@ -1,3 +1,4 @@
+use std::sync::atomic::{AtomicU64, Ordering};
 use std::time::{SystemTime, UNIX_EPOCH};
 
 use serde::{Deserialize, Serialize};
@@ -46,12 +47,27 @@ impl IonSenseEvent {
 }
 
 fn unix_timestamp_millis() -> u64 {
-    SystemTime::now()
+    static LAST_TIMESTAMP: AtomicU64 = AtomicU64::new(0);
+    let wall_clock = SystemTime::now()
         .duration_since(UNIX_EPOCH)
         .unwrap_or_default()
         .as_millis()
         .try_into()
-        .unwrap_or(u64::MAX)
+        .unwrap_or(u64::MAX);
+
+    let mut previous = LAST_TIMESTAMP.load(Ordering::Relaxed);
+    loop {
+        let next = wall_clock.max(previous.saturating_add(1));
+        match LAST_TIMESTAMP.compare_exchange_weak(
+            previous,
+            next,
+            Ordering::Relaxed,
+            Ordering::Relaxed,
+        ) {
+            Ok(_) => return next,
+            Err(observed) => previous = observed,
+        }
+    }
 }
 
 #[cfg(test)]
@@ -76,5 +92,12 @@ mod tests {
                 "timestamp": 42
             })
         );
+    }
+
+    #[test]
+    fn generated_timestamps_are_strictly_increasing() {
+        let first = IonSenseEvent::new(IonSenseEventType::NewEmail, "one", Severity::Info);
+        let second = IonSenseEvent::new(IonSenseEventType::NewEmail, "two", Severity::Info);
+        assert!(second.timestamp > first.timestamp);
     }
 }

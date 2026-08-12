@@ -69,9 +69,23 @@ impl DetectorRuntime {
 impl Drop for DetectorRuntime {
     fn drop(&mut self) {
         self.stop.store(true, Ordering::Release);
-        for worker in self.workers.drain(..) {
-            let _ = worker.join();
+        let workers: Vec<_> = self.workers.drain(..).collect();
+        if workers.is_empty() {
+            return;
         }
+
+        // Network clients can be inside a bounded connect/read timeout when a
+        // settings save asks them to stop. Reap them away from Tauri's command
+        // path so the settings window and tray never freeze while they exit.
+        let _ = std::thread::Builder::new()
+            .name("ion-detector-reaper".into())
+            .spawn(move || {
+                for worker in workers {
+                    if worker.join().is_err() {
+                        eprintln!("Ion Sense detector worker panicked during shutdown");
+                    }
+                }
+            });
     }
 }
 
