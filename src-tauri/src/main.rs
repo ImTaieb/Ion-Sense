@@ -3,4 +3,3 @@
 fn main() {
     ion_sense_lib::run();
 }
-
