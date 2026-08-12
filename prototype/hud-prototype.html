@@ -1013,10 +1013,10 @@
     }
     /* 2026 full-screen warning composition. */
     :root {
-      --toast-width: min(1400px, 73vw);
-      --badge-size: 414px;
-      --panel-height: 410px;
-      --panel-radius: 66px;
+      --toast-width: min(1390px, 72.4vw);
+      --badge-size: 420px;
+      --panel-height: 420px;
+      --panel-radius: 70px;
       --ion: #65ff23;
       --ion-bright: #82ff35;
       --ion-rgb: 101, 255, 35;
@@ -1034,10 +1034,10 @@
       opacity: 0;
       pointer-events: none;
       background:
-        radial-gradient(ellipse at 50% 46%, rgba(0, 3, 1, .07) 10%, rgba(0, 6, 2, .12) 58%, rgba(25, 74, 7, .20) 100%),
-        rgba(0, 5, 2, .13);
-      -webkit-backdrop-filter: blur(4px) saturate(.80) brightness(.76);
-      backdrop-filter: blur(4px) saturate(.80) brightness(.76);
+        radial-gradient(ellipse at 50% 46%, rgba(0, 2, 1, .12) 10%, rgba(0, 5, 2, .19) 58%, rgba(20, 62, 6, .27) 100%),
+        rgba(0, 4, 2, .20);
+      -webkit-backdrop-filter: blur(7px) saturate(.68) brightness(.62);
+      backdrop-filter: blur(7px) saturate(.68) brightness(.62);
       will-change: opacity, backdrop-filter;
     }
 
@@ -1084,17 +1084,17 @@
       0% { opacity: 0; -webkit-backdrop-filter: blur(0) saturate(1) brightness(1); backdrop-filter: blur(0) saturate(1) brightness(1); }
       28% { opacity: .72; }
       46% { opacity: .46; }
-      100% { opacity: 1; -webkit-backdrop-filter: blur(4px) saturate(.80) brightness(.76); backdrop-filter: blur(4px) saturate(.80) brightness(.76); }
+      100% { opacity: 1; -webkit-backdrop-filter: blur(7px) saturate(.68) brightness(.62); backdrop-filter: blur(7px) saturate(.68) brightness(.62); }
     }
 
     @keyframes screen-warn-out {
-      0% { opacity: 1; -webkit-backdrop-filter: blur(4px) saturate(.80) brightness(.76); backdrop-filter: blur(4px) saturate(.80) brightness(.76); }
+      0% { opacity: 1; -webkit-backdrop-filter: blur(7px) saturate(.68) brightness(.62); backdrop-filter: blur(7px) saturate(.68) brightness(.62); }
       54% { opacity: .62; }
       100% { opacity: 0; -webkit-backdrop-filter: blur(0) saturate(1) brightness(1); backdrop-filter: blur(0) saturate(1) brightness(1); }
     }
 
     .hud-toast {
-      top: 47.9%;
+      top: 48.35%;
       left: calc(50% - 28px);
       right: auto;
       width: var(--toast-width);
@@ -1155,13 +1155,13 @@
     }
 
     .panel-shell::after { top: 88px; right: 36px; width: 138px; height: 96px; opacity: .055; background-size: 9px 9px; }
-    .panel-content { grid-template-rows: 78px 1fr 88px; min-height: calc(var(--panel-height) - 2px); padding-left: 0; }
-    .hud-header { padding: 14px 54px 0 423px; }
+    .panel-content { grid-template-rows: 78px 1fr 106px; min-height: calc(var(--panel-height) - 2px); padding-left: 0; }
+    .hud-header { padding: 14px 54px 0 423px; transform: translateY(17px); }
     .brand-name { font-size: 20px; font-weight: 610; letter-spacing: .30em; }
     .header-rule { margin-right: 14px; background: linear-gradient(90deg, rgba(var(--ion-rgb), .90), rgba(var(--ion-rgb), .06)); }
     .close-button { width: 40px; height: 40px; flex-basis: 40px; }
     .close-button::before, .close-button::after { left: 9px; top: 19px; width: 22px; height: 2px; }
-    .hud-body { grid-template-columns: 110px 1px minmax(0, 1fr); gap: 27px; padding: 2px 46px 18px 434px; }
+    .hud-body { grid-template-columns: 110px 1px minmax(0, 1fr); gap: 38px; padding: 2px 46px 18px 451px; }
     .hud-body::before {
       content: "";
       grid-column: 2;
@@ -1187,7 +1187,7 @@
     .event-message { color: #aeb4b0; font-size: 24px; line-height: 1.35; }
     .hud-footer {
       grid-template-columns: 31px minmax(180px, 1fr) auto;
-      gap: 24px;
+      gap: 40px;
       padding: 0 66px 0 402px;
       border-top-color: rgba(var(--ion-rgb), .28);
       background: linear-gradient(90deg, rgba(var(--ion-rgb), .025), transparent 42%), rgba(0, 0, 0, .07);
@@ -1197,7 +1197,7 @@
     .spoken-line { font-size: 25px; font-weight: 590; letter-spacing: .085em; }
     .brand-badge {
       top: 50%;
-      left: -12px;
+      left: 0;
       width: var(--badge-size);
       height: var(--badge-size);
       transform: translateY(-50%);
@@ -1209,6 +1209,7 @@
     .badge-arc { opacity: .76; filter: drop-shadow(0 0 2px rgba(var(--ion-rgb), .40)) drop-shadow(0 0 7px rgba(var(--ion-rgb), .15)); }
     .badge-mark { opacity: .80; filter: drop-shadow(0 0 2px rgba(var(--ion-rgb), .42)) drop-shadow(0 0 7px rgba(var(--ion-rgb), .16)); }
     .badge-bracket, .badge-dot-bright { opacity: .58; }
+    .brand-badge .badge-svg { width: 86%; height: 86%; margin: 7%; }
 
     .panel-notch {
       position: absolute;
