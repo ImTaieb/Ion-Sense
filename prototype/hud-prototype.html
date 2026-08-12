@@ -1013,10 +1013,10 @@
     }
     /* 2026 full-screen warning composition. */
     :root {
-      --toast-width: min(1240px, calc(100vw - 11vw));
-      --badge-size: 310px;
-      --panel-height: 352px;
-      --panel-radius: 76px;
+      --toast-width: min(1400px, 74vw);
+      --badge-size: 352px;
+      --panel-height: 410px;
+      --panel-radius: 110px;
       --ion: #65ff23;
       --ion-bright: #82ff35;
       --ion-rgb: 101, 255, 35;
@@ -1034,8 +1034,8 @@
       opacity: 0;
       pointer-events: none;
       background:
-        radial-gradient(ellipse at 50% 44%, transparent 16%, rgba(0, 7, 2, .24) 59%, rgba(34, 111, 0, .26) 100%),
-        rgba(0, 5, 2, .20);
+        radial-gradient(ellipse at 50% 46%, rgba(0, 0, 0, .11) 7%, rgba(0, 4, 1, .34) 56%, rgba(39, 124, 0, .34) 100%),
+        rgba(0, 5, 2, .34);
       backdrop-filter: blur(0) saturate(1) brightness(1);
       will-change: opacity, backdrop-filter;
     }
@@ -1046,9 +1046,10 @@
       inset: 1px;
       border: 1px solid rgba(var(--ion-rgb), .74);
       box-shadow:
-        inset 0 0 9px rgba(var(--ion-rgb), .30),
-        inset 0 0 44px rgba(var(--ion-rgb), .12),
-        0 0 9px rgba(var(--ion-rgb), .36);
+        inset 0 0 10px rgba(var(--ion-rgb), .36),
+        inset 0 0 62px rgba(var(--ion-rgb), .17),
+        inset 0 0 150px rgba(67, 178, 8, .10),
+        0 0 10px rgba(var(--ion-rgb), .42);
       filter: drop-shadow(0 0 3px rgba(var(--ion-rgb), .52)) drop-shadow(0 0 15px rgba(var(--ion-rgb), .25));
     }
 
@@ -1072,7 +1073,7 @@
 
     .hud-layer.is-visible .screen-overlay {
       opacity: 1;
-      backdrop-filter: blur(6px) saturate(.82) brightness(.76);
+      backdrop-filter: blur(9px) saturate(.76) brightness(.66);
     }
 
     .hud-layer.is-exiting .screen-overlay {
@@ -1083,17 +1084,17 @@
       0% { opacity: 0; backdrop-filter: blur(0) saturate(1) brightness(1); }
       28% { opacity: .72; }
       46% { opacity: .46; }
-      100% { opacity: 1; backdrop-filter: blur(6px) saturate(.82) brightness(.76); }
+      100% { opacity: 1; backdrop-filter: blur(9px) saturate(.76) brightness(.66); }
     }
 
     @keyframes screen-warn-out {
-      0% { opacity: 1; backdrop-filter: blur(6px) saturate(.82) brightness(.76); }
+      0% { opacity: 1; backdrop-filter: blur(9px) saturate(.76) brightness(.66); }
       54% { opacity: .62; }
       100% { opacity: 0; backdrop-filter: blur(0) saturate(1) brightness(1); }
     }
 
     .hud-toast {
-      top: 50%;
+      top: 48.6%;
       left: 50%;
       right: auto;
       width: var(--toast-width);
@@ -1140,9 +1141,9 @@
       box-shadow:
         inset 0 1px 0 rgba(230, 255, 235, .10),
         inset 0 -1px 0 rgba(var(--ion-rgb), .21),
-        0 0 8px rgba(var(--ion-rgb), .68),
-        0 0 32px rgba(var(--ion-rgb), .34),
-        0 0 76px rgba(var(--ion-rgb), .14);
+        0 0 6px rgba(var(--ion-rgb), .64),
+        0 0 24px rgba(var(--ion-rgb), .36),
+        0 0 82px rgba(var(--ion-rgb), .19);
       filter: none;
       backdrop-filter: blur(26px) saturate(125%);
     }
@@ -1152,19 +1153,19 @@
         radial-gradient(circle at 88% 14%, rgba(var(--ion-rgb), .11), transparent 28%);
     }
 
-    .panel-shell::after { top: 96px; right: 38px; width: 138px; height: 96px; opacity: .12; background-size: 9px 9px; }
-    .panel-content { grid-template-rows: 76px 1fr 84px; min-height: calc(var(--panel-height) - 2px); padding-left: 0; }
-    .hud-header { padding: 14px 32px 0 346px; }
-    .brand-name { font-size: 15px; font-weight: 760; letter-spacing: .30em; }
+    .panel-shell::after { top: 100px; right: 42px; width: 146px; height: 102px; opacity: .10; background-size: 9px 9px; }
+    .panel-content { grid-template-rows: 82px 1fr 94px; min-height: calc(var(--panel-height) - 2px); padding-left: 0; }
+    .hud-header { padding: 16px 86px 0 398px; }
+    .brand-name { font-size: 17px; font-weight: 760; letter-spacing: .30em; }
     .header-rule { margin-right: 14px; background: linear-gradient(90deg, rgba(var(--ion-rgb), .90), rgba(var(--ion-rgb), .06)); }
-    .close-button { width: 44px; height: 44px; flex-basis: 44px; }
-    .close-button::before, .close-button::after { left: 10px; top: 21px; width: 24px; height: 2px; }
-    .hud-body { grid-template-columns: 108px 1px minmax(0, 1fr); gap: 32px; padding: 2px 54px 20px 346px; }
+    .close-button { width: 48px; height: 48px; flex-basis: 48px; }
+    .close-button::before, .close-button::after { left: 10px; top: 23px; width: 28px; height: 2px; }
+    .hud-body { grid-template-columns: 116px 1px minmax(0, 1fr); gap: 34px; padding: 2px 62px 22px 425px; }
     .hud-body::before {
       content: "";
       grid-column: 2;
       width: 1px;
-      height: 92px;
+      height: 98px;
       align-self: center;
       background: linear-gradient(180deg, transparent, rgba(var(--ion-rgb), .54) 18%, rgba(var(--ion-rgb), .30) 82%, transparent);
       box-shadow: 0 0 8px rgba(var(--ion-rgb), .20);
@@ -1172,27 +1173,27 @@
     .event-icon-shell {
       grid-column: 1;
       grid-row: 1;
-      width: 108px;
-      height: 108px;
+      width: 116px;
+      height: 116px;
       border-width: 2px;
       border-color: rgba(var(--ion-rgb), .56);
       background: radial-gradient(circle at 50% 45%, rgba(var(--ion-rgb), .15), transparent 62%), rgba(0, 4, 2, .42);
       box-shadow: inset 0 0 0 9px rgba(var(--ion-rgb), .025), inset 0 0 24px rgba(var(--ion-rgb), .065), 0 0 18px rgba(var(--ion-rgb), .14);
     }
-    .event-icon-shell svg { width: 55px; height: 55px; stroke-width: 2.4; }
+    .event-icon-shell svg { width: 58px; height: 58px; stroke-width: 2.4; }
     .event-copy { grid-column: 3; grid-row: 1; }
-    .event-title { margin-bottom: 10px; font-size: clamp(29px, 2.2vw, 40px); font-weight: 720; letter-spacing: .035em; }
-    .event-message { color: #b7bcb8; font-size: 20px; line-height: 1.35; }
+    .event-title { margin-bottom: 12px; font-size: clamp(32px, 2.35vw, 45px); font-weight: 700; letter-spacing: .035em; }
+    .event-message { color: #b7bcb8; font-size: 25px; line-height: 1.35; }
     .hud-footer {
       grid-template-columns: 34px minmax(180px, 1fr) auto;
-      gap: 26px;
-      padding: 0 54px 0 346px;
+      gap: 28px;
+      padding: 0 80px 0 370px;
       border-top-color: rgba(var(--ion-rgb), .28);
       background: linear-gradient(90deg, rgba(var(--ion-rgb), .05), transparent 42%), rgba(0, 0, 0, .10);
     }
-    .speaker-icon { width: 31px; height: 31px; stroke-width: 1.9; }
-    .waveform { height: 45px; }
-    .spoken-line { font-size: 19px; font-weight: 650; letter-spacing: .075em; }
+    .speaker-icon { width: 34px; height: 34px; stroke-width: 1.9; }
+    .waveform { height: 48px; }
+    .spoken-line { font-size: 25px; font-weight: 650; letter-spacing: .085em; }
     .brand-badge {
       top: 50%;
       left: 7px;
@@ -1206,8 +1207,24 @@
     .badge-outer { stroke-width: 1.7; }
     .badge-arc { filter: drop-shadow(0 0 3px rgba(var(--ion-rgb), .9)) drop-shadow(0 0 12px rgba(var(--ion-rgb), .48)); }
 
+    .panel-notch {
+      position: absolute;
+      top: 40.5%;
+      right: -1px;
+      z-index: 5;
+      width: 10px;
+      height: 42px;
+      border: 1px solid rgba(var(--ion-rgb), .58);
+      border-right: 0;
+      border-radius: 28px 0 0 28px;
+      background: rgba(0, 4, 2, .98);
+      box-shadow: -2px 0 7px rgba(var(--ion-rgb), .12), inset 2px 0 7px rgba(var(--ion-rgb), .06);
+      pointer-events: none;
+    }
+
     @media (max-width: 1180px), (max-height: 660px) {
       :root { --toast-width: min(1020px, calc(100vw - 7vw)); --badge-size: 246px; --panel-height: 288px; --panel-radius: 62px; }
+      .hud-toast { top: 50%; }
       .panel-content { grid-template-rows: 62px 1fr 70px; }
       .hud-header { padding-left: 274px; }
       .hud-body { grid-template-columns: 88px 1px minmax(0, 1fr); gap: 24px; padding: 2px 36px 15px 274px; }
@@ -1218,6 +1235,7 @@
       .event-message { font-size: 16px; }
       .hud-footer { padding-left: 274px; padding-right: 36px; }
       .spoken-line { font-size: 15px; }
+      .panel-notch { width: 8px; height: 34px; }
     }
 
     @media (max-width: 720px) {
@@ -1291,6 +1309,7 @@
       role="status"
     >
       <div class="panel-shell">
+        <span class="panel-notch" aria-hidden="true"></span>
         <div class="panel-content">
           <header class="hud-header">
             <span class="brand-name">Ion Sense</span>
