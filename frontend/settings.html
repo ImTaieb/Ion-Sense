@@ -654,78 +654,88 @@
       *, *::before, *::after { scroll-behavior: auto !important; animation-duration: .01ms !important; animation-delay: 0ms !important; animation-iteration-count: 1 !important; transition-duration: .01ms !important; }
     }
 
-    /* Compact tray utility treatment: calm surfaces and clear control rows,
-       inspired by native network/privacy popovers without copying their UI. */
-    body { padding: 5px; }
+    /* Final tray console: one continuous window edge and a restrained,
+       native-utility hierarchy. */
+    html,
+    body {
+      width: 100%;
+      height: 100%;
+      overflow: hidden;
+      background: transparent;
+    }
+    body { padding: 0; }
     .shell {
-      grid-template-rows: 92px minmax(0, 1fr);
+      grid-template-rows: 88px minmax(0, 1fr);
       gap: 0;
-      height: calc(100dvh - 10px);
+      width: 100%;
+      height: 100dvh;
       padding: 0;
-      border-color: rgba(var(--ion-rgb), .22);
-      border-radius: 18px;
-      background: linear-gradient(180deg, rgba(5, 10, 7, .995), rgba(1, 5, 3, .995));
-      box-shadow: inset 0 1px rgba(255,255,255,.055), 0 20px 50px rgba(0,0,0,.52), 0 0 20px rgba(var(--ion-rgb),.045);
+      border: 1px solid rgba(var(--ion-rgb), .28);
+      border-radius: 16px;
+      background:
+        radial-gradient(circle at 50% -12%, rgba(var(--ion-rgb), .075), transparent 34%),
+        linear-gradient(180deg, #050a07, #010403 74%);
+      box-shadow: inset 0 1px rgba(255,255,255,.055), inset 0 0 38px rgba(var(--ion-rgb),.018);
     }
     .settings-hero {
-      height: 92px;
-      padding: 16px 17px;
-      grid-template-columns: 50px minmax(0, 1fr);
-      gap: 13px;
+      height: 88px;
+      padding: 14px 16px;
+      grid-template-columns: 48px minmax(0, 1fr);
+      gap: 12px;
       border: 0;
       border-bottom: 1px solid rgba(255,255,255,.07);
-      border-radius: 17px 17px 0 0;
-      background: linear-gradient(180deg, rgba(var(--ion-rgb), .045), transparent 78%);
+      border-radius: 15px 15px 0 0;
+      background: linear-gradient(180deg, rgba(var(--ion-rgb), .04), transparent 86%);
       box-shadow: none;
     }
     .editor-back {
       position: absolute;
-      top: 10px;
-      right: 10px;
+      top: 9px;
+      right: 9px;
       z-index: 4;
       display: grid;
       place-items: center;
-      width: 30px;
-      min-height: 30px;
+      width: 31px;
+      min-height: 31px;
       padding: 0;
-      color: #9da8a1;
-      border: 1px solid rgba(255,255,255,.10);
-      border-radius: 8px;
-      background: rgba(0,0,0,.22);
-      font-size: 17px;
+      color: #9ca7a0;
+      border: 1px solid rgba(255,255,255,.09);
+      border-radius: 9px;
+      background: rgba(0,0,0,.25);
+      font-size: 16px;
     }
     .settings-hero::after, .hero-state { display: none; }
     .settings-brand {
-      width: 50px;
-      height: 50px;
+      width: 48px;
+      height: 48px;
       border-color: rgba(var(--ion-rgb),.45);
       box-shadow: inset 0 0 0 6px rgba(var(--ion-rgb),.018), 0 0 13px rgba(var(--ion-rgb),.08);
     }
     .settings-brand::before,
-    .settings-brand::after { left: 17px; width: 16px; }
-    .settings-brand::before { top: 12px; }
-    .settings-brand::after { bottom: 12px; }
-    .settings-brand span { height: 19px; }
-    .eyebrow { color: rgba(var(--ion-rgb), .78); font-size: 9px; letter-spacing: .19em; }
-    h1 { margin: 3px 0 2px; font-size: 19px; font-weight: 640; letter-spacing: -.015em; }
-    .intro { max-width: 280px; color: #89938d; font-size: 10px; line-height: 1.35; }
-    form { grid-template-rows: minmax(0, 1fr) 94px; gap: 0; }
-    .settings-scroll { padding: 10px 8px 12px 10px; }
+    .settings-brand::after { left: 16px; width: 16px; }
+    .settings-brand::before { top: 11px; }
+    .settings-brand::after { bottom: 11px; }
+    .settings-brand span { height: 18px; }
+    .eyebrow { color: rgba(var(--ion-rgb), .78); font-size: 9.5px; letter-spacing: .17em; }
+    h1 { margin: 3px 0 2px; font-size: 19px; font-weight: 650; letter-spacing: -.015em; }
+    .intro { max-width: 270px; color: #8e9992; font-size: 10.5px; line-height: 1.35; }
+    form { grid-template-rows: minmax(0, 1fr) 96px; gap: 0; }
+    .settings-scroll { padding: 8px 7px 10px 9px; }
     .settings-grid { display: block; }
     section.settings-card {
       margin: 0;
-      padding: 15px 12px;
+      padding: 15px 13px 16px;
       border: 0;
-      border-bottom: 1px solid rgba(255,255,255,.065);
+      border-bottom: 1px solid rgba(255,255,255,.07);
       border-radius: 0;
-      background: transparent;
+      background: linear-gradient(90deg, transparent, rgba(var(--ion-rgb),.008));
       box-shadow: none;
       animation-delay: calc(35ms + var(--card-index, 0) * 26ms);
     }
     section.settings-card:hover {
       transform: none;
       border-color: rgba(255,255,255,.075);
-      background: rgba(var(--ion-rgb), .018);
+      background: linear-gradient(90deg, rgba(var(--ion-rgb), .022), rgba(var(--ion-rgb), .008));
       box-shadow: none;
     }
     section.settings-card:focus-within {
@@ -734,61 +744,163 @@
       background: rgba(var(--ion-rgb), .022);
       box-shadow: inset 2px 0 rgba(var(--ion-rgb), .46);
     }
-    section.settings-card::after { top: 16px; right: 12px; font-size: 10px; opacity: .52; }
+    section.settings-card::after { top: 16px; right: 13px; font-size: 10px; opacity: .44; }
     .section-head { min-height: 25px; margin-bottom: 11px; padding-right: 26px; }
     h2 { color: #e9eeeb; font-size: 11px; font-weight: 650; letter-spacing: .055em; }
     h2::before { width: 5px; height: 5px; border-color: rgba(var(--ion-rgb), .55); }
     .grid { grid-template-columns: 1fr; gap: 9px; }
     .span-2 { grid-column: auto; }
-    label.field { gap: 5px; color: #9ba59f; font-size: 9.5px; letter-spacing: .055em; }
+    label.field { gap: 6px; color: #a0aaa3; font-size: 10.5px; letter-spacing: .045em; }
     input[type="text"], input[type="password"], input[type="number"] {
-      min-height: 40px;
+      min-height: 41px;
       padding: 9px 11px;
       border-color: rgba(190,211,197,.12);
       border-radius: 9px;
-      background: rgba(0, 3, 2, .74);
-      font-size: 11px;
+      background: linear-gradient(180deg, rgba(0,4,2,.84), rgba(0,2,1,.76));
+      font-size: 11.5px;
     }
-    .switch { padding-right: 22px; font-size: 9px; }
+    .switch { padding-right: 22px; font-size: 10px; }
     .track { width: 38px; height: 21px; }
     .track::after { width: 15px; height: 15px; }
     .switch input:checked + .track::after { transform: translateX(17px); }
-    .hint { margin-top: 8px; color: #747f78; font-size: 9.5px; line-height: 1.42; }
+    .hint { margin-top: 8px; color: #7f8a83; font-size: 10px; line-height: 1.45; }
     .credential-row { grid-template-columns: 1fr auto; }
     button { min-height: 40px; }
-    .platform-note { margin: 10px 2px 0; font-size: 9px; }
+    .platform-note { margin: 10px 2px 0; font-size: 9.5px; }
     .actions {
       align-items: stretch;
       flex-direction: column;
       gap: 7px;
-      min-height: 94px;
+      min-height: 96px;
       padding: 9px 10px 10px;
       border: 0;
       border-top: 1px solid rgba(255,255,255,.075);
-      border-radius: 0 0 17px 17px;
-      background: rgba(3, 8, 5, .995);
-      box-shadow: 0 -15px 30px rgba(0,0,0,.34);
+      border-radius: 0 0 15px 15px;
+      background: linear-gradient(180deg, rgba(3,8,5,.98), rgba(2,6,4,.998));
+      box-shadow: 0 -14px 30px rgba(0,0,0,.30);
       backdrop-filter: none;
     }
-    #status { min-height: 28px; padding-left: 29px; font-size: 9.5px; }
+    #status { min-height: 28px; padding-left: 29px; font-size: 10px; }
     button.primary {
       width: 100%;
       min-width: 0;
       min-height: 43px;
-      border-radius: 9px;
-      background: linear-gradient(180deg, #58e76d, #42cd58);
-      box-shadow: inset 0 1px rgba(255,255,255,.30), 0 6px 18px rgba(39,175,61,.12);
-      font-size: 10px;
+      border-radius: 10px;
+      background: linear-gradient(180deg, #62ec76, #42cf58);
+      box-shadow: inset 0 1px rgba(255,255,255,.34), 0 7px 20px rgba(39,175,61,.14);
+      font-size: 10.5px;
+    }
+
+    .utility-overview {
+      grid-template-rows: 54px minmax(0, 1fr) 64px;
+      border-radius: 15px;
+      background: transparent;
+    }
+    .utility-topbar {
+      display: grid;
+      grid-template-columns: 30px minmax(0, 1fr) auto;
+      align-items: center;
+      gap: 10px;
+      padding: 0 14px;
+      border-bottom: 1px solid rgba(255,255,255,.065);
+      background: rgba(255,255,255,.012);
+    }
+    .utility-app-icon {
+      position: relative;
+      display: grid;
+      place-items: center;
+      width: 28px;
+      height: 28px;
+      color: var(--ion);
+      border: 1px solid rgba(var(--ion-rgb),.35);
+      border-radius: 8px;
+      background: rgba(var(--ion-rgb),.045);
+      font: 750 14px/1 ui-monospace, monospace;
+      box-shadow: inset 0 1px rgba(255,255,255,.035), 0 0 12px rgba(var(--ion-rgb),.045);
+    }
+    .utility-app-name { color: #edf3ef; font-size: 11px; font-weight: 680; letter-spacing: .08em; }
+    .utility-app-name small { display: block; margin-top: 1px; color: #6f7b73; font-size: 8px; font-weight: 550; letter-spacing: .05em; }
+    .utility-live {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      color: #9eaaa2;
+      font: 650 8px/1 ui-monospace, monospace;
+      letter-spacing: .12em;
+      text-transform: uppercase;
+    }
+    .utility-live::before {
+      content: "";
+      width: 6px;
+      height: 6px;
+      border-radius: 50%;
+      background: var(--ion);
+      box-shadow: 0 0 8px rgba(var(--ion-rgb),.55);
+      animation: live-breathe 2.2s ease-in-out infinite;
+    }
+    .utility-status {
+      gap: 16px;
+      padding: 24px 24px 20px;
+      background:
+        radial-gradient(circle at 50% 38%, rgba(var(--ion-rgb), .075), transparent 35%),
+        linear-gradient(180deg, rgba(255,255,255,.008), transparent 32%);
+    }
+    .utility-status > .eyebrow { margin-bottom: -6px; color: #76827a; font-size: 8.5px; letter-spacing: .2em; }
+    .utility-mark {
+      width: 98px;
+      height: 98px;
+      border-color: rgba(var(--ion-rgb), .38);
+      background: radial-gradient(circle, rgba(var(--ion-rgb), .08), rgba(0,3,2,.94) 69%);
+      box-shadow: inset 0 0 0 8px rgba(var(--ion-rgb),.016), 0 0 24px rgba(var(--ion-rgb),.075);
+    }
+    .utility-mark::before,
+    .utility-mark::after { left: 34px; width: 30px; height: 5px; }
+    .utility-mark::before { top: 26px; }
+    .utility-mark::after { bottom: 26px; }
+    .utility-mark span { width: 5px; height: 36px; }
+    .utility-status h2 { font-size: 25px; font-weight: 590; letter-spacing: -.025em; }
+    .utility-status p { max-width: 286px; margin: -7px 0 0; color: #9aa59e; font-size: 12.5px; line-height: 1.5; }
+    .utility-stat { padding: 7px 11px; color: #87938b; font-size: 9px; background: rgba(var(--ion-rgb),.02); }
+    .utility-nav {
+      grid-template-columns: 1fr 62px;
+      min-height: 64px;
+      border-top-color: rgba(255,255,255,.075);
+      background: linear-gradient(180deg, #18211c, #141c18);
+      box-shadow: inset 0 1px rgba(255,255,255,.022);
+    }
+    .utility-wordmark { padding-left: 15px; font-size: 14px; letter-spacing: .055em; }
+    .utility-wordmark small { margin-top: 1px; color: #87928b; font-size: 8px; }
+    .utility-settings-button {
+      width: 44px;
+      height: 44px;
+      min-height: 44px;
+      border-color: rgba(255,255,255,.12);
+      border-radius: 10px;
+      background: linear-gradient(180deg, rgba(255,255,255,.035), rgba(0,0,0,.18));
+      font-size: 21px;
+    }
+    .utility-settings-button:active:not(:disabled) { transform: translateY(0) scale(.96); }
+    .shell[data-view="overview"] { grid-template-rows: minmax(0, 1fr); }
+    #dev-tools::after { content: none; }
+
+    @keyframes live-breathe {
+      0%, 100% { opacity: .62; transform: scale(.86); }
+      50% { opacity: 1; transform: scale(1); }
     }
   </style>
 </head>
 <body>
   <div class="shell" data-view="overview">
     <section class="utility-overview" aria-label="Ion Sense status">
+      <div class="utility-topbar">
+        <span class="utility-app-icon" aria-hidden="true">I</span>
+        <div class="utility-app-name">ION SENSE<small>system utility</small></div>
+        <span class="utility-live">Live</span>
+      </div>
       <div class="utility-status">
-        <div class="eyebrow">Ion Sense</div>
+        <div class="eyebrow">System status</div>
         <div class="utility-mark" aria-hidden="true"><span></span></div>
-        <h2>System awareness</h2>
+        <h2>Monitoring</h2>
         <p>Quietly monitoring the signals that matter. Ion Sense will surface an alert when something needs you.</p>
         <div class="utility-stats" aria-label="Enabled detector summary">
           <span class="utility-stat"><strong id="enabled-count">0</strong> active</span>
@@ -797,7 +909,7 @@
       </div>
       <nav class="utility-nav" aria-label="Ion Sense utility navigation">
         <div class="utility-wordmark">ION SENSE<small>system awareness</small></div>
-        <button id="open-editor" class="utility-settings-button" type="button" aria-label="Open detector settings">⚙</button>
+        <button id="open-editor" class="utility-settings-button" type="button" aria-label="Open detector settings" title="Open detector settings">⚙</button>
       </nav>
     </section>
     <header class="settings-hero">

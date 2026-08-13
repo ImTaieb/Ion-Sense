@@ -1525,6 +1525,27 @@
     .hud-toast.is-visible .wave-bar.is-dot { opacity: .72; transform: scale(.9); }
     .hud-toast.is-entering .waveform::after { animation: none; }
 
+    /* The entrance builds the waveform. Speech then owns it until the
+       utterance ends, so the visual response stays synchronized with voice. */
+    .hud-toast .waveform.is-speaking .wave-bar {
+      opacity: .94;
+      animation: voice-react var(--voice-duration, 190ms) ease-in-out infinite alternate;
+      animation-delay: var(--voice-delay, 0ms);
+    }
+    .hud-toast .waveform.is-speaking .wave-bar.is-dot {
+      animation-name: voice-dot-react;
+    }
+    @keyframes voice-react {
+      0% { opacity: .38; transform: scaleY(.24); }
+      48% { opacity: 1; transform: scaleY(1.08); }
+      100% { opacity: .66; transform: scaleY(.52); }
+    }
+    @keyframes voice-dot-react {
+      0% { opacity: .28; transform: scale(.55); }
+      55% { opacity: 1; transform: scale(1.15); }
+      100% { opacity: .55; transform: scale(.78); }
+    }
+
     @media (max-width: 1180px), (max-height: 660px) {
       :root { --toast-width: min(960px, calc(100vw - 15vw)); --badge-size: 238px; --panel-height: 272px; --panel-radius: 48px; }
       .hud-toast { top: 50%; left: 50%; }
@@ -1798,6 +1819,8 @@
       let dismissTimer = 0;
       let phaseTimer = 0;
       let speechTimer = 0;
+      let speechVisualTimer = 0;
+      let activeUtterance = null;
 
       const prefersReducedMotion = () =>
         typeof window.matchMedia === "function" &&
@@ -1828,6 +1851,8 @@
           bar.style.setProperty("--bar-height", `${height}px`);
           bar.style.setProperty("--wave-in-delay", `${720 + Math.abs(index - 30) * 5}ms`);
           bar.style.setProperty("--wave-out-delay", `${Math.abs(index - 30) * 2}ms`);
+          bar.style.setProperty("--voice-delay", `${-((index * 37) % 210)}ms`);
+          bar.style.setProperty("--voice-duration", `${155 + Math.round(random() * 120)}ms`);
           fragment.appendChild(bar);
         }
         waveform.replaceChildren(fragment);
@@ -1902,16 +1927,42 @@
         devStatus.textContent = `${state} · Q${queue.length}`;
       }
 
+      function stopVoiceVisualization() {
+        window.clearTimeout(speechVisualTimer);
+        speechVisualTimer = 0;
+        waveform.classList.remove("is-speaking");
+        activeUtterance = null;
+      }
+
+      function startVoiceVisualization() {
+        window.clearTimeout(speechVisualTimer);
+        waveform.classList.add("is-speaking");
+        speechVisualTimer = window.setTimeout(stopVoiceVisualization, 1450);
+      }
+
       function speakWarning() {
-        if (!("speechSynthesis" in window) || typeof window.SpeechSynthesisUtterance !== "function") return;
+        if (!("speechSynthesis" in window) || typeof window.SpeechSynthesisUtterance !== "function") {
+          startVoiceVisualization();
+          return;
+        }
         try {
           window.speechSynthesis.cancel();
           const utterance = new SpeechSynthesisUtterance("Warning.");
           utterance.rate = 0.9;
           utterance.pitch = 0.82;
           utterance.volume = 0.72;
+          utterance.onstart = startVoiceVisualization;
+          utterance.onend = stopVoiceVisualization;
+          utterance.onerror = stopVoiceVisualization;
+          activeUtterance = utterance;
           window.speechSynthesis.speak(utterance);
+          // WebView2 voices occasionally omit onstart. Start a visual fallback
+          // on the next frame; a real onstart simply restarts it in sync.
+          window.requestAnimationFrame(() => {
+            if (!waveform.classList.contains("is-speaking")) startVoiceVisualization();
+          });
         } catch (error) {
+          startVoiceVisualization();
           console.info("Ion Sense voice preview is unavailable in this browser.", error);
         }
       }
@@ -1939,9 +1990,13 @@
         window.clearTimeout(dismissTimer);
         window.clearTimeout(phaseTimer);
         window.clearTimeout(speechTimer);
+        window.clearTimeout(speechVisualTimer);
         dismissTimer = 0;
         phaseTimer = 0;
         speechTimer = 0;
+        speechVisualTimer = 0;
+        activeUtterance = null;
+        waveform.classList.remove("is-speaking");
       }
 
       function prepareNext() {
