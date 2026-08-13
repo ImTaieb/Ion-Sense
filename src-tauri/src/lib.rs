@@ -7,7 +7,7 @@ mod settings;
 use std::path::PathBuf;
 use std::sync::{
     Arc, Mutex, RwLock,
-    atomic::{AtomicBool, AtomicU64, Ordering},
+    atomic::{AtomicBool, AtomicU8, AtomicU64, Ordering},
 };
 use std::time::Duration;
 
@@ -34,6 +34,7 @@ const SETTINGS_CLOSE_REQUEST_EVENT: &str = "ion-sense://settings-close-request";
 const SETTINGS_CLOSE_FALLBACK: Duration = Duration::from_millis(700);
 const SETTINGS_WIDTH_LOGICAL: f64 = 390.0;
 const SETTINGS_HEIGHT_LOGICAL: f64 = 680.0;
+const SETTINGS_CORNER_RADIUS_LOGICAL: f64 = 16.0;
 
 #[cfg(windows)]
 fn set_native_window_alpha(window: &WebviewWindow, alpha: u8) -> tauri::Result<()> {
@@ -56,6 +57,71 @@ fn set_native_window_alpha(window: &WebviewWindow, alpha: u8) -> tauri::Result<(
 #[cfg(not(windows))]
 fn set_native_window_alpha(_window: &WebviewWindow, _alpha: u8) -> tauri::Result<()> {
     Ok(())
+}
+
+#[cfg(windows)]
+fn apply_settings_window_shape(window: &WebviewWindow) -> tauri::Result<()> {
+    use windows::Win32::Graphics::Gdi::{CreateRoundRectRgn, DeleteObject, HGDIOBJ, SetWindowRgn};
+
+    let hwnd = window.hwnd()?;
+    let size = window.outer_size()?;
+    let scale = window.scale_factor()?.max(f64::EPSILON);
+    let corner_diameter = (SETTINGS_CORNER_RADIUS_LOGICAL * 2.0 * scale).round() as i32;
+    unsafe {
+        // SetWindowRgn takes ownership of a successfully assigned region.
+        let region = CreateRoundRectRgn(
+            0,
+            0,
+            size.width.saturating_add(1) as i32,
+            size.height.saturating_add(1) as i32,
+            corner_diameter,
+            corner_diameter,
+        );
+        if region.0.is_null() {
+            return Err(tauri::Error::Anyhow(anyhow::anyhow!(
+                "could not create the rounded settings window region"
+            )));
+        }
+        if SetWindowRgn(hwnd, Some(region), true) == 0 {
+            let _ = DeleteObject(HGDIOBJ(region.0));
+            return Err(tauri::Error::Anyhow(anyhow::anyhow!(
+                "could not apply the rounded settings window region"
+            )));
+        }
+    }
+    Ok(())
+}
+
+#[cfg(not(windows))]
+fn apply_settings_window_shape(_window: &WebviewWindow) -> tauri::Result<()> {
+    Ok(())
+}
+
+async fn fade_settings_window(
+    window: &WebviewWindow,
+    lifecycle: &SettingsWindowLifecycle,
+    generation: u64,
+    from: u8,
+    to: u8,
+    reduced_motion: bool,
+) -> tauri::Result<bool> {
+    let steps = if reduced_motion { 1 } else { 12 };
+    let delay = if reduced_motion { 0 } else { 14 };
+    for step in 1..=steps {
+        if lifecycle.generation.load(Ordering::Acquire) != generation {
+            return Ok(false);
+        }
+        let progress = step as f32 / steps as f32;
+        let eased = 1.0 - (1.0 - progress).powi(3);
+        let alpha = from as f32 + (to as f32 - from as f32) * eased;
+        let alpha = alpha.round().clamp(0.0, 255.0) as u8;
+        set_native_window_alpha(window, alpha)?;
+        lifecycle.alpha.store(alpha, Ordering::Release);
+        if delay > 0 {
+            tokio::time::sleep(Duration::from_millis(delay)).await;
+        }
+    }
+    Ok(true)
 }
 
 struct NativeState {
@@ -88,6 +154,7 @@ impl HudLifecycle {
 struct SettingsWindowLifecycle {
     opening: AtomicBool,
     closing: AtomicBool,
+    alpha: AtomicU8,
     generation: AtomicU64,
     inner: Mutex<SettingsWindowInner>,
 }
@@ -104,6 +171,7 @@ impl SettingsWindowLifecycle {
         Self {
             opening: AtomicBool::new(false),
             closing: AtomicBool::new(false),
+            alpha: AtomicU8::new(0),
             generation: AtomicU64::new(0),
             inner: Mutex::new(SettingsWindowInner::default()),
         }
@@ -168,6 +236,7 @@ fn settings_present(
     window: WebviewWindow,
     state: State<'_, NativeState>,
     generation: u64,
+    reduced_motion: bool,
 ) -> Result<bool, String> {
     require_window(&window, "settings")?;
     let lifecycle = state.settings_window.clone();
@@ -189,14 +258,32 @@ fn settings_present(
     }
 
     window.show().map_err(|error| error.to_string())?;
-    set_native_window_alpha(&window, 255).map_err(|error| error.to_string())?;
+    apply_settings_window_shape(&window).map_err(|error| error.to_string())?;
     if let Err(error) = window.set_focus() {
         let _ = set_native_window_alpha(&window, 0);
+        lifecycle.alpha.store(0, Ordering::Release);
         let _ = window.hide();
         lifecycle.opening.store(false, Ordering::Release);
         return Err(error.to_string());
     }
     lifecycle.opening.store(true, Ordering::Release);
+    let fade_window = window.clone();
+    let fade_lifecycle = lifecycle.clone();
+    tauri::async_runtime::spawn(async move {
+        if let Err(error) = fade_settings_window(
+            &fade_window,
+            &fade_lifecycle,
+            generation,
+            0,
+            255,
+            reduced_motion,
+        )
+        .await
+        {
+            #[cfg(debug_assertions)]
+            eprintln!("Ion Sense could not fade settings in: {error}");
+        }
+    });
     let focus_window = window.clone();
     tauri::async_runtime::spawn(async move {
         tokio::time::sleep(Duration::from_millis(260)).await;
@@ -214,13 +301,31 @@ fn settings_present(
 /// Completes the frontend exit animation. All native close paths funnel through
 /// this command instead of hiding the WebView in the middle of a rendered frame.
 #[tauri::command]
-fn settings_hide(
+async fn settings_hide(
     window: WebviewWindow,
     state: State<'_, NativeState>,
     generation: u64,
+    reduced_motion: bool,
 ) -> Result<bool, String> {
     require_window(&window, "settings")?;
     if !state.settings_window.closing.load(Ordering::Acquire)
+        || state.settings_window.generation.load(Ordering::Acquire) != generation
+    {
+        return Ok(false);
+    }
+    let current_alpha = state.settings_window.alpha.load(Ordering::Acquire);
+    let faded = fade_settings_window(
+        &window,
+        &state.settings_window,
+        generation,
+        current_alpha,
+        0,
+        reduced_motion,
+    )
+    .await
+    .map_err(|error| error.to_string())?;
+    if !faded
+        || !state.settings_window.closing.load(Ordering::Acquire)
         || state.settings_window.generation.load(Ordering::Acquire) != generation
     {
         return Ok(false);
@@ -230,7 +335,6 @@ fn settings_hide(
         .settings_window
         .opening
         .store(false, Ordering::Release);
-    set_native_window_alpha(&window, 0).map_err(|error| error.to_string())?;
     window.hide().map_err(|error| error.to_string())?;
     Ok(true)
 }
@@ -803,6 +907,7 @@ fn open_settings(app: &AppHandle, anchor: Option<PhysicalPosition<f64>>) -> taur
         window.unminimize()?;
         set_native_window_alpha(&window, 0)?;
         let lifecycle = app.state::<NativeState>().settings_window.clone();
+        lifecycle.alpha.store(0, Ordering::Release);
         let generation = lifecycle.cancel_close();
         lifecycle.opening.store(true, Ordering::Release);
         let ready = {
@@ -849,6 +954,7 @@ fn request_settings_close(window: &WebviewWindow) -> tauri::Result<()> {
             && lifecycle.generation.load(Ordering::Acquire) == generation
         {
             let _ = set_native_window_alpha(&window, 0);
+            lifecycle.alpha.store(0, Ordering::Release);
             let _ = window.hide();
             lifecycle.closing.store(false, Ordering::Release);
             lifecycle.generation.fetch_add(1, Ordering::AcqRel);
@@ -892,7 +998,8 @@ fn position_settings_popover(
     let work_bottom = work_top + work.size.height as i32;
     let x = (work_right - actual.width as i32 - margin).max(work_left + margin);
     let y = (work_bottom - actual.height as i32 - margin).max(work_top + margin);
-    window.set_position(Position::Physical(PhysicalPosition::new(x, y)))
+    window.set_position(Position::Physical(PhysicalPosition::new(x, y)))?;
+    apply_settings_window_shape(window)
 }
 
 fn settings_window_geometry(
@@ -967,6 +1074,7 @@ pub fn run() {
                 }
                 if was_visible && let Some(window) = settings_window {
                     let _ = set_native_window_alpha(&window, 0);
+                    lifecycle.alpha.store(0, Ordering::Release);
                     let _ = window.hide();
                 }
             }

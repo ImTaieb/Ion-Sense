@@ -897,8 +897,8 @@
       --motion-micro: 150ms;
       --motion-control: 210ms;
       --motion-panel: 420ms;
-      --motion-window-in: 560ms;
-      --motion-window-out: 360ms;
+      --motion-window-in: 360ms;
+      --motion-window-out: 250ms;
       --ease-out: cubic-bezier(.16, 1, .3, 1);
       --ease-in: cubic-bezier(.55, .06, .68, .19);
       --ease-standard: cubic-bezier(.2, .7, .2, 1);
@@ -932,7 +932,7 @@
       padding: 0;
       overflow: hidden;
       border: 1px solid rgba(var(--ion-rgb), .27);
-      border-radius: 0;
+      border-radius: 16px;
       outline: 0;
       background:
         radial-gradient(circle at 50% -16%, rgba(var(--ion-rgb), .065), transparent 31%),
@@ -940,7 +940,7 @@
       box-shadow:
         inset 0 1px rgba(255,255,255,.045),
         inset 0 0 32px rgba(var(--ion-rgb),.014);
-      transform-origin: 50% 92%;
+      transform-origin: 100% 100%;
       will-change: opacity, transform;
       transition:
         opacity var(--motion-window-in) var(--ease-out),
@@ -949,8 +949,8 @@
         box-shadow var(--motion-panel) ease;
     }
     body[data-window-state="hidden"] .shell {
-      opacity: 0;
-      transform: translateY(7px) scale(.982);
+      opacity: 1;
+      transform: none;
       pointer-events: none;
     }
     body[data-window-state="entering"] .shell,
@@ -978,7 +978,7 @@
     body[data-window-state="exiting"] .settings-hero,
     body[data-window-state="exiting"] #settings-form {
       opacity: 0 !important;
-      transform: translateY(5px) scale(.992) !important;
+      transform: translateY(3px) scale(.997) !important;
       transition-duration: var(--motion-window-out) !important;
       transition-timing-function: var(--ease-in) !important;
     }
@@ -1006,7 +1006,7 @@
       padding: 0;
       overflow: hidden;
       border: 0;
-      border-radius: 0;
+      border-radius: 15px;
       background: transparent;
       box-shadow: none;
     }
@@ -1024,7 +1024,7 @@
       overflow: hidden;
       border: 0;
       border-bottom: 1px solid var(--hairline);
-      border-radius: 0;
+      border-radius: 15px 15px 0 0;
       background:
         radial-gradient(circle at 8% 48%, rgba(var(--ion-rgb),.065), transparent 25%),
         linear-gradient(180deg, rgba(255,255,255,.018), rgba(3,9,5,.97));
@@ -1060,14 +1060,14 @@
       display: grid !important;
       visibility: hidden;
       opacity: 0;
-      transform: translateX(16px);
+      transform: translateY(6px) scale(.995);
       pointer-events: none;
     }
     .shell[data-view="editor"] .utility-overview {
       display: grid !important;
       visibility: hidden;
       opacity: 0;
-      transform: translateX(-14px) scale(.992);
+      transform: translateY(-4px) scale(.997);
       pointer-events: none;
     }
     .shell[data-view-motion="transitioning"] .utility-overview,
@@ -1076,34 +1076,34 @@
       visibility: visible;
     }
     .shell[data-view="editor"][data-view-motion="transitioning"] .utility-overview {
-      animation: overview-view-out 360ms var(--ease-standard) both;
+      animation: overview-view-out 220ms var(--ease-standard) both;
     }
     .shell[data-view="editor"][data-view-motion="transitioning"] .settings-hero,
     .shell[data-view="editor"][data-view-motion="transitioning"] #settings-form {
-      animation: editor-view-in 420ms var(--ease-out) both;
+      animation: editor-view-in 300ms 35ms var(--ease-out) both;
     }
     .shell[data-view="overview"][data-view-motion="transitioning"] .utility-overview {
-      animation: overview-view-in 420ms var(--ease-out) both;
+      animation: overview-view-in 300ms 25ms var(--ease-out) both;
     }
     .shell[data-view="overview"][data-view-motion="transitioning"] .settings-hero,
     .shell[data-view="overview"][data-view-motion="transitioning"] #settings-form {
-      animation: editor-view-out 340ms var(--ease-standard) both;
+      animation: editor-view-out 210ms var(--ease-standard) both;
     }
     @keyframes overview-view-out {
       from { visibility: visible; opacity: 1; transform: none; }
-      to { visibility: visible; opacity: 0; transform: translateX(-14px) scale(.992); }
+      to { visibility: visible; opacity: 0; transform: translateY(-4px) scale(.997); }
     }
     @keyframes overview-view-in {
-      from { visibility: visible; opacity: 0; transform: translateX(-12px) scale(.994); }
+      from { visibility: visible; opacity: 0; transform: translateY(5px) scale(.996); }
       to { visibility: visible; opacity: 1; transform: none; }
     }
     @keyframes editor-view-in {
-      from { visibility: visible; opacity: 0; transform: translateX(16px); }
+      from { visibility: visible; opacity: 0; transform: translateY(6px) scale(.995); }
       to { visibility: visible; opacity: 1; transform: none; }
     }
     @keyframes editor-view-out {
       from { visibility: visible; opacity: 1; transform: none; }
-      to { visibility: visible; opacity: 0; transform: translateX(14px); }
+      to { visibility: visible; opacity: 0; transform: translateY(5px) scale(.997); }
     }
 
     /* Monitoring view */
@@ -1380,10 +1380,10 @@
       box-shadow: inset 0 1px rgba(255,255,255,.018);
       animation: none;
       opacity: 0;
-      transform: translateY(8px);
+      transform: translateY(4px);
       transition:
-        opacity 300ms var(--ease-out),
-        transform 300ms var(--ease-out),
+        opacity 220ms var(--ease-out),
+        transform 220ms var(--ease-out),
         border-color var(--motion-control) ease,
         background var(--motion-control) ease,
         box-shadow var(--motion-control) ease;
@@ -1391,14 +1391,16 @@
     .shell[data-view="editor"] section.settings-card {
       opacity: 1;
       transform: none;
-      transition-delay: calc(70ms + var(--card-index, 0) * 28ms), calc(70ms + var(--card-index, 0) * 28ms), 0s, 0s, 0s;
+      transition-delay: calc(45ms + var(--card-index, 0) * 16ms), calc(45ms + var(--card-index, 0) * 16ms), 0s, 0s, 0s;
     }
     .shell[data-view="editor"][data-view-motion="settled"] section.settings-card { transition-delay: 0s; }
     section.settings-card:hover {
-      transform: translateY(-1px);
-      border-color: rgba(var(--ion-rgb),.19);
-      background: rgba(5,14,8,.94);
-      box-shadow: inset 0 1px rgba(255,255,255,.025), 0 9px 22px rgba(0,0,0,.14);
+      transform: none;
+      border-color: rgba(var(--ion-rgb),.16);
+      background:
+        linear-gradient(90deg, rgba(var(--ion-rgb),.018), transparent 42%),
+        rgba(3,10,6,.92);
+      box-shadow: inset 2px 0 rgba(var(--ion-rgb),.22), inset 0 1px rgba(255,255,255,.021);
     }
     section.settings-card:focus-within {
       transform: none;
@@ -1465,7 +1467,7 @@
       padding: 8px 10px 10px;
       border: 0;
       border-top: 1px solid var(--hairline);
-      border-radius: 0;
+      border-radius: 0 0 15px 15px;
       background: linear-gradient(180deg, rgba(3,8,5,.98), #020604);
       box-shadow: 0 -12px 25px rgba(0,0,0,.26);
       backdrop-filter: none;
@@ -1478,26 +1480,26 @@
 
     body[data-window-state="entering"] .utility-topbar,
     body[data-window-state="entering"] .settings-hero {
-      animation: settings-reveal-head 440ms 70ms var(--ease-out) both;
+      animation: settings-reveal-head 300ms 35ms var(--ease-out) both;
     }
     body[data-window-state="entering"] .utility-status,
     body[data-window-state="entering"] #settings-form {
-      animation: settings-reveal-content 470ms 120ms var(--ease-out) both;
+      animation: settings-reveal-content 330ms 65ms var(--ease-out) both;
     }
     body[data-window-state="entering"] .utility-nav,
     body[data-window-state="entering"] .actions {
-      animation: settings-reveal-foot 430ms 190ms var(--ease-out) both;
+      animation: settings-reveal-foot 300ms 105ms var(--ease-out) both;
     }
     @keyframes settings-reveal-head {
-      from { opacity: 0; transform: translateY(-6px); }
+      from { opacity: 0; transform: translateY(-3px); }
       to { opacity: 1; transform: none; }
     }
     @keyframes settings-reveal-content {
-      from { opacity: 0; transform: translateY(8px) scale(.992); }
+      from { opacity: 0; transform: translateY(4px); }
       to { opacity: 1; transform: none; }
     }
     @keyframes settings-reveal-foot {
-      from { opacity: 0; transform: translateY(8px); }
+      from { opacity: 0; transform: translateY(4px); }
       to { opacity: 1; transform: none; }
     }
     @keyframes status-confirm {
@@ -1737,7 +1739,7 @@
         document.body.dataset.windowState = "entering";
         windowMotionTimer = window.setTimeout(() => {
           if (!closing) document.body.dataset.windowState = "active";
-        }, reducedMotion.matches ? 90 : 620);
+        }, reducedMotion.matches ? 90 : 400);
       }
 
       async function playWindowExit(generation = 0) {
@@ -1749,12 +1751,17 @@
         clearWindowMotionTimer();
         shell.inert = true;
         document.body.dataset.windowState = "exiting";
-        await wait(reducedMotion.matches ? 80 : 380);
+        await wait(reducedMotion.matches ? 80 : 270);
         if (!closing || activeCloseGeneration !== closingGeneration) return;
         // Keep the fully painted shell in its valid exit-end pose until Rust
         // makes the native surface transparent and hides it. Clearing the DOM
         // first would expose the opaque WebView backing for one rendered frame.
-        try { await invoke("settings_hide", { generation: closingGeneration }); }
+        try {
+          await invoke("settings_hide", {
+            generation: closingGeneration,
+            reducedMotion: reducedMotion.matches
+          });
+        }
         catch (error) { console.error("Ion Sense could not finish hiding settings", error); }
         if (activeCloseGeneration === closingGeneration) {
           document.body.dataset.windowState = "hidden";
@@ -1785,7 +1792,7 @@
           if (!focus || closing) return;
           const target = nextView === "editor" ? hero : field("open-editor");
           target.focus({ preventScroll: true });
-        }, reducedMotion.matches ? 80 : 440);
+        }, reducedMotion.matches ? 80 : 320);
       }
 
       async function prepareAndPresent(generation) {
@@ -1793,7 +1800,12 @@
         playWindowEntrance(generation);
         await nextPaint();
         if (closing || activeOpenGeneration !== generation) return;
-        try { await invoke("settings_present", { generation }); }
+        try {
+          await invoke("settings_present", {
+            generation,
+            reducedMotion: reducedMotion.matches
+          });
+        }
         catch (error) { console.error("Ion Sense could not reveal settings", error); }
       }
 
