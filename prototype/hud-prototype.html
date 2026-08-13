@@ -1869,26 +1869,32 @@
       const DISPLAY = Object.freeze({
         battery_low: {
           title: "BATTERY LOW",
+          voiceLine: "Your battery is low. Please connect to a power source.",
           icon: `<svg viewBox="0 0 32 32"><rect x="4" y="9" width="22" height="14" rx="2.5"></rect><path d="M28 13v6"></path><path d="M8 16h5"></path><path d="M10.5 13.5v5"></path></svg>`
         },
         overheating: {
           title: "PC OVERHEATING",
+          voiceLine: "Your computer is overheating. Please let it cool down.",
           icon: `<svg viewBox="2.75 1 32 32"><path d="M13 18.2V7a4 4 0 0 1 8 0v11.2a7 7 0 1 1-8 0Z"></path><path d="M17 9v12"></path><circle cx="17" cy="24" r="2.5"></circle><path d="M24.5 8.5h3M24.5 13h2"></path></svg>`
         },
         download_finished: {
           title: "DOWNLOADS FINISHED",
+          voiceLine: "Your download has finished successfully.",
           icon: `<svg viewBox="0 0 32 32"><path d="m7 16 6 6L25 9"></path></svg>`
         },
         new_email: {
           title: "NEW EMAIL",
+          voiceLine: "You have received a new email.",
           icon: `<svg viewBox="0 0 32 32"><rect x="4" y="7" width="24" height="18" rx="3"></rect><path d="m6 10 10 8 10-8"></path><path d="m6 23 7.3-7M26 23l-7.3-7"></path></svg>`
         },
         friend_message: {
           title: "FRIEND MESSAGE",
+          voiceLine: "You have received a new message from a friend.",
           icon: `<svg viewBox="0 0 32 32"><path d="M6 7.5h20v14H14l-6.5 4v-4H6v-14Z"></path><path d="M11 14h.1M16 14h.1M21 14h.1" stroke-width="2.6"></path></svg>`
         },
         package_delivered: {
           title: "PACKAGE DELIVERED",
+          voiceLine: "Your package has been delivered.",
           icon: `<svg viewBox="0 0 32 32"><path d="m5 10 11-6 11 6v13L16 29 5 23V10Z"></path><path d="m5 10 11 6 11-6M16 16v13M11 7l11 6"></path></svg>`
         }
       });
@@ -2183,29 +2189,34 @@
         }
       }
 
-      function startVoiceVisualization(generation = speechGeneration) {
+      function startVoiceVisualization(generation = speechGeneration, fallbackDuration = 1650) {
         if (
           generation !== speechGeneration ||
           (lifecycle !== "entering" && lifecycle !== "visible")
         ) return;
         window.clearTimeout(speechVisualTimer);
         setVisualizerState("speaking");
-        speechVisualTimer = window.setTimeout(() => stopVoiceVisualization(generation), 1650);
+        speechVisualTimer = window.setTimeout(
+          () => stopVoiceVisualization(generation),
+          fallbackDuration
+        );
       }
 
-      function speakWarning() {
+      function speakEventLine() {
         const generation = ++speechGeneration;
+        const voiceLine = DISPLAY[activeEvent?.type]?.voiceLine || "Ion Sense has detected a new alert.";
+        const visualDuration = Math.min(6000, Math.max(1800, 700 + voiceLine.length * 52));
         if (!("speechSynthesis" in window) || typeof window.SpeechSynthesisUtterance !== "function") {
-          startVoiceVisualization(generation);
+          startVoiceVisualization(generation, visualDuration);
           return;
         }
         try {
           window.speechSynthesis.cancel();
-          const utterance = new SpeechSynthesisUtterance("Warning.");
-          utterance.rate = 0.9;
-          utterance.pitch = 0.82;
-          utterance.volume = 0.72;
-          utterance.onstart = () => startVoiceVisualization(generation);
+          const utterance = new SpeechSynthesisUtterance(voiceLine);
+          utterance.rate = 0.92;
+          utterance.pitch = 0.84;
+          utterance.volume = 0.78;
+          utterance.onstart = () => startVoiceVisualization(generation, visualDuration);
           utterance.onend = () => stopVoiceVisualization(generation);
           utterance.onerror = () => stopVoiceVisualization(generation);
           activeUtterance = utterance;
@@ -2214,11 +2225,11 @@
           // on the next frame; a real onstart simply restarts it in sync.
           window.requestAnimationFrame(() => {
             if (generation === speechGeneration && visualizerState !== "speaking") {
-              startVoiceVisualization(generation);
+              startVoiceVisualization(generation, visualDuration);
             }
           });
         } catch (error) {
-          startVoiceVisualization(generation);
+          startVoiceVisualization(generation, visualDuration);
           console.info("Ion Sense voice preview is unavailable in this browser.", error);
         }
       }
@@ -2314,7 +2325,7 @@
           updateDevStatus();
         }, enterDuration());
 
-        speechTimer = window.setTimeout(speakWarning, prefersReducedMotion() ? 0 : 1180);
+        speechTimer = window.setTimeout(speakEventLine, prefersReducedMotion() ? 0 : 1180);
         dismissTimer = window.setTimeout(() => void dismissCurrent("timeout"), AUTO_DISMISS_MS);
         return true;
       }
