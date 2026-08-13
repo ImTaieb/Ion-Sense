@@ -488,13 +488,7 @@
     }
 
     .waveform::after {
-      content: "";
-      position: absolute;
-      inset: 0;
-      opacity: 0;
-      transform: translateX(-110%);
-      background: linear-gradient(90deg, transparent, rgba(217, 255, 224, 0.35), transparent);
-      pointer-events: none;
+      content: none;
     }
 
     .is-entering .waveform::after,
@@ -1736,7 +1730,6 @@
           </g>
         </svg>
       </div>
-      <span class="energy-sweep" aria-hidden="true"></span>
     </section>
   </main>
 
