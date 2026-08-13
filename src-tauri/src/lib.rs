@@ -671,22 +671,11 @@ fn position_settings_popover(
     let width = size.width as i32;
     let height = size.height as i32;
 
-    // Right-align with the tray click and open upward from a bottom taskbar.
-    // The alternate branch also behaves correctly for top/side taskbars.
-    let desired_x = anchor.x.round() as i32 - width + margin * 2;
-    let x = desired_x.clamp(
-        work_left + margin,
-        (work_right - width - margin).max(work_left + margin),
-    );
-    let desired_y = if anchor.y > f64::from(work_top + work.size.height as i32 / 2) {
-        anchor.y.round() as i32 - height - margin
-    } else {
-        anchor.y.round() as i32 + margin
-    };
-    let y = desired_y.clamp(
-        work_top + margin,
-        (work_bottom - height - margin).max(work_top + margin),
-    );
+    // A tray utility belongs in the work area's bottom-right corner. The tray
+    // click is used only to select the correct monitor; anchoring directly to
+    // the cursor made the popover drift toward the middle of the screen.
+    let x = (work_right - width - margin).max(work_left + margin);
+    let y = (work_bottom - height - margin).max(work_top + margin);
     window.set_position(Position::Physical(PhysicalPosition::new(x, y)))
 }
 
