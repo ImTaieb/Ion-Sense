@@ -23,11 +23,40 @@ use tauri::{
     WebviewWindow, WindowEvent,
     menu::{Menu, MenuItem, PredefinedMenuItem},
     tray::{MouseButton, MouseButtonState, TrayIconBuilder, TrayIconEvent},
+    webview::PageLoadEvent,
 };
 use tauri_plugin_autostart::ManagerExt;
 use tokio::sync::{Notify, mpsc};
 
 const EVENT_NAME: &str = "ion-sense://trigger";
+const SETTINGS_OPEN_EVENT: &str = "ion-sense://settings-open";
+const SETTINGS_CLOSE_REQUEST_EVENT: &str = "ion-sense://settings-close-request";
+const SETTINGS_CLOSE_FALLBACK: Duration = Duration::from_millis(700);
+const SETTINGS_WIDTH_LOGICAL: f64 = 390.0;
+const SETTINGS_HEIGHT_LOGICAL: f64 = 680.0;
+
+#[cfg(windows)]
+fn set_native_window_alpha(window: &WebviewWindow, alpha: u8) -> tauri::Result<()> {
+    use windows::Win32::Foundation::COLORREF;
+    use windows::Win32::UI::WindowsAndMessaging::{
+        GWL_EXSTYLE, GetWindowLongW, LWA_ALPHA, SetLayeredWindowAttributes, SetWindowLongW,
+        WS_EX_LAYERED,
+    };
+
+    let hwnd = window.hwnd()?;
+    unsafe {
+        let style = GetWindowLongW(hwnd, GWL_EXSTYLE);
+        let _ = SetWindowLongW(hwnd, GWL_EXSTYLE, style | WS_EX_LAYERED.0 as i32);
+        SetLayeredWindowAttributes(hwnd, COLORREF(0), alpha, LWA_ALPHA)
+            .map_err(|error| tauri::Error::Anyhow(error.into()))?;
+    }
+    Ok(())
+}
+
+#[cfg(not(windows))]
+fn set_native_window_alpha(_window: &WebviewWindow, _alpha: u8) -> tauri::Result<()> {
+    Ok(())
+}
 
 struct NativeState {
     settings: RwLock<AppSettings>,
@@ -35,6 +64,7 @@ struct NativeState {
     detectors: Mutex<Option<DetectorRuntime>>,
     dispatcher: EventDispatcher,
     hud: Arc<HudLifecycle>,
+    settings_window: Arc<SettingsWindowLifecycle>,
 }
 
 struct HudLifecycle {
@@ -52,6 +82,36 @@ impl HudLifecycle {
             acknowledged_timestamp: AtomicU64::new(0),
             changed: Notify::new(),
         }
+    }
+}
+
+struct SettingsWindowLifecycle {
+    opening: AtomicBool,
+    closing: AtomicBool,
+    generation: AtomicU64,
+    inner: Mutex<SettingsWindowInner>,
+}
+
+#[derive(Default)]
+struct SettingsWindowInner {
+    ready: bool,
+    pending_open: bool,
+    pending_generation: Option<u64>,
+}
+
+impl SettingsWindowLifecycle {
+    fn new() -> Self {
+        Self {
+            opening: AtomicBool::new(false),
+            closing: AtomicBool::new(false),
+            generation: AtomicU64::new(0),
+            inner: Mutex::new(SettingsWindowInner::default()),
+        }
+    }
+
+    fn cancel_close(&self) -> u64 {
+        self.closing.store(false, Ordering::Release);
+        self.generation.fetch_add(1, Ordering::AcqRel) + 1
     }
 }
 
@@ -81,6 +141,98 @@ fn get_settings(
         .read()
         .map(|settings| settings.clone())
         .map_err(|_| "settings lock is unavailable".to_owned())
+}
+
+/// Marks the settings DOM and native event listeners as ready. If the user
+/// clicked the tray while the page was loading, return the pending generation
+/// so the frontend can prepare that exact open before it is revealed.
+#[tauri::command]
+fn settings_ready(
+    window: WebviewWindow,
+    state: State<'_, NativeState>,
+) -> Result<Option<u64>, String> {
+    require_window(&window, "settings")?;
+    let mut inner = state
+        .settings_window
+        .inner
+        .lock()
+        .map_err(|_| "settings window lifecycle lock is unavailable".to_owned())?;
+    inner.ready = true;
+    Ok(inner.pending_generation)
+}
+
+/// Reveals only the generation for which the frontend has synchronously applied
+/// its fully styled entering state and allowed one composited frame to finish.
+#[tauri::command]
+fn settings_present(
+    window: WebviewWindow,
+    state: State<'_, NativeState>,
+    generation: u64,
+) -> Result<bool, String> {
+    require_window(&window, "settings")?;
+    let lifecycle = state.settings_window.clone();
+    {
+        let mut inner = lifecycle
+            .inner
+            .lock()
+            .map_err(|_| "settings window lifecycle lock is unavailable".to_owned())?;
+        if !inner.ready
+            || !inner.pending_open
+            || inner.pending_generation != Some(generation)
+            || lifecycle.generation.load(Ordering::Acquire) != generation
+            || lifecycle.closing.load(Ordering::Acquire)
+        {
+            return Ok(false);
+        }
+        inner.pending_open = false;
+        inner.pending_generation = None;
+    }
+
+    window.show().map_err(|error| error.to_string())?;
+    set_native_window_alpha(&window, 255).map_err(|error| error.to_string())?;
+    if let Err(error) = window.set_focus() {
+        let _ = set_native_window_alpha(&window, 0);
+        let _ = window.hide();
+        lifecycle.opening.store(false, Ordering::Release);
+        return Err(error.to_string());
+    }
+    lifecycle.opening.store(true, Ordering::Release);
+    let focus_window = window.clone();
+    tauri::async_runtime::spawn(async move {
+        tokio::time::sleep(Duration::from_millis(260)).await;
+        if lifecycle.generation.load(Ordering::Acquire) != generation {
+            return;
+        }
+        lifecycle.opening.store(false, Ordering::Release);
+        if !focus_window.is_focused().unwrap_or(true) {
+            let _ = request_settings_close(&focus_window);
+        }
+    });
+    Ok(true)
+}
+
+/// Completes the frontend exit animation. All native close paths funnel through
+/// this command instead of hiding the WebView in the middle of a rendered frame.
+#[tauri::command]
+fn settings_hide(
+    window: WebviewWindow,
+    state: State<'_, NativeState>,
+    generation: u64,
+) -> Result<bool, String> {
+    require_window(&window, "settings")?;
+    if !state.settings_window.closing.load(Ordering::Acquire)
+        || state.settings_window.generation.load(Ordering::Acquire) != generation
+    {
+        return Ok(false);
+    }
+    state.settings_window.cancel_close();
+    state
+        .settings_window
+        .opening
+        .store(false, Ordering::Release);
+    set_native_window_alpha(&window, 0).map_err(|error| error.to_string())?;
+    window.hide().map_err(|error| error.to_string())?;
+    Ok(true)
 }
 
 #[tauri::command]
@@ -487,6 +639,7 @@ fn setup_app(app: &mut App) -> Result<(), Box<dyn std::error::Error>> {
     let (dispatcher, receiver) = EventDispatcher::channel(64);
     let hud = Arc::new(HudLifecycle::new());
     let detectors = DetectorRuntime::start(&settings, dispatcher.clone());
+    let settings_window = Arc::new(SettingsWindowLifecycle::new());
 
     app.manage(NativeState {
         settings: RwLock::new(settings),
@@ -494,6 +647,7 @@ fn setup_app(app: &mut App) -> Result<(), Box<dyn std::error::Error>> {
         detectors: Mutex::new(Some(detectors)),
         dispatcher: dispatcher.clone(),
         hud: hud.clone(),
+        settings_window,
     });
     #[cfg(debug_assertions)]
     eprintln!("Ion Sense native state ready");
@@ -621,7 +775,9 @@ fn setup_tray(app: &App) -> tauri::Result<()> {
                 if let Some(window) = app.get_webview_window("settings")
                     && window.is_visible().unwrap_or(false)
                 {
-                    let _ = window.hide();
+                    if let Err(error) = request_settings_close(&window) {
+                        eprintln!("Ion Sense could not close settings: {error}");
+                    }
                 } else if let Err(error) = open_settings(app, Some(position)) {
                     eprintln!("Ion Sense could not open settings: {error}");
                 }
@@ -637,11 +793,67 @@ fn setup_tray(app: &App) -> tauri::Result<()> {
 fn open_settings(app: &AppHandle, anchor: Option<PhysicalPosition<f64>>) -> tauri::Result<()> {
     if let Some(window) = app.get_webview_window("settings") {
         position_settings_popover(&window, anchor)?;
-        window.show()?;
-        window.unminimize()?;
+        // Reassert non-client settings before every reveal. This prevents
+        // Windows from restoring a stale resize frame or DWM shadow after a
+        // display or DPI change.
+        window.set_decorations(false)?;
+        window.set_resizable(false)?;
+        window.set_shadow(false)?;
         window.set_always_on_top(true)?;
-        window.set_focus()?;
+        window.unminimize()?;
+        set_native_window_alpha(&window, 0)?;
+        let lifecycle = app.state::<NativeState>().settings_window.clone();
+        let generation = lifecycle.cancel_close();
+        lifecycle.opening.store(true, Ordering::Release);
+        let ready = {
+            let mut inner = lifecycle.inner.lock().map_err(|_| {
+                tauri::Error::Anyhow(anyhow::anyhow!(
+                    "settings window lifecycle lock is unavailable"
+                ))
+            })?;
+            inner.pending_open = true;
+            inner.pending_generation = Some(generation);
+            inner.ready
+        };
+        // This event carries a generation. The frontend paints that generation
+        // and explicitly acknowledges it via `settings_present`; Rust never
+        // guesses whether a hidden WebView has composited yet.
+        if ready {
+            window.emit(SETTINGS_OPEN_EVENT, generation)?;
+        }
     }
+    Ok(())
+}
+
+fn request_settings_close(window: &WebviewWindow) -> tauri::Result<()> {
+    if !window.is_visible().unwrap_or(false) {
+        return Ok(());
+    }
+    let lifecycle = window.state::<NativeState>().settings_window.clone();
+    if lifecycle.closing.swap(true, Ordering::AcqRel) {
+        return Ok(());
+    }
+    let generation = lifecycle.generation.fetch_add(1, Ordering::AcqRel) + 1;
+    if let Err(error) = window.emit(SETTINGS_CLOSE_REQUEST_EVENT, generation) {
+        lifecycle.closing.store(false, Ordering::Release);
+        lifecycle.generation.fetch_add(1, Ordering::AcqRel);
+        return Err(error);
+    }
+
+    // If frontend JavaScript fails during development, never leave a dead,
+    // unfocused popover stranded on screen. The normal path is `settings_hide`.
+    let window = window.clone();
+    tauri::async_runtime::spawn(async move {
+        tokio::time::sleep(SETTINGS_CLOSE_FALLBACK).await;
+        if lifecycle.closing.load(Ordering::Acquire)
+            && lifecycle.generation.load(Ordering::Acquire) == generation
+        {
+            let _ = set_native_window_alpha(&window, 0);
+            let _ = window.hide();
+            lifecycle.closing.store(false, Ordering::Release);
+            lifecycle.generation.fetch_add(1, Ordering::AcqRel);
+        }
+    });
     Ok(())
 }
 
@@ -662,21 +874,51 @@ fn position_settings_popover(
     };
 
     let work = monitor.work_area();
-    let size = window.outer_size()?;
-    let margin = (12.0 * monitor.scale_factor()).round() as i32;
+    let (position, size, margin) =
+        settings_window_geometry(work.position, work.size, monitor.scale_factor());
+
+    // A tray utility belongs in the work area's bottom-right corner. The tray
+    // click is used only to select the correct monitor; anchoring directly to
+    // the cursor made the popover drift toward the middle of the screen. Place,
+    // size, then place again because WM_DPICHANGED may alter the outer bounds
+    // while crossing from a monitor with a different scale factor.
+    window.set_position(Position::Physical(position))?;
+    window.set_size(Size::Physical(size))?;
+
+    let actual = window.outer_size()?;
     let work_left = work.position.x;
     let work_top = work.position.y;
     let work_right = work_left + work.size.width as i32;
     let work_bottom = work_top + work.size.height as i32;
-    let width = size.width as i32;
-    let height = size.height as i32;
-
-    // A tray utility belongs in the work area's bottom-right corner. The tray
-    // click is used only to select the correct monitor; anchoring directly to
-    // the cursor made the popover drift toward the middle of the screen.
-    let x = (work_right - width - margin).max(work_left + margin);
-    let y = (work_bottom - height - margin).max(work_top + margin);
+    let x = (work_right - actual.width as i32 - margin).max(work_left + margin);
+    let y = (work_bottom - actual.height as i32 - margin).max(work_top + margin);
     window.set_position(Position::Physical(PhysicalPosition::new(x, y)))
+}
+
+fn settings_window_geometry(
+    work_position: PhysicalPosition<i32>,
+    work_size: PhysicalSize<u32>,
+    scale_factor: f64,
+) -> (PhysicalPosition<i32>, PhysicalSize<u32>, i32) {
+    let scale = if scale_factor.is_finite() && scale_factor > 0.0 {
+        scale_factor
+    } else {
+        1.0
+    };
+    let margin = (12.0 * scale).round() as i32;
+    let width = (SETTINGS_WIDTH_LOGICAL * scale).round() as u32;
+    let full_height = (SETTINGS_HEIGHT_LOGICAL * scale).round() as u32;
+    let available_height = work_size.height.saturating_sub((margin.max(0) as u32) * 2);
+    let height = full_height.min(available_height.max(1));
+    let right = work_position.x + work_size.width as i32;
+    let bottom = work_position.y + work_size.height as i32;
+    let x = (right - width as i32 - margin).max(work_position.x + margin);
+    let y = (bottom - height as i32 - margin).max(work_position.y + margin);
+    (
+        PhysicalPosition::new(x, y),
+        PhysicalSize::new(width, height),
+        margin,
+    )
 }
 
 fn sync_autostart(app: &AppHandle, should_enable: bool) -> anyhow::Result<()> {
@@ -699,11 +941,34 @@ pub fn run() {
         )
         .setup(setup_app)
         .on_page_load(|webview, payload| {
-            if webview.label() == "hud"
+            if payload.event() == PageLoadEvent::Started
+                && webview.label() == "hud"
                 && let Some(state) = webview.try_state::<NativeState>()
             {
                 state.hud.ready.store(false, Ordering::Release);
                 state.hud.changed.notify_waiters();
+            }
+            if payload.event() == PageLoadEvent::Started
+                && webview.label() == "settings"
+                && let Some(state) = webview.try_state::<NativeState>()
+            {
+                let lifecycle = state.settings_window.clone();
+                let settings_window = webview.app_handle().get_webview_window("settings");
+                let was_visible = settings_window
+                    .as_ref()
+                    .and_then(|window| window.is_visible().ok())
+                    .unwrap_or(false);
+                let generation = lifecycle.cancel_close();
+                lifecycle.opening.store(false, Ordering::Release);
+                if let Ok(mut inner) = lifecycle.inner.lock() {
+                    inner.ready = false;
+                    inner.pending_open = was_visible;
+                    inner.pending_generation = was_visible.then_some(generation);
+                }
+                if was_visible && let Some(window) = settings_window {
+                    let _ = set_native_window_alpha(&window, 0);
+                    let _ = window.hide();
+                }
             }
             #[cfg(debug_assertions)]
             eprintln!("Ion Sense loaded {} in {}", payload.url(), webview.label());
@@ -711,17 +976,32 @@ pub fn run() {
         .on_window_event(|window, event| {
             if let WindowEvent::CloseRequested { api, .. } = event {
                 api.prevent_close();
-                let _ = window.hide();
+                if window.label() == "settings" {
+                    if let Some(settings) = window.app_handle().get_webview_window("settings") {
+                        let _ = request_settings_close(&settings);
+                    }
+                } else {
+                    let _ = window.hide();
+                }
             } else if window.label() == "settings"
                 && let WindowEvent::Focused(false) = event
+                && let Some(settings) = window.app_handle().get_webview_window("settings")
+                && !settings
+                    .state::<NativeState>()
+                    .settings_window
+                    .opening
+                    .load(Ordering::Acquire)
             {
-                let _ = window.hide();
+                let _ = request_settings_close(&settings);
             }
         });
 
     #[cfg(debug_assertions)]
     let builder = builder.invoke_handler(tauri::generate_handler![
         get_settings,
+        settings_ready,
+        settings_present,
+        settings_hide,
         save_settings,
         get_runtime_info,
         get_credential_status,
@@ -737,6 +1017,9 @@ pub fn run() {
     #[cfg(not(debug_assertions))]
     let builder = builder.invoke_handler(tauri::generate_handler![
         get_settings,
+        settings_ready,
+        settings_present,
+        settings_hide,
         save_settings,
         get_runtime_info,
         get_credential_status,
@@ -751,4 +1034,51 @@ pub fn run() {
     builder
         .run(tauri::generate_context!())
         .expect("failed to run Ion Sense");
+}
+
+#[cfg(test)]
+mod window_geometry_tests {
+    use super::*;
+
+    #[test]
+    fn settings_geometry_is_bottom_right_at_common_windows_scales() {
+        let work_position = PhysicalPosition::new(0, 0);
+        let work_size = PhysicalSize::new(1920, 1040);
+
+        for (scale, expected_width, expected_margin) in
+            [(1.0, 390, 12), (1.25, 488, 15), (1.5, 585, 18)]
+        {
+            let (position, size, margin) =
+                settings_window_geometry(work_position, work_size, scale);
+            assert_eq!(size.width, expected_width);
+            assert_eq!(margin, expected_margin);
+            assert_eq!(position.x + size.width as i32 + margin, 1920);
+            assert_eq!(position.y + size.height as i32 + margin, 1040);
+        }
+    }
+
+    #[test]
+    fn settings_geometry_clamps_to_short_work_areas() {
+        let (position, size, margin) = settings_window_geometry(
+            PhysicalPosition::new(-1920, 0),
+            PhysicalSize::new(1920, 720),
+            1.5,
+        );
+        assert_eq!(margin, 18);
+        assert_eq!(size.width, 585);
+        assert_eq!(size.height, 684);
+        assert_eq!(position.x, -603);
+        assert_eq!(position.y, 18);
+    }
+
+    #[test]
+    fn settings_geometry_sanitizes_invalid_scale_factors() {
+        let (_, size, margin) = settings_window_geometry(
+            PhysicalPosition::new(0, 0),
+            PhysicalSize::new(1920, 1040),
+            f64::NAN,
+        );
+        assert_eq!(size, PhysicalSize::new(390, 680));
+        assert_eq!(margin, 12);
+    }
 }

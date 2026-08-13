@@ -491,11 +491,6 @@
       content: none;
     }
 
-    .is-entering .waveform::after,
-    .is-visible .waveform::after {
-      animation: waveform-scan 1180ms 310ms ease-out both;
-    }
-
     .wave-bar {
       width: 2px;
       height: var(--bar-height);
@@ -526,12 +521,6 @@
       );
     }
 
-    .is-entering .wave-bar,
-    .is-visible .wave-bar {
-      animation: waveform-play 470ms cubic-bezier(0.2, 0.85, 0.28, 1) both;
-      animation-delay: calc(310ms + (var(--bar-index) * 22ms));
-    }
-
     .spoken-line {
       margin: 0;
       color: var(--ion);
@@ -542,54 +531,6 @@
       font-family: ui-monospace, "SFMono-Regular", Consolas, monospace;
       font-size: 14px;
       font-weight: 650;
-    }
-
-    @keyframes waveform-play {
-      0% {
-        opacity: 0.2;
-        transform: scaleY(0.24);
-      }
-      42% {
-        opacity: 1;
-        transform: scaleY(1.17);
-      }
-      100% {
-        opacity: 0.72;
-        transform: scaleY(0.95);
-      }
-    }
-
-    .wave-bar.is-dot {
-      animation-name: waveform-dot-play;
-    }
-
-    @keyframes waveform-dot-play {
-      0% {
-        opacity: 0.18;
-        transform: scale(0.55);
-      }
-      45% {
-        opacity: 1;
-        transform: scale(1.08);
-      }
-      100% {
-        opacity: 0.72;
-        transform: scale(0.88);
-      }
-    }
-
-    @keyframes waveform-scan {
-      0% {
-        opacity: 0;
-        transform: translateX(-110%);
-      }
-      25% {
-        opacity: 0.9;
-      }
-      100% {
-        opacity: 0;
-        transform: translateX(110%);
-      }
     }
 
     .brand-badge {
@@ -1271,8 +1212,8 @@
       overflow: hidden;
       opacity: 0;
       border-radius: 137px 61px 61px 137px;
-      background: linear-gradient(104deg, transparent 32%, rgba(206, 255, 215, .03) 43%, rgba(var(--ion-rgb), .17) 49%, rgba(222, 255, 228, .08) 53%, transparent 64%);
-      mix-blend-mode: screen;
+      background: linear-gradient(104deg, transparent 32%, rgba(var(--ion-rgb), .018) 43%, rgba(var(--ion-rgb), .085) 49%, rgba(var(--ion-rgb), .035) 53%, transparent 64%);
+      mix-blend-mode: normal;
       transform: translate3d(-145%, 0, 0);
       pointer-events: none;
     }
@@ -1411,15 +1352,6 @@
       animation: speaker-activate 300ms 735ms cubic-bezier(.22, 1.16, .36, 1) both;
     }
 
-    .hud-toast.is-entering .wave-bar {
-      animation: waveform-center-in 290ms cubic-bezier(.16, 1, .3, 1) both;
-      animation-delay: var(--wave-in-delay);
-    }
-
-    .hud-toast.is-entering .wave-bar.is-dot {
-      animation-name: waveform-dot-center-in;
-    }
-
     .hud-toast.is-entering .spoken-line {
       animation: warning-reveal 250ms 930ms cubic-bezier(.22, 1.16, .36, 1) both;
     }
@@ -1475,13 +1407,9 @@
     @keyframes icon-stroke-in { from { opacity: 0; stroke-dashoffset: 1; } to { opacity: 1; stroke-dashoffset: 0; } }
     @keyframes copy-char-in { from { opacity: 0; transform: translate3d(0, 15px, 0); clip-path: inset(100% 0 0); } to { opacity: 1; transform: none; clip-path: inset(0); } }
     @keyframes speaker-activate { 0% { opacity: 0; transform: scale(.62); } 55% { opacity: 1; transform: scale(1.12); } 100% { opacity: 1; transform: scale(1); } }
-    @keyframes waveform-center-in { 0% { opacity: 0; transform: scaleY(.05); } 58% { opacity: 1; transform: scaleY(1.16); } 100% { opacity: .72; transform: scaleY(.95); } }
-    @keyframes waveform-dot-center-in { 0% { opacity: 0; transform: scale(0); } 58% { opacity: 1; transform: scale(1.15); } 100% { opacity: .72; transform: scale(.9); } }
     @keyframes warning-reveal { 0% { opacity: 0; transform: translate3d(12px, 0, 0) scale(.96); text-shadow: 0 0 0 rgba(var(--ion-rgb), 0); } 62% { opacity: 1; transform: none; text-shadow: 0 0 18px rgba(var(--ion-rgb), .52); } 100% { opacity: 1; transform: none; text-shadow: 0 0 10px rgba(var(--ion-rgb), .3); } }
     @keyframes energy-sweep-in { 0% { opacity: 0; transform: translate3d(-145%, 0, 0); } 36% { opacity: .82; } 100% { opacity: 0; transform: translate3d(145%, 0, 0); } }
 
-    .hud-toast.is-exiting .wave-bar { animation: waveform-flatten-out 170ms var(--wave-out-delay) cubic-bezier(.55, 0, .85, .35) both; }
-    .hud-toast.is-exiting .wave-bar.is-dot { animation-name: waveform-dot-out; }
     .hud-toast.is-exiting .spoken-line { animation: element-retract 170ms 0ms cubic-bezier(.55, 0, .85, .35) both; }
     .hud-toast.is-exiting .event-message .text-char { animation: copy-char-out 190ms cubic-bezier(.55, 0, .85, .35) both; animation-delay: var(--char-out-delay); }
     .hud-toast.is-exiting .event-title .text-char { animation: copy-char-out 205ms cubic-bezier(.55, 0, .85, .35) both; animation-delay: calc(55ms + var(--char-out-delay)); }
@@ -1501,8 +1429,6 @@
     .hud-toast.is-exiting .panel-trace { animation: trace-layer-out 300ms 350ms linear both; }
     .hud-toast.is-exiting .panel-trace path { animation: perimeter-trace-out 300ms 350ms cubic-bezier(.55, 0, .85, .35) both; }
 
-    @keyframes waveform-flatten-out { from { opacity: .72; transform: scaleY(.95); } to { opacity: 0; transform: scaleY(.04); } }
-    @keyframes waveform-dot-out { from { opacity: .72; transform: scale(.9); } to { opacity: 0; transform: scale(0); } }
     @keyframes copy-char-out { from { opacity: 1; transform: none; clip-path: inset(0); } to { opacity: 0; transform: translate3d(0, -10px, 0); clip-path: inset(0 0 100%); } }
     @keyframes element-retract { from { opacity: 1; transform: none; } to { opacity: 0; transform: scale(.72); } }
     @keyframes close-retract { from { opacity: 1; transform: rotate(0) scale(1); } to { opacity: 0; transform: rotate(32deg) scale(.62); } }
@@ -1518,33 +1444,7 @@
     @keyframes trace-layer-out { from { opacity: 1; } to { opacity: 0; } }
     @keyframes perimeter-trace-out { from { stroke-dashoffset: 0; } to { stroke-dashoffset: -1; } }
 
-    .hud-toast.is-visible .badge-arc,
-    .hud-toast.is-visible .waveform::after,
-    .hud-toast.is-visible .wave-bar { animation: none; }
-    .hud-toast.is-visible .wave-bar { opacity: .72; transform: scaleY(.95); }
-    .hud-toast.is-visible .wave-bar.is-dot { opacity: .72; transform: scale(.9); }
-    .hud-toast.is-entering .waveform::after { animation: none; }
-
-    /* The entrance builds the waveform. Speech then owns it until the
-       utterance ends, so the visual response stays synchronized with voice. */
-    .hud-toast .waveform.is-speaking .wave-bar {
-      opacity: .94;
-      animation: voice-react var(--voice-duration, 190ms) ease-in-out infinite alternate;
-      animation-delay: var(--voice-delay, 0ms);
-    }
-    .hud-toast .waveform.is-speaking .wave-bar.is-dot {
-      animation-name: voice-dot-react;
-    }
-    @keyframes voice-react {
-      0% { opacity: .38; transform: scaleY(.24); }
-      48% { opacity: 1; transform: scaleY(1.08); }
-      100% { opacity: .66; transform: scaleY(.52); }
-    }
-    @keyframes voice-dot-react {
-      0% { opacity: .28; transform: scale(.55); }
-      55% { opacity: 1; transform: scale(1.15); }
-      100% { opacity: .55; transform: scale(.78); }
-    }
+    .hud-toast.is-visible .badge-arc { animation: none; }
 
     @media (max-width: 1180px), (max-height: 660px) {
       :root { --toast-width: min(960px, calc(100vw - 15vw)); --badge-size: 238px; --panel-height: 272px; --panel-radius: 48px; }
@@ -1673,6 +1573,199 @@
       @keyframes screen-fade-in { from { opacity: 0; } to { opacity: 1; } }
       @keyframes screen-fade-out { from { opacity: 1; } to { opacity: 0; } }
     }
+
+    /* Waveform lifecycle
+       The visualizer owns its motion independently from the toast so a queued
+       alert, interrupted entrance, or cancelled utterance cannot leave stale
+       keyframes behind. All generated light is clipped to the waveform bounds. */
+    .waveform[data-visualizer-state] {
+      isolation: isolate;
+      will-change: opacity, transform;
+    }
+
+    .waveform[data-visualizer-state]::before {
+      content: "";
+      position: absolute;
+      z-index: 0;
+      top: 50%;
+      left: 50%;
+      width: 100%;
+      height: 1px;
+      border-radius: 999px;
+      opacity: var(--wave-baseline-opacity, 0);
+      transform: translate3d(-50%, -50%, 0) scaleX(var(--wave-baseline-scale, 0));
+      background: rgba(var(--ion-rgb), .48);
+      box-shadow: 0 0 5px rgba(var(--ion-rgb), .16);
+      pointer-events: none;
+    }
+
+    .waveform[data-visualizer-state]::after {
+      content: none;
+      position: absolute;
+      z-index: 2;
+      inset: 4px auto 4px 0;
+      width: 18%;
+      border-radius: 50%;
+      opacity: 0;
+      transform: translate3d(-130%, 0, 0);
+      background: linear-gradient(90deg, transparent, rgba(var(--ion-rgb), .18), transparent);
+      pointer-events: none;
+    }
+
+    .waveform[data-visualizer-state] .wave-bar {
+      position: relative;
+      z-index: 1;
+      will-change: transform, opacity;
+    }
+
+    .hud-toast .waveform[data-visualizer-state="hidden"] {
+      opacity: 0;
+      transform: scaleX(.9);
+      --wave-baseline-opacity: 0;
+      --wave-baseline-scale: 0;
+    }
+
+    .hud-toast .waveform[data-visualizer-state="hidden"] .wave-bar {
+      animation: none !important;
+      opacity: 0;
+      transform: scaleY(.04);
+    }
+
+    .hud-toast .waveform[data-visualizer-state="hidden"] .wave-bar.is-dot {
+      transform: scale(0);
+    }
+
+    .hud-toast .waveform[data-visualizer-state="entering"] {
+      --wave-baseline-opacity: .24;
+      --wave-baseline-scale: 1;
+      animation: visualizer-container-in 510ms 610ms cubic-bezier(.16, 1, .3, 1) both;
+    }
+
+    .hud-toast .waveform[data-visualizer-state="entering"]::before {
+      animation: visualizer-baseline-in 430ms 630ms cubic-bezier(.16, 1, .3, 1) both;
+    }
+
+    .hud-toast .waveform[data-visualizer-state="entering"]::after {
+      content: "";
+      animation: visualizer-energy-pass 330ms 920ms cubic-bezier(.2, .68, .3, 1) both;
+    }
+
+    .hud-toast .waveform[data-visualizer-state="entering"] .wave-bar {
+      animation: visualizer-bar-in 330ms var(--wave-enter-delay) cubic-bezier(.16, 1, .3, 1) both !important;
+    }
+
+    .hud-toast .waveform[data-visualizer-state="entering"] .wave-bar.is-dot {
+      animation-name: visualizer-dot-in !important;
+    }
+
+    .hud-toast .waveform[data-visualizer-state="active"],
+    .hud-toast .waveform[data-visualizer-state="speaking"] {
+      opacity: 1;
+      transform: none;
+      --wave-baseline-opacity: .1;
+      --wave-baseline-scale: 1;
+    }
+
+    .hud-toast .waveform[data-visualizer-state="active"] .wave-bar,
+    .hud-toast .waveform[data-visualizer-state="speaking"] .wave-bar {
+      animation: none !important;
+      opacity: var(--wave-opacity, .68);
+      transform: scaleY(var(--wave-level, .78));
+    }
+
+    .hud-toast .waveform[data-visualizer-state="active"] .wave-bar.is-dot,
+    .hud-toast .waveform[data-visualizer-state="speaking"] .wave-bar.is-dot {
+      transform: scale(var(--wave-level, .84));
+    }
+
+    .hud-toast .waveform[data-visualizer-state="speaking"] {
+      --wave-baseline-opacity: .18;
+      filter:
+        drop-shadow(0 0 2px rgba(var(--ion-rgb), .5))
+        drop-shadow(0 0 8px rgba(var(--ion-rgb), .18));
+    }
+
+    .hud-toast .waveform[data-visualizer-state="exiting"] {
+      --wave-baseline-opacity: 0;
+      --wave-baseline-scale: 0;
+      animation: visualizer-container-out 390ms cubic-bezier(.55, 0, .85, .35) both;
+    }
+
+    .hud-toast .waveform[data-visualizer-state="exiting"]::before {
+      animation: visualizer-baseline-out 260ms 90ms cubic-bezier(.55, 0, .85, .35) both;
+    }
+
+    .hud-toast .waveform[data-visualizer-state="exiting"] .wave-bar {
+      animation: visualizer-bar-out 245ms var(--wave-exit-delay) cubic-bezier(.55, 0, .85, .35) both !important;
+    }
+
+    .hud-toast .waveform[data-visualizer-state="exiting"] .wave-bar.is-dot {
+      animation-name: visualizer-dot-out !important;
+    }
+
+    @keyframes visualizer-container-in {
+      0%, 12% { opacity: 0; transform: scaleX(.9); }
+      100% { opacity: 1; transform: none; }
+    }
+    @keyframes visualizer-baseline-in {
+      from { opacity: 0; transform: translate3d(-50%, -50%, 0) scaleX(0); }
+      to { opacity: .24; transform: translate3d(-50%, -50%, 0) scaleX(1); }
+    }
+    @keyframes visualizer-bar-in {
+      0% { opacity: 0; transform: scaleY(.04); }
+      68% { opacity: .92; transform: scaleY(1.08); }
+      100% { opacity: .68; transform: scaleY(.78); }
+    }
+    @keyframes visualizer-dot-in {
+      0% { opacity: 0; transform: scale(0); }
+      68% { opacity: .88; transform: scale(1.06); }
+      100% { opacity: .66; transform: scale(.84); }
+    }
+    @keyframes visualizer-energy-pass {
+      0% { opacity: 0; transform: translate3d(-130%, 0, 0); }
+      36% { opacity: .7; }
+      100% { opacity: 0; transform: translate3d(655%, 0, 0); }
+    }
+    @keyframes visualizer-container-out {
+      0% { opacity: var(--wave-exit-opacity, 1); transform: var(--wave-exit-transform, none); }
+      58% { opacity: var(--wave-exit-opacity, 1); transform: none; }
+      100% { opacity: 0; transform: scaleX(.92); }
+    }
+    @keyframes visualizer-baseline-out {
+      from { opacity: var(--wave-baseline-exit-opacity, .18); transform: var(--wave-baseline-exit-transform, translate3d(-50%, -50%, 0) scaleX(1)); }
+      to { opacity: 0; transform: translate3d(-50%, -50%, 0) scaleX(0); }
+    }
+    @keyframes visualizer-bar-out {
+      from { opacity: var(--wave-exit-opacity, var(--wave-opacity, .68)); transform: var(--wave-exit-transform, scaleY(var(--wave-level, .78))); }
+      to { opacity: 0; transform: scaleY(.04); }
+    }
+    @keyframes visualizer-dot-out {
+      from { opacity: var(--wave-exit-opacity, var(--wave-opacity, .66)); transform: var(--wave-exit-transform, scale(var(--wave-level, .84))); }
+      to { opacity: 0; transform: scale(0); }
+    }
+
+    @media (prefers-reduced-motion: reduce) {
+      .hud-toast .waveform[data-visualizer-state] {
+        animation: none !important;
+        transform: none !important;
+        transition: opacity 140ms ease-out;
+      }
+      .hud-toast .waveform[data-visualizer-state="hidden"],
+      .hud-toast .waveform[data-visualizer-state="exiting"] { opacity: 0 !important; }
+      .hud-toast .waveform[data-visualizer-state="entering"],
+      .hud-toast .waveform[data-visualizer-state="active"],
+      .hud-toast .waveform[data-visualizer-state="speaking"] { opacity: 1 !important; }
+      .hud-toast .waveform[data-visualizer-state]::before,
+      .hud-toast .waveform[data-visualizer-state]::after { display: none; }
+      .hud-toast .waveform[data-visualizer-state] .wave-bar {
+        animation: none !important;
+        opacity: .64 !important;
+        transform: scaleY(.82) !important;
+      }
+      .hud-toast .waveform[data-visualizer-state] .wave-bar.is-dot {
+        transform: scale(.9) !important;
+      }
+    }
   </style>
 </head>
 <body>
@@ -1722,7 +1815,7 @@
               <path d="M16 9.1a4.2 4.2 0 0 1 0 5.8"></path>
               <path d="M18.7 6.5a8 8 0 0 1 0 11"></path>
             </svg>
-            <div id="waveform" class="waveform" aria-hidden="true"></div>
+            <div id="waveform" class="waveform" data-visualizer-state="hidden" aria-hidden="true"></div>
             <p class="spoken-line">“WARNING.”</p>
           </footer>
         </div>
@@ -1821,10 +1914,17 @@
       let speechTimer = 0;
       let speechVisualTimer = 0;
       let activeUtterance = null;
+      let speechGeneration = 0;
+      let visualizerState = "hidden";
+      let visualizerFrame = 0;
+      let visualizerGeneration = 0;
+      let visualizerStartedAt = 0;
+      let visualizerBars = [];
+      const reducedMotionQuery = typeof window.matchMedia === "function"
+        ? window.matchMedia("(prefers-reduced-motion: reduce)")
+        : null;
 
-      const prefersReducedMotion = () =>
-        typeof window.matchMedia === "function" &&
-        window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+      const prefersReducedMotion = () => reducedMotionQuery?.matches === true;
 
       const enterDuration = () => prefersReducedMotion() ? 180 : 1200;
       const exitDuration = () => prefersReducedMotion() ? 160 : 800;
@@ -1846,16 +1946,157 @@
           const accent = minorPeaks.has(index);
           const dotted = !peak && !accent;
           const height = peak ? Math.round(34 + random() * 6) : accent ? Math.round(10 + random() * 8) : 2;
-          bar.className = `wave-bar${dotted ? " is-dot" : ""}`;
+          bar.className = `wave-bar${dotted ? " is-dot" : peak ? " is-peak" : " is-accent"}`;
           bar.style.setProperty("--bar-index", index);
           bar.style.setProperty("--bar-height", `${height}px`);
-          bar.style.setProperty("--wave-in-delay", `${720 + Math.abs(index - 30) * 5}ms`);
-          bar.style.setProperty("--wave-out-delay", `${Math.abs(index - 30) * 2}ms`);
-          bar.style.setProperty("--voice-delay", `${-((index * 37) % 210)}ms`);
-          bar.style.setProperty("--voice-duration", `${155 + Math.round(random() * 120)}ms`);
+          bar.style.setProperty("--wave-enter-delay", `${690 + Math.abs(index - 30) * 3 + (peak ? 90 : accent ? 42 : 0)}ms`);
+          bar.style.setProperty("--wave-exit-delay", `${Math.max(0, 30 - Math.abs(index - 30)) * 3}ms`);
+          bar.__ionLevel = dotted ? .84 : .78;
           fragment.appendChild(bar);
         }
         waveform.replaceChildren(fragment);
+        visualizerBars = Array.from(waveform.children);
+      }
+
+      function cancelVisualizerLoop() {
+        visualizerGeneration += 1;
+        window.cancelAnimationFrame(visualizerFrame);
+        visualizerFrame = 0;
+      }
+
+      function setStaticVisualizerLevels() {
+        visualizerBars.forEach((bar) => {
+          const level = bar.classList.contains("is-dot") ? .9 : .82;
+          bar.__ionLevel = level;
+          bar.style.setProperty("--wave-level", String(level));
+          bar.style.setProperty("--wave-opacity", bar.classList.contains("is-dot") ? ".64" : ".68");
+        });
+      }
+
+      function captureVisualizerExitPose() {
+        const containerStyle = getComputedStyle(waveform);
+        const baselineStyle = getComputedStyle(waveform, "::before");
+        const barStyles = visualizerBars.map((bar) => {
+          const style = getComputedStyle(bar);
+          return { opacity: style.opacity, transform: style.transform };
+        });
+
+        waveform.style.setProperty("--wave-exit-opacity", containerStyle.opacity);
+        waveform.style.setProperty("--wave-exit-transform", containerStyle.transform === "none" ? "none" : containerStyle.transform);
+        waveform.style.setProperty("--wave-baseline-exit-opacity", baselineStyle.opacity);
+        waveform.style.setProperty("--wave-baseline-exit-transform", baselineStyle.transform);
+        visualizerBars.forEach((bar, index) => {
+          bar.style.setProperty("--wave-exit-opacity", barStyles[index].opacity);
+          bar.style.setProperty("--wave-exit-transform", barStyles[index].transform);
+        });
+      }
+
+      function startVisualizerLoop() {
+        cancelVisualizerLoop();
+        if (
+          prefersReducedMotion() ||
+          document.hidden ||
+          (visualizerState !== "active" && visualizerState !== "speaking")
+        ) {
+          setStaticVisualizerLevels();
+          return;
+        }
+
+        const generation = visualizerGeneration;
+        let previousTime = performance.now();
+        if (!visualizerStartedAt) visualizerStartedAt = previousTime;
+
+        const animate = (time) => {
+          if (
+            generation !== visualizerGeneration ||
+            document.hidden ||
+            (visualizerState !== "active" && visualizerState !== "speaking")
+          ) {
+            visualizerFrame = 0;
+            return;
+          }
+
+          const elapsed = (time - visualizerStartedAt) / 1000;
+          const delta = Math.min(48, Math.max(0, time - previousTime));
+          previousTime = time;
+          const speaking = visualizerState === "speaking";
+          const smoothing = 1 - Math.exp(-delta * (speaking ? .021 : .009));
+
+          visualizerBars.forEach((bar, index) => {
+            const dot = bar.classList.contains("is-dot");
+            const peak = bar.classList.contains("is-peak");
+            const accent = bar.classList.contains("is-accent");
+            const phase = index * .47;
+            const primary = Math.sin(elapsed * (speaking ? 8.2 : 1.32) + phase);
+            const neighboring = Math.sin(elapsed * (speaking ? 5.1 : .73) + phase * .42 + .8);
+            const envelope = (primary * .64 + neighboring * .36 + 1) * .5;
+            let target;
+
+            if (speaking) {
+              target = dot
+                ? .55 + envelope * .48
+                : peak
+                  ? .34 + envelope * .9
+                  : .46 + envelope * .64;
+            } else {
+              target = dot
+                ? .76 + envelope * .16
+                : peak
+                  ? .69 + envelope * .18
+                  : accent
+                    ? .7 + envelope * .16
+                    : .74 + envelope * .12;
+            }
+
+            const current = Number.isFinite(bar.__ionLevel) ? bar.__ionLevel : target;
+            const level = current + (target - current) * smoothing;
+            bar.__ionLevel = level;
+            bar.style.setProperty("--wave-level", level.toFixed(3));
+            bar.style.setProperty(
+              "--wave-opacity",
+              (speaking ? .56 + envelope * .4 : .58 + envelope * .16).toFixed(3)
+            );
+          });
+
+          visualizerFrame = window.requestAnimationFrame(animate);
+        };
+
+        visualizerFrame = window.requestAnimationFrame(animate);
+      }
+
+      function setVisualizerState(nextState, { restart = false } = {}) {
+        const validStates = new Set(["hidden", "entering", "active", "speaking", "exiting"]);
+        if (!validStates.has(nextState)) throw new TypeError(`Unknown visualizer state: ${nextState}`);
+        if (!restart && visualizerState === nextState) {
+          if (nextState === "active" || nextState === "speaking") startVisualizerLoop();
+          return;
+        }
+
+        if (nextState === "exiting" && visualizerState !== "hidden") {
+          captureVisualizerExitPose();
+        }
+        cancelVisualizerLoop();
+        visualizerState = nextState;
+        waveform.dataset.visualizerState = nextState;
+        waveform.classList.toggle("is-speaking", nextState === "speaking");
+
+        if (nextState === "hidden" || nextState === "entering") {
+          waveform.style.removeProperty("--wave-exit-opacity");
+          waveform.style.removeProperty("--wave-exit-transform");
+          waveform.style.removeProperty("--wave-baseline-exit-opacity");
+          waveform.style.removeProperty("--wave-baseline-exit-transform");
+          if (nextState === "entering") visualizerStartedAt = performance.now();
+          visualizerBars.forEach((bar) => {
+            bar.style.removeProperty("--wave-exit-opacity");
+            bar.style.removeProperty("--wave-exit-transform");
+            const level = bar.classList.contains("is-dot") ? .84 : .78;
+            bar.__ionLevel = level;
+            bar.style.setProperty("--wave-level", String(level));
+            bar.style.setProperty("--wave-opacity", ".68");
+          });
+        }
+        if (nextState === "hidden") visualizerStartedAt = 0;
+        if (nextState === "active" || nextState === "speaking") startVisualizerLoop();
       }
 
       function setStaggeredText(node, text) {
@@ -1927,22 +2168,35 @@
         devStatus.textContent = `${state} · Q${queue.length}`;
       }
 
-      function stopVoiceVisualization() {
+      function stopVoiceVisualization(generation = speechGeneration) {
+        if (generation !== speechGeneration) return;
         window.clearTimeout(speechVisualTimer);
         speechVisualTimer = 0;
-        waveform.classList.remove("is-speaking");
+        if (activeUtterance) {
+          activeUtterance.onstart = null;
+          activeUtterance.onend = null;
+          activeUtterance.onerror = null;
+        }
         activeUtterance = null;
+        if (visualizerState === "speaking" && (lifecycle === "entering" || lifecycle === "visible")) {
+          setVisualizerState("active");
+        }
       }
 
-      function startVoiceVisualization() {
+      function startVoiceVisualization(generation = speechGeneration) {
+        if (
+          generation !== speechGeneration ||
+          (lifecycle !== "entering" && lifecycle !== "visible")
+        ) return;
         window.clearTimeout(speechVisualTimer);
-        waveform.classList.add("is-speaking");
-        speechVisualTimer = window.setTimeout(stopVoiceVisualization, 1450);
+        setVisualizerState("speaking");
+        speechVisualTimer = window.setTimeout(() => stopVoiceVisualization(generation), 1650);
       }
 
       function speakWarning() {
+        const generation = ++speechGeneration;
         if (!("speechSynthesis" in window) || typeof window.SpeechSynthesisUtterance !== "function") {
-          startVoiceVisualization();
+          startVoiceVisualization(generation);
           return;
         }
         try {
@@ -1951,18 +2205,20 @@
           utterance.rate = 0.9;
           utterance.pitch = 0.82;
           utterance.volume = 0.72;
-          utterance.onstart = startVoiceVisualization;
-          utterance.onend = stopVoiceVisualization;
-          utterance.onerror = stopVoiceVisualization;
+          utterance.onstart = () => startVoiceVisualization(generation);
+          utterance.onend = () => stopVoiceVisualization(generation);
+          utterance.onerror = () => stopVoiceVisualization(generation);
           activeUtterance = utterance;
           window.speechSynthesis.speak(utterance);
           // WebView2 voices occasionally omit onstart. Start a visual fallback
           // on the next frame; a real onstart simply restarts it in sync.
           window.requestAnimationFrame(() => {
-            if (!waveform.classList.contains("is-speaking")) startVoiceVisualization();
+            if (generation === speechGeneration && visualizerState !== "speaking") {
+              startVoiceVisualization(generation);
+            }
           });
         } catch (error) {
-          startVoiceVisualization();
+          startVoiceVisualization(generation);
           console.info("Ion Sense voice preview is unavailable in this browser.", error);
         }
       }
@@ -1995,6 +2251,12 @@
         phaseTimer = 0;
         speechTimer = 0;
         speechVisualTimer = 0;
+        speechGeneration += 1;
+        if (activeUtterance) {
+          activeUtterance.onstart = null;
+          activeUtterance.onend = null;
+          activeUtterance.onerror = null;
+        }
         activeUtterance = null;
         waveform.classList.remove("is-speaking");
       }
@@ -2009,6 +2271,7 @@
         lifecycle = "preparing";
         renderEvent(activeEvent);
         makeWaveform();
+        setVisualizerState("hidden", { restart: true });
 
         toast.classList.remove("is-entering", "is-visible", "is-exiting");
         toast.classList.add("is-preparing");
@@ -2036,6 +2299,7 @@
         hudLayer.classList.toggle("is-continuing", continuing);
         hudLayer.classList.add("is-entering");
         toast.setAttribute("aria-hidden", "false");
+        setVisualizerState("entering");
         updateDevStatus();
 
         phaseTimer = window.setTimeout(() => {
@@ -2046,10 +2310,11 @@
           hudLayer.classList.remove("is-continuing");
           hudLayer.classList.add("is-visible");
           lifecycle = "visible";
+          if (visualizerState === "entering") setVisualizerState("active");
           updateDevStatus();
         }, enterDuration());
 
-        speechTimer = window.setTimeout(speakWarning, prefersReducedMotion() ? 0 : 820);
+        speechTimer = window.setTimeout(speakWarning, prefersReducedMotion() ? 0 : 1180);
         dismissTimer = window.setTimeout(() => void dismissCurrent("timeout"), AUTO_DISMISS_MS);
         return true;
       }
@@ -2066,32 +2331,36 @@
         lifecycle = "dismissing";
         const timestamp = activeEvent?.timestamp;
         let hasFollowup = queue.length > 0;
+        // Manual dismissal must feel immediate even if native IPC is slow.
+        if ("speechSynthesis" in window) window.speechSynthesis.cancel();
+        toast.classList.remove("is-entering", "is-visible");
+        toast.classList.add("is-exiting");
+        hudLayer.classList.remove("is-entering", "is-visible", "is-continuing");
+        hudLayer.classList.add("is-exiting");
+        toast.dataset.dismissReason = reason;
+        setVisualizerState("exiting");
+        updateDevStatus();
+
         if (typeof window.__ionSenseContinuationProbe === "function" && Number.isSafeInteger(timestamp)) {
           try {
-            hasFollowup = (await window.__ionSenseContinuationProbe(timestamp)) || hasFollowup;
+            const nativeFollowup = await Promise.race([
+              window.__ionSenseContinuationProbe(timestamp),
+              new Promise((resolve) => window.setTimeout(() => resolve(false), 140))
+            ]);
+            hasFollowup = Boolean(nativeFollowup) || queue.length > 0 || hasFollowup;
           } catch (error) {
             console.error("Ion Sense could not inspect its native event queue", error);
           }
         }
         if (lifecycle !== "dismissing" || activeEvent?.timestamp !== timestamp) return false;
-
-        toast.classList.remove("is-entering", "is-visible");
-        toast.classList.add("is-exiting");
-        hudLayer.classList.remove("is-entering", "is-visible", "is-continuing");
         hudLayer.classList.toggle("has-followup", hasFollowup);
-        hudLayer.classList.add("is-exiting");
-        toast.dataset.dismissReason = reason;
-        updateDevStatus();
-
-        if ("speechSynthesis" in window) {
-          window.speechSynthesis.cancel();
-        }
 
         phaseTimer = window.setTimeout(() => {
           toast.classList.remove("is-exiting");
           hudLayer.classList.remove("is-exiting", "has-followup");
           hudLayer.classList.toggle("is-bridging", hasFollowup);
           toast.setAttribute("aria-hidden", "true");
+          setVisualizerState("hidden");
           activeEvent = null;
           lifecycle = "idle";
           updateDevStatus();
@@ -2137,8 +2406,24 @@
       window.addEventListener("pagehide", (event) => {
         // Keep lifecycle timers intact for back/forward-cache restores; the
         // browser pauses them and resumes the active toast on pageshow.
-        if (!event.persisted) clearLifecycleTimers();
+        if (!event.persisted) {
+          clearLifecycleTimers();
+          setVisualizerState("hidden");
+        }
         if ("speechSynthesis" in window) window.speechSynthesis.cancel();
+      });
+
+      document.addEventListener("visibilitychange", () => {
+        if (document.hidden) {
+          cancelVisualizerLoop();
+        } else if (visualizerState === "active" || visualizerState === "speaking") {
+          startVisualizerLoop();
+        }
+      });
+      reducedMotionQuery?.addEventListener?.("change", () => {
+        if (visualizerState === "active" || visualizerState === "speaking") {
+          startVisualizerLoop();
+        }
       });
 
       const mockEvents = Object.freeze({
@@ -2186,6 +2471,7 @@
       }
 
       makeWaveform();
+      setVisualizerState("hidden", { restart: true });
       updateDevStatus();
     })();
   </script>
@@ -2309,17 +2595,14 @@
       }
 
       async function stopCursorGateAndHide() {
-        const generation = ++cursorGeneration;
+        ++cursorGeneration;
         const timestamp = Number(toast.dataset.timestamp);
         window.clearInterval(cursorTimer);
         cursorTimer = 0;
         await setClickThrough(true);
-        if (
-          generation !== cursorGeneration ||
-          toast.getAttribute("aria-hidden") !== "true" ||
-          Number(toast.dataset.timestamp) !== timestamp ||
-          !Number.isSafeInteger(timestamp)
-        ) return;
+        if (!Number.isSafeInteger(timestamp)) return;
+        // Always acknowledge the completed native event. Rust validates the
+        // timestamp; a newer local visual generation must not strand the FIFO.
         await invoke("hud_idle", { timestamp });
       }
 

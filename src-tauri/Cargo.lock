@@ -2115,6 +2115,7 @@ dependencies = [
  "tauri-plugin-autostart",
  "tokio",
  "tokio-rustls 0.26.4",
+ "windows 0.61.3",
 ]
 
 [[package]]

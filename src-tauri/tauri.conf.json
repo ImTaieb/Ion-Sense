@@ -36,9 +36,9 @@
         "width": 390,
         "height": 680,
         "minWidth": 390,
-        "minHeight": 620,
+        "minHeight": 420,
         "maxWidth": 390,
-        "maxHeight": 760,
+        "maxHeight": 680,
         "visible": false,
         "center": false,
         "decorations": false,
@@ -47,9 +47,9 @@
         "minimizable": false,
         "alwaysOnTop": true,
         "skipTaskbar": true,
-        "transparent": true,
+        "transparent": false,
         "shadow": false,
-        "backgroundColor": [0, 0, 0, 0]
+        "backgroundColor": [1, 5, 3, 255]
       }
     ],
     "security": {

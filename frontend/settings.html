@@ -887,9 +887,649 @@
       0%, 100% { opacity: .62; transform: scale(.86); }
       50% { opacity: 1; transform: scale(1); }
     }
+
+    /* ION SENSE motion and material system ---------------------------------
+       This final layer deliberately owns the rendered tray surface. Earlier
+       responsive rules remain as fallbacks, but no legacy body gutter,
+       shadow, pseudo-grid, or nested frame is allowed to reach the native
+       window edge. */
+    :root {
+      --motion-micro: 150ms;
+      --motion-control: 210ms;
+      --motion-panel: 420ms;
+      --motion-window-in: 560ms;
+      --motion-window-out: 360ms;
+      --ease-out: cubic-bezier(.16, 1, .3, 1);
+      --ease-in: cubic-bezier(.55, .06, .68, .19);
+      --ease-standard: cubic-bezier(.2, .7, .2, 1);
+      --surface-0: #010403;
+      --surface-1: #040a06;
+      --surface-2: #07100a;
+      --hairline: rgba(209, 231, 216, .09);
+      --hairline-ion: rgba(var(--ion-rgb), .22);
+    }
+
+    html,
+    body {
+      width: 100%;
+      height: 100%;
+      min-height: 0;
+      margin: 0;
+      padding: 0;
+      overflow: hidden;
+      background: transparent !important;
+    }
+    body::before,
+    body::after { display: none !important; content: none !important; }
+
+    .shell {
+      position: relative;
+      isolation: isolate;
+      display: block;
+      width: 100vw;
+      height: 100dvh;
+      margin: 0;
+      padding: 0;
+      overflow: hidden;
+      border: 1px solid rgba(var(--ion-rgb), .27);
+      border-radius: 0;
+      outline: 0;
+      background:
+        radial-gradient(circle at 50% -16%, rgba(var(--ion-rgb), .065), transparent 31%),
+        linear-gradient(180deg, #050a07 0%, var(--surface-0) 76%);
+      box-shadow:
+        inset 0 1px rgba(255,255,255,.045),
+        inset 0 0 32px rgba(var(--ion-rgb),.014);
+      transform-origin: 50% 92%;
+      will-change: opacity, transform;
+      transition:
+        opacity var(--motion-window-in) var(--ease-out),
+        transform var(--motion-window-in) var(--ease-out),
+        border-color var(--motion-panel) ease,
+        box-shadow var(--motion-panel) ease;
+    }
+    body[data-window-state="hidden"] .shell {
+      opacity: 0;
+      transform: translateY(7px) scale(.982);
+      pointer-events: none;
+    }
+    body[data-window-state="entering"] .shell,
+    body[data-window-state="active"] .shell {
+      opacity: 1;
+      transform: none;
+    }
+    body[data-window-state="entering"] .shell {
+      border-color: rgba(var(--ion-rgb), .46);
+      box-shadow:
+        inset 0 1px rgba(255,255,255,.055),
+        inset 0 0 38px rgba(var(--ion-rgb),.024);
+    }
+    body[data-window-state="exiting"] .shell {
+      /* The native settings surface is intentionally opaque to eliminate DWM
+         alpha seams. Keep its glass surface painted until native hide; only
+         retract its content so the backing rectangle is never exposed. */
+      opacity: 1;
+      transform: none;
+      pointer-events: none;
+      transition-duration: var(--motion-window-out);
+      transition-timing-function: var(--ease-in);
+    }
+    body[data-window-state="exiting"] .utility-overview,
+    body[data-window-state="exiting"] .settings-hero,
+    body[data-window-state="exiting"] #settings-form {
+      opacity: 0 !important;
+      transform: translateY(5px) scale(.992) !important;
+      transition-duration: var(--motion-window-out) !important;
+      transition-timing-function: var(--ease-in) !important;
+    }
+
+    /* Both views stay mounted. Visibility is delayed until opacity/transform
+       finish so values, focus context, and editor scroll position survive. */
+    .utility-overview,
+    .settings-hero,
+    #settings-form {
+      will-change: opacity, transform;
+      transition:
+        opacity var(--motion-panel) var(--ease-standard),
+        transform var(--motion-panel) var(--ease-out),
+        visibility 0s linear var(--motion-panel);
+    }
+    .utility-overview {
+      position: absolute;
+      inset: 0;
+      z-index: 2;
+      display: grid !important;
+      grid-template-rows: 56px minmax(0, 1fr) 66px;
+      min-width: 0;
+      min-height: 0;
+      margin: 0;
+      padding: 0;
+      overflow: hidden;
+      border: 0;
+      border-radius: 0;
+      background: transparent;
+      box-shadow: none;
+    }
+    .settings-hero {
+      position: absolute;
+      inset: 0 0 auto;
+      z-index: 3;
+      display: grid !important;
+      width: auto;
+      height: 88px;
+      margin: 0;
+      padding: 14px 48px 14px 15px;
+      grid-template-columns: 48px minmax(0, 1fr);
+      gap: 12px;
+      overflow: hidden;
+      border: 0;
+      border-bottom: 1px solid var(--hairline);
+      border-radius: 0;
+      background:
+        radial-gradient(circle at 8% 48%, rgba(var(--ion-rgb),.065), transparent 25%),
+        linear-gradient(180deg, rgba(255,255,255,.018), rgba(3,9,5,.97));
+      box-shadow: none;
+      animation: none;
+    }
+    .settings-hero::after,
+    .hero-state { display: none !important; }
+    #settings-form {
+      position: absolute;
+      inset: 88px 0 0;
+      z-index: 2;
+      display: grid !important;
+      grid-template-rows: minmax(0, 1fr) auto;
+      gap: 0;
+      min-width: 0;
+      min-height: 0;
+      margin: 0;
+      padding: 0;
+    }
+
+    .shell[data-view="overview"] .utility-overview,
+    .shell[data-view="editor"] .settings-hero,
+    .shell[data-view="editor"] #settings-form {
+      visibility: visible;
+      opacity: 1;
+      transform: none;
+      pointer-events: auto;
+      transition-delay: 0s;
+    }
+    .shell[data-view="overview"] .settings-hero,
+    .shell[data-view="overview"] #settings-form {
+      display: grid !important;
+      visibility: hidden;
+      opacity: 0;
+      transform: translateX(16px);
+      pointer-events: none;
+    }
+    .shell[data-view="editor"] .utility-overview {
+      display: grid !important;
+      visibility: hidden;
+      opacity: 0;
+      transform: translateX(-14px) scale(.992);
+      pointer-events: none;
+    }
+    .shell[data-view-motion="transitioning"] .utility-overview,
+    .shell[data-view-motion="transitioning"] .settings-hero,
+    .shell[data-view-motion="transitioning"] #settings-form {
+      visibility: visible;
+    }
+    .shell[data-view="editor"][data-view-motion="transitioning"] .utility-overview {
+      animation: overview-view-out 360ms var(--ease-standard) both;
+    }
+    .shell[data-view="editor"][data-view-motion="transitioning"] .settings-hero,
+    .shell[data-view="editor"][data-view-motion="transitioning"] #settings-form {
+      animation: editor-view-in 420ms var(--ease-out) both;
+    }
+    .shell[data-view="overview"][data-view-motion="transitioning"] .utility-overview {
+      animation: overview-view-in 420ms var(--ease-out) both;
+    }
+    .shell[data-view="overview"][data-view-motion="transitioning"] .settings-hero,
+    .shell[data-view="overview"][data-view-motion="transitioning"] #settings-form {
+      animation: editor-view-out 340ms var(--ease-standard) both;
+    }
+    @keyframes overview-view-out {
+      from { visibility: visible; opacity: 1; transform: none; }
+      to { visibility: visible; opacity: 0; transform: translateX(-14px) scale(.992); }
+    }
+    @keyframes overview-view-in {
+      from { visibility: visible; opacity: 0; transform: translateX(-12px) scale(.994); }
+      to { visibility: visible; opacity: 1; transform: none; }
+    }
+    @keyframes editor-view-in {
+      from { visibility: visible; opacity: 0; transform: translateX(16px); }
+      to { visibility: visible; opacity: 1; transform: none; }
+    }
+    @keyframes editor-view-out {
+      from { visibility: visible; opacity: 1; transform: none; }
+      to { visibility: visible; opacity: 0; transform: translateX(14px); }
+    }
+
+    /* Monitoring view */
+    .utility-topbar {
+      display: grid;
+      grid-template-columns: 30px minmax(0, 1fr) auto;
+      align-items: center;
+      gap: 10px;
+      padding: 0 14px;
+      border-bottom: 1px solid var(--hairline);
+      background: linear-gradient(180deg, rgba(255,255,255,.018), transparent);
+    }
+    .utility-app-icon {
+      display: grid;
+      place-items: center;
+      width: 28px;
+      height: 28px;
+      color: var(--ion);
+      border: 1px solid rgba(var(--ion-rgb),.35);
+      border-radius: 8px;
+      background: rgba(var(--ion-rgb),.035);
+      box-shadow: inset 0 1px rgba(255,255,255,.035);
+      font: 740 14px/1 ui-monospace, monospace;
+    }
+    .utility-app-name {
+      color: #eef4f0;
+      font-size: 10.5px;
+      font-weight: 700;
+      letter-spacing: .095em;
+    }
+    .utility-app-name small {
+      display: block;
+      margin-top: 1px;
+      color: #76827a;
+      font-size: 7.5px;
+      font-weight: 560;
+      letter-spacing: .06em;
+    }
+    .utility-live {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      color: #9aa59e;
+      font: 650 8px/1 ui-monospace, monospace;
+      letter-spacing: .13em;
+      text-transform: uppercase;
+    }
+    .utility-live::before {
+      content: "";
+      width: 5px;
+      height: 5px;
+      border-radius: 50%;
+      background: var(--ion);
+      box-shadow: 0 0 7px rgba(var(--ion-rgb),.45);
+      animation: live-breathe 2.4s ease-in-out infinite;
+    }
+    .utility-status {
+      position: relative;
+      display: grid;
+      place-items: center;
+      align-content: center;
+      gap: 14px;
+      min-height: 0;
+      padding: 22px 28px 20px;
+      overflow: hidden;
+      text-align: center;
+      background:
+        radial-gradient(circle at 50% 42%, rgba(var(--ion-rgb), .065), transparent 34%),
+        linear-gradient(180deg, rgba(255,255,255,.006), transparent 30%);
+    }
+    .utility-status::after {
+      content: "";
+      position: absolute;
+      left: 50%;
+      bottom: 12%;
+      width: 210px;
+      height: 1px;
+      opacity: .4;
+      background: linear-gradient(90deg, transparent, rgba(var(--ion-rgb),.24), transparent);
+      transform: translateX(-50%);
+      pointer-events: none;
+    }
+    .utility-status > .eyebrow {
+      margin: 0 0 -3px;
+      color: #78847c;
+      font-size: 8px;
+      letter-spacing: .22em;
+    }
+    .utility-mark {
+      position: relative;
+      display: grid;
+      place-items: center;
+      width: 94px;
+      height: 94px;
+      border: 1px solid rgba(var(--ion-rgb), .37);
+      border-radius: 50%;
+      background: radial-gradient(circle, rgba(var(--ion-rgb), .07), rgba(0,3,2,.96) 70%);
+      box-shadow: inset 0 0 0 7px rgba(var(--ion-rgb),.012), 0 0 20px rgba(var(--ion-rgb),.05);
+      transition: border-color var(--motion-control) ease, box-shadow var(--motion-control) ease, transform var(--motion-control) var(--ease-out);
+    }
+    .utility-mark::before,
+    .utility-mark::after {
+      left: 32px;
+      width: 30px;
+      height: 5px;
+      box-shadow: 0 0 7px rgba(var(--ion-rgb),.3);
+    }
+    .utility-mark::before { top: 25px; }
+    .utility-mark::after { bottom: 25px; }
+    .utility-mark span { width: 5px; height: 34px; box-shadow: 0 0 7px rgba(var(--ion-rgb),.3); }
+    .utility-status h2 {
+      margin: 1px 0 0;
+      color: #f0f4f1;
+      font-size: 25px;
+      font-weight: 590;
+      letter-spacing: -.03em;
+      text-transform: none;
+    }
+    .utility-status h2::before { display: none; }
+    .utility-status p {
+      max-width: 288px;
+      margin: -5px 0 0;
+      color: #9ba69f;
+      font-size: 12.25px;
+      line-height: 1.55;
+    }
+    .utility-stats { display: flex; justify-content: center; gap: 7px; flex-wrap: wrap; }
+    .utility-stat {
+      padding: 7px 10px;
+      color: #8c9790;
+      border: 1px solid rgba(var(--ion-rgb), .115);
+      border-radius: 999px;
+      background: rgba(var(--ion-rgb), .018);
+      font-size: 8.5px;
+      font-weight: 670;
+      letter-spacing: .09em;
+      text-transform: uppercase;
+      transition: color var(--motion-control) ease, border-color var(--motion-control) ease, background var(--motion-control) ease;
+    }
+    .utility-stat strong { color: var(--ion); }
+    .utility-nav {
+      display: grid;
+      grid-template-columns: 1fr 62px;
+      align-items: center;
+      min-height: 66px;
+      border-top: 1px solid var(--hairline);
+      background: linear-gradient(180deg, #151e19, #111814);
+      box-shadow: inset 0 1px rgba(255,255,255,.018);
+    }
+    .utility-wordmark { padding-left: 15px; color: #edf3ef; font-size: 13.5px; font-weight: 720; letter-spacing: .06em; }
+    .utility-wordmark small { display: block; margin-top: 2px; color: #808c84; font-size: 7.5px; font-weight: 560; letter-spacing: .06em; }
+    .utility-settings-button {
+      display: grid;
+      place-items: center;
+      width: 43px;
+      height: 43px;
+      min-height: 43px;
+      margin: 0 auto;
+      padding: 0;
+      color: #d5ded8;
+      border: 1px solid rgba(255,255,255,.11);
+      border-radius: 11px;
+      background: linear-gradient(180deg, rgba(255,255,255,.038), rgba(0,0,0,.19));
+      box-shadow: inset 0 1px rgba(255,255,255,.025);
+      font-size: 20px;
+      transition: transform var(--motion-control) var(--ease-out), color var(--motion-control) ease, border-color var(--motion-control) ease, background var(--motion-control) ease, box-shadow var(--motion-control) ease;
+    }
+    .utility-settings-button:hover:not(:disabled) {
+      color: var(--ion);
+      border-color: rgba(var(--ion-rgb),.37);
+      background: rgba(var(--ion-rgb),.055);
+      box-shadow: 0 0 14px rgba(var(--ion-rgb),.055), inset 0 1px rgba(255,255,255,.035);
+      transform: translateY(-1px) rotate(8deg);
+    }
+    .utility-settings-button:active:not(:disabled) { transform: scale(.96) rotate(2deg); }
+    .utility-settings-button::after {
+      content: "Detector settings";
+      position: absolute;
+      right: 8px;
+      bottom: 54px;
+      width: max-content;
+      max-width: 150px;
+      padding: 6px 8px;
+      visibility: hidden;
+      opacity: 0;
+      color: #c8d2cc;
+      border: 1px solid rgba(255,255,255,.1);
+      border-radius: 7px;
+      background: rgba(2,7,4,.96);
+      box-shadow: 0 8px 20px rgba(0,0,0,.3);
+      transform: translateY(4px);
+      pointer-events: none;
+      font-size: 8px;
+      font-weight: 600;
+      letter-spacing: .04em;
+      transition: opacity var(--motion-micro) ease, transform var(--motion-micro) var(--ease-out), visibility 0s linear var(--motion-micro);
+    }
+    .utility-settings-button:hover::after,
+    .utility-settings-button:focus-visible::after {
+      visibility: visible;
+      opacity: 1;
+      transform: none;
+      transition-delay: 180ms, 180ms, 0s;
+    }
+
+    /* Editor */
+    .settings-brand {
+      width: 48px;
+      height: 48px;
+      border-color: rgba(var(--ion-rgb),.38);
+      background: radial-gradient(circle, rgba(var(--ion-rgb),.055), #010402 70%);
+      box-shadow: inset 0 0 0 6px rgba(var(--ion-rgb),.012);
+    }
+    .settings-brand::before,
+    .settings-brand::after { left: 16px; width: 16px; height: 3px; box-shadow: 0 0 5px rgba(var(--ion-rgb),.25); }
+    .settings-brand::before { top: 12px; }
+    .settings-brand::after { bottom: 12px; }
+    .settings-brand span { width: 3px; height: 19px; box-shadow: 0 0 5px rgba(var(--ion-rgb),.25); }
+    .hero-copy { align-self: center; min-width: 0; }
+    .settings-hero:focus { outline: none; }
+    .settings-hero .eyebrow { overflow: hidden; color: rgba(var(--ion-rgb),.74); font-size: 8px; letter-spacing: .17em; text-overflow: ellipsis; white-space: nowrap; }
+    .settings-hero h1 { margin: 4px 0 2px; color: #eef3ef; font-size: 18px; font-weight: 640; letter-spacing: -.02em; }
+    .settings-hero .intro { display: -webkit-box; max-width: 260px; overflow: hidden; color: #87938b; font-size: 9px; line-height: 1.35; -webkit-box-orient: vertical; -webkit-line-clamp: 2; }
+    .editor-back {
+      position: absolute;
+      top: 12px;
+      right: 12px;
+      z-index: 4;
+      display: grid;
+      place-items: center;
+      width: 32px;
+      height: 32px;
+      min-height: 32px;
+      padding: 0;
+      color: #a6b0aa;
+      border: 1px solid rgba(255,255,255,.09);
+      border-radius: 9px;
+      background: rgba(0,0,0,.24);
+      font-size: 16px;
+    }
+    .settings-scroll {
+      min-width: 0;
+      min-height: 0;
+      overflow: hidden auto;
+      padding: 9px 7px 10px 9px;
+      scrollbar-width: thin;
+      scrollbar-color: rgba(var(--ion-rgb),.3) transparent;
+      overscroll-behavior: contain;
+      scroll-behavior: smooth;
+    }
+    .settings-scroll::-webkit-scrollbar { width: 6px; }
+    .settings-scroll::-webkit-scrollbar-track { margin: 5px 0; background: transparent; }
+    .settings-scroll::-webkit-scrollbar-thumb {
+      border: 1px solid transparent;
+      border-radius: 999px;
+      background: rgba(var(--ion-rgb),.24);
+      background-clip: padding-box;
+      transition: background var(--motion-micro) ease;
+    }
+    .settings-scroll::-webkit-scrollbar-thumb:hover { background: rgba(var(--ion-rgb),.44); background-clip: padding-box; }
+    .settings-grid { display: grid; grid-template-columns: 1fr; gap: 8px; }
+    .grid-wide,
+    .grid-half { grid-column: auto; }
+    section.settings-card {
+      min-width: 0;
+      margin: 0;
+      padding: 14px 13px 15px;
+      overflow: hidden;
+      border: 1px solid rgba(180,215,190,.095);
+      border-radius: 12px;
+      background:
+        linear-gradient(180deg, rgba(255,255,255,.014), transparent 28%),
+        rgba(3,9,6,.9);
+      box-shadow: inset 0 1px rgba(255,255,255,.018);
+      animation: none;
+      opacity: 0;
+      transform: translateY(8px);
+      transition:
+        opacity 300ms var(--ease-out),
+        transform 300ms var(--ease-out),
+        border-color var(--motion-control) ease,
+        background var(--motion-control) ease,
+        box-shadow var(--motion-control) ease;
+    }
+    .shell[data-view="editor"] section.settings-card {
+      opacity: 1;
+      transform: none;
+      transition-delay: calc(70ms + var(--card-index, 0) * 28ms), calc(70ms + var(--card-index, 0) * 28ms), 0s, 0s, 0s;
+    }
+    .shell[data-view="editor"][data-view-motion="settled"] section.settings-card { transition-delay: 0s; }
+    section.settings-card:hover {
+      transform: translateY(-1px);
+      border-color: rgba(var(--ion-rgb),.19);
+      background: rgba(5,14,8,.94);
+      box-shadow: inset 0 1px rgba(255,255,255,.025), 0 9px 22px rgba(0,0,0,.14);
+    }
+    section.settings-card:focus-within {
+      transform: none;
+      border-color: rgba(var(--ion-rgb),.36);
+      background: rgba(4,13,7,.96);
+      box-shadow: inset 2px 0 rgba(var(--ion-rgb),.38), inset 0 1px rgba(255,255,255,.025);
+    }
+    section.settings-card::after { top: 14px; right: 12px; color: rgba(var(--ion-rgb),.1); font-size: 9px; opacity: 1; }
+    .section-head { min-height: 24px; margin-bottom: 10px; padding-right: 24px; }
+    h2 { color: #e8eeea; font-size: 10.5px; font-weight: 680; letter-spacing: .065em; }
+    h2::before { width: 5px; height: 5px; border-color: rgba(var(--ion-rgb),.52); box-shadow: none; }
+    .grid { grid-template-columns: 1fr; gap: 8px; }
+    .span-2 { grid-column: auto; }
+    label.field { gap: 6px; color: #a4afa7; font-size: 9px; letter-spacing: .06em; }
+    input[type="text"],
+    input[type="password"],
+    input[type="number"] {
+      min-height: 40px;
+      padding: 9px 11px;
+      color: #edf3ef;
+      border: 1px solid rgba(185,211,193,.115);
+      border-radius: 9px;
+      outline: 0;
+      background: linear-gradient(180deg, rgba(0,3,2,.88), rgba(1,6,4,.82));
+      box-shadow: inset 0 1px rgba(255,255,255,.014);
+      font-size: 11px;
+      transition: border-color var(--motion-control) ease, background var(--motion-control) ease, box-shadow var(--motion-control) ease, opacity var(--motion-control) ease;
+    }
+    input:hover:not(:disabled) { border-color: rgba(var(--ion-rgb),.24); background: rgba(2,9,5,.96); }
+    input:focus { border-color: rgba(var(--ion-rgb),.58); box-shadow: 0 0 0 3px rgba(var(--ion-rgb),.055), inset 0 1px rgba(255,255,255,.02); }
+    input:user-invalid { border-color: rgba(255,105,105,.6); box-shadow: 0 0 0 3px rgba(255,90,90,.05); }
+    input:disabled { cursor: not-allowed; opacity: .45; }
+    input::placeholder { color: #526057; opacity: .9; }
+    .switch { gap: 7px; padding-right: 18px; color: #929e96; font-size: 8.5px; letter-spacing: .085em; }
+    .track { width: 37px; height: 20px; border-color: rgba(181,203,188,.17); background: #010403; box-shadow: inset 0 1px 3px rgba(0,0,0,.5); transition: background var(--motion-control) ease, border-color var(--motion-control) ease, box-shadow var(--motion-control) ease; }
+    .track::after { top: 2px; left: 2px; width: 14px; height: 14px; background: #69746c; transition: transform 230ms cubic-bezier(.2,.85,.3,1.15), background var(--motion-control) ease, box-shadow var(--motion-control) ease; }
+    .switch input:checked + .track { border-color: rgba(var(--ion-rgb),.45); background: rgba(var(--ion-rgb),.085); }
+    .switch input:checked + .track::after { left: 2px; transform: translateX(17px); background: #55ef69; box-shadow: 0 0 7px rgba(var(--ion-rgb),.3); }
+    .switch input:focus-visible + .track { outline: 2px solid rgba(var(--ion-rgb),.78); outline-offset: 3px; }
+    .hint { margin: 8px 0 0; color: #7e8a82; font-size: 9px; line-height: 1.45; }
+    .credential-row { grid-template-columns: 1fr auto; gap: 7px; }
+    button {
+      min-height: 38px;
+      padding: 0 13px;
+      border-color: rgba(180,205,188,.13);
+      border-radius: 9px;
+      background: linear-gradient(180deg, rgba(15,25,18,.92), rgba(4,11,7,.94));
+      box-shadow: inset 0 1px rgba(255,255,255,.018);
+      font-size: 9px;
+      transition: transform var(--motion-micro) var(--ease-out), color var(--motion-micro) ease, border-color var(--motion-micro) ease, background var(--motion-micro) ease, box-shadow var(--motion-micro) ease;
+    }
+    button:hover:not(:disabled) { transform: translateY(-1px); color: var(--ion); border-color: rgba(var(--ion-rgb),.33); background: rgba(var(--ion-rgb),.045); box-shadow: 0 7px 16px rgba(0,0,0,.15); }
+    button:active:not(:disabled) { transform: scale(.975); }
+    button:focus-visible { outline: 2px solid rgba(var(--ion-rgb),.76); outline-offset: 2px; }
+    .platform-note { margin: 0; padding: 11px 12px; border: 1px solid rgba(var(--ion-rgb),.09); border-left: 2px solid rgba(var(--ion-rgb),.34); border-radius: 10px; background: rgba(var(--ion-rgb),.018); color: #7e8a82; font-size: 8.75px; line-height: 1.45; animation: none; }
+    .actions {
+      position: relative;
+      inset: auto;
+      z-index: 6;
+      display: grid;
+      grid-template-columns: 1fr;
+      gap: 7px;
+      min-height: 91px;
+      padding: 8px 10px 10px;
+      border: 0;
+      border-top: 1px solid var(--hairline);
+      border-radius: 0;
+      background: linear-gradient(180deg, rgba(3,8,5,.98), #020604);
+      box-shadow: 0 -12px 25px rgba(0,0,0,.26);
+      backdrop-filter: none;
+    }
+    #status { width: 100%; max-width: none; min-height: 27px; padding: 0 10px 0 29px; font-size: 9px; }
+    #status[data-state="success"] { animation: status-confirm 420ms var(--ease-out); }
+    #status[data-state="error"] { animation: status-attention 260ms var(--ease-standard); }
+    button.primary { width: 100%; min-width: 0; min-height: 42px; border-radius: 9px; background: linear-gradient(180deg, #5fe974, #3dca53); box-shadow: inset 0 1px rgba(255,255,255,.3), 0 6px 16px rgba(38,176,59,.11); font-size: 9.5px; }
+    button.primary:hover:not(:disabled) { background: linear-gradient(180deg, #72f285, #45d65c); box-shadow: inset 0 1px rgba(255,255,255,.34), 0 8px 20px rgba(38,190,61,.16); }
+
+    body[data-window-state="entering"] .utility-topbar,
+    body[data-window-state="entering"] .settings-hero {
+      animation: settings-reveal-head 440ms 70ms var(--ease-out) both;
+    }
+    body[data-window-state="entering"] .utility-status,
+    body[data-window-state="entering"] #settings-form {
+      animation: settings-reveal-content 470ms 120ms var(--ease-out) both;
+    }
+    body[data-window-state="entering"] .utility-nav,
+    body[data-window-state="entering"] .actions {
+      animation: settings-reveal-foot 430ms 190ms var(--ease-out) both;
+    }
+    @keyframes settings-reveal-head {
+      from { opacity: 0; transform: translateY(-6px); }
+      to { opacity: 1; transform: none; }
+    }
+    @keyframes settings-reveal-content {
+      from { opacity: 0; transform: translateY(8px) scale(.992); }
+      to { opacity: 1; transform: none; }
+    }
+    @keyframes settings-reveal-foot {
+      from { opacity: 0; transform: translateY(8px); }
+      to { opacity: 1; transform: none; }
+    }
+    @keyframes status-confirm {
+      0% { border-color: rgba(var(--ion-rgb),.08); box-shadow: none; }
+      45% { border-color: rgba(var(--ion-rgb),.3); box-shadow: 0 0 13px rgba(var(--ion-rgb),.055); }
+      100% { border-color: rgba(var(--ion-rgb),.15); box-shadow: none; }
+    }
+    @keyframes status-attention {
+      0%, 100% { transform: none; }
+      45% { transform: translateX(2px); }
+    }
+
+    @media (prefers-reduced-motion: reduce) {
+      :root {
+        --motion-micro: 1ms;
+        --motion-control: 1ms;
+        --motion-panel: 80ms;
+        --motion-window-in: 80ms;
+        --motion-window-out: 80ms;
+      }
+      html:focus-within { scroll-behavior: auto; }
+      *, *::before, *::after {
+        animation-duration: 1ms !important;
+        animation-delay: 0ms !important;
+        animation-iteration-count: 1 !important;
+        scroll-behavior: auto !important;
+      }
+      .utility-settings-button:hover:not(:disabled) { transform: none; }
+    }
   </style>
 </head>
-<body>
+<body data-window-state="hidden">
   <div class="shell" data-view="overview">
     <section class="utility-overview" aria-label="Ion Sense status">
       <div class="utility-topbar">
@@ -912,7 +1552,7 @@
         <button id="open-editor" class="utility-settings-button" type="button" aria-label="Open detector settings" title="Open detector settings">⚙</button>
       </nav>
     </section>
-    <header class="settings-hero">
+    <header class="settings-hero" tabindex="-1">
       <button id="close-editor" class="editor-back" type="button" aria-label="Return to Ion Sense status">×</button>
       <div class="settings-brand" aria-hidden="true"><span>I</span></div>
       <div class="hero-copy">
@@ -1027,16 +1667,160 @@
   <script>
     (() => {
       "use strict";
-      const invoke = window.__TAURI__.core.invoke;
+      const tauri = window.__TAURI__;
+      const nativeInvoke = tauri?.core?.invoke?.bind(tauri.core);
+      const nativeListen = tauri?.event?.listen?.bind(tauri.event);
       const form = document.getElementById("settings-form");
       const status = document.getElementById("status");
       const shell = document.querySelector(".shell");
+      const overview = document.querySelector(".utility-overview");
+      const hero = document.querySelector(".settings-hero");
+      const editorScroll = document.querySelector(".settings-scroll");
+      const reducedMotion = window.matchMedia("(prefers-reduced-motion: reduce)");
       let currentSettings = null;
+      let windowMotionTimer = 0;
+      let viewMotionTimer = 0;
+      let closing = false;
+      let activeOpenGeneration = 0;
+      let activeCloseGeneration = 0;
+
+      const previewSettings = {
+        launch_at_login: false,
+        battery: { enabled: true, threshold_percent: 20, poll_seconds: 30 },
+        temperature: { enabled: true, threshold_celsius: 85, poll_seconds: 5 },
+        downloads: { enabled: true, directory: null },
+        email: { enabled: false, host: "", port: 993, username: "", mailbox: "INBOX", poll_seconds: 60 },
+        discord: { enabled: false, allowed_channel_ids: [] }
+      };
+
+      async function previewInvoke(command, args = {}) {
+        switch (command) {
+          case "get_settings": return structuredClone(previewSettings);
+          case "get_runtime_info": return { settingsPath: "Preview mode", platform: "windows", dev: false };
+          case "get_credential_status": return { imapConfigured: false, discordConfigured: false };
+          case "save_settings": return structuredClone(args.settings);
+          case "clear_imap_password": return { ...currentSettings, email: { ...currentSettings.email, enabled: false } };
+          case "clear_discord_token": return { ...currentSettings, discord: { ...currentSettings.discord, enabled: false } };
+          case "fire_test_event":
+          case "settings_ready":
+          case "settings_present":
+          case "settings_hide": return null;
+          default: throw new Error(`Preview command is unavailable: ${command}`);
+        }
+      }
+
+      const invoke = nativeInvoke || previewInvoke;
 
       const field = (id) => document.getElementById(id);
       const number = (id) => field(id).valueAsNumber;
       const checked = (id) => field(id).checked;
       const wait = (milliseconds) => new Promise((resolve) => window.setTimeout(resolve, milliseconds));
+      const nextPaint = () => new Promise((resolve) => requestAnimationFrame(() => requestAnimationFrame(resolve)));
+
+      function clearWindowMotionTimer() {
+        window.clearTimeout(windowMotionTimer);
+        windowMotionTimer = 0;
+      }
+
+      function playWindowEntrance(generation = 0) {
+        clearWindowMotionTimer();
+        closing = false;
+        activeCloseGeneration = 0;
+        activeOpenGeneration = Number.isSafeInteger(generation) ? generation : 0;
+        shell.inert = false;
+        document.body.dataset.windowState = "hidden";
+        // The native window is still hidden when this event arrives. Commit the
+        // initial style and the entering state synchronously so a throttled
+        // hidden-WebView rAF can never expose an unstyled backing frame.
+        void shell.offsetWidth;
+        if (closing) return;
+        document.body.dataset.windowState = "entering";
+        windowMotionTimer = window.setTimeout(() => {
+          if (!closing) document.body.dataset.windowState = "active";
+        }, reducedMotion.matches ? 90 : 620);
+      }
+
+      async function playWindowExit(generation = 0) {
+        if (closing && activeCloseGeneration === generation) return;
+        closing = true;
+        activeOpenGeneration = 0;
+        activeCloseGeneration = Number.isSafeInteger(generation) ? generation : 0;
+        const closingGeneration = activeCloseGeneration;
+        clearWindowMotionTimer();
+        shell.inert = true;
+        document.body.dataset.windowState = "exiting";
+        await wait(reducedMotion.matches ? 80 : 380);
+        if (!closing || activeCloseGeneration !== closingGeneration) return;
+        // Keep the fully painted shell in its valid exit-end pose until Rust
+        // makes the native surface transparent and hides it. Clearing the DOM
+        // first would expose the opaque WebView backing for one rendered frame.
+        try { await invoke("settings_hide", { generation: closingGeneration }); }
+        catch (error) { console.error("Ion Sense could not finish hiding settings", error); }
+        if (activeCloseGeneration === closingGeneration) {
+          document.body.dataset.windowState = "hidden";
+        }
+      }
+
+      function setView(nextView, { focus = true } = {}) {
+        if (nextView !== "overview" && nextView !== "editor") return;
+        window.clearTimeout(viewMotionTimer);
+        const changed = shell.dataset.view !== nextView;
+        if (changed) {
+          shell.dataset.viewMotion = "preparing";
+          void shell.offsetWidth;
+          shell.dataset.view = nextView;
+          shell.dataset.viewMotion = "transitioning";
+        } else {
+          shell.dataset.view = nextView;
+          shell.dataset.viewMotion = "settled";
+        }
+        overview.setAttribute("aria-hidden", String(nextView !== "overview"));
+        hero.setAttribute("aria-hidden", String(nextView !== "editor"));
+        form.setAttribute("aria-hidden", String(nextView !== "editor"));
+        overview.inert = nextView !== "overview";
+        hero.inert = nextView !== "editor";
+        form.inert = nextView !== "editor";
+        viewMotionTimer = window.setTimeout(() => {
+          shell.dataset.viewMotion = "settled";
+          if (!focus || closing) return;
+          const target = nextView === "editor" ? hero : field("open-editor");
+          target.focus({ preventScroll: true });
+        }, reducedMotion.matches ? 80 : 440);
+      }
+
+      async function prepareAndPresent(generation) {
+        if (!Number.isSafeInteger(generation)) return;
+        playWindowEntrance(generation);
+        await nextPaint();
+        if (closing || activeOpenGeneration !== generation) return;
+        try { await invoke("settings_present", { generation }); }
+        catch (error) { console.error("Ion Sense could not reveal settings", error); }
+      }
+
+      async function announceSettingsReady() {
+        if (nativeListen) {
+          // Register both listeners before reporting readiness; otherwise a fast
+          // first tray click can emit an event into the registration gap.
+          await Promise.all([
+            nativeListen("ion-sense://settings-open", ({ payload }) => {
+              void prepareAndPresent(Number(payload));
+            }),
+            nativeListen("ion-sense://settings-close-request", ({ payload }) => {
+              void playWindowExit(Number(payload));
+            })
+          ]);
+        }
+        try { await document.fonts?.ready; } catch (_) { /* system font remains safe */ }
+        await nextPaint();
+        let pendingGeneration = null;
+        try { pendingGeneration = await invoke("settings_ready"); }
+        catch (error) { if (nativeInvoke) console.error("Ion Sense settings readiness failed", error); }
+        if (Number.isSafeInteger(pendingGeneration)) {
+          await prepareAndPresent(pendingGeneration);
+        } else if (!nativeInvoke) {
+          playWindowEntrance();
+        }
+      }
 
       async function invokeAfterNativeSetup(command, args) {
         let lastError;
@@ -1222,18 +2006,23 @@
       });
 
       field("open-editor").addEventListener("click", () => {
-        shell.dataset.view = "editor";
-        field("battery-enabled").focus({ preventScroll: true });
+        setView("editor");
       });
       field("close-editor").addEventListener("click", () => {
-        shell.dataset.view = "overview";
-        field("open-editor").focus({ preventScroll: true });
+        setView("overview");
       });
+
+      const previewView = new URLSearchParams(location.search).get("view");
+      setView(previewView === "editor" ? "editor" : "overview", { focus: false });
 
       setBusy(true);
       load()
         .catch((error) => setStatus(String(error), true))
         .finally(() => setBusy(false));
+      announceSettingsReady().catch((error) => {
+        console.error("Ion Sense settings lifecycle setup failed", error);
+        if (!nativeInvoke) playWindowEntrance();
+      });
     })();
   </script>
 </body>
