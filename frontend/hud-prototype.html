@@ -1023,8 +1023,8 @@
       --panel: rgba(1, 8, 5, 0.82);
       --text: #e4e8e5;
       --muted: #a7ada9;
-      --enter-ms: 560ms;
-      --exit-ms: 420ms;
+      --enter-ms: 1200ms;
+      --exit-ms: 800ms;
     }
 
     .screen-overlay {
@@ -1038,7 +1038,7 @@
         rgba(0, 3, 1, .28);
       -webkit-backdrop-filter: blur(12px) saturate(.62) brightness(.48);
       backdrop-filter: blur(12px) saturate(.62) brightness(.48);
-      will-change: opacity, backdrop-filter;
+      will-change: opacity;
     }
 
     .screen-overlay::before {
@@ -1081,16 +1081,14 @@
     }
 
     @keyframes screen-warn-in {
-      0% { opacity: 0; -webkit-backdrop-filter: blur(0) saturate(1) brightness(1); backdrop-filter: blur(0) saturate(1) brightness(1); }
-      28% { opacity: .72; }
-      46% { opacity: .46; }
-      100% { opacity: 1; -webkit-backdrop-filter: blur(12px) saturate(.62) brightness(.48); backdrop-filter: blur(12px) saturate(.62) brightness(.48); }
+      0% { opacity: 0; }
+      28% { opacity: .76; }
+      100% { opacity: 1; }
     }
 
     @keyframes screen-warn-out {
-      0% { opacity: 1; -webkit-backdrop-filter: blur(12px) saturate(.62) brightness(.48); backdrop-filter: blur(12px) saturate(.62) brightness(.48); }
-      54% { opacity: .62; }
-      100% { opacity: 0; -webkit-backdrop-filter: blur(0) saturate(1) brightness(1); backdrop-filter: blur(0) saturate(1) brightness(1); }
+      0%, 55% { opacity: 1; }
+      100% { opacity: 0; }
     }
 
     .hud-toast {
@@ -1116,17 +1114,16 @@
     }
 
     @keyframes hud-center-in {
-      0% { opacity: 0; transform: translate3d(-50%, -43%, 0) scale(.88); filter: blur(8px); clip-path: inset(48% 47%); }
-      20% { opacity: .7; transform: translate3d(-50.6%, -50.8%, 0) scale(1.018); filter: blur(2px); clip-path: inset(21% 4%); }
-      34% { opacity: .38; transform: translate3d(-49.5%, -49.6%, 0) scale(.992); clip-path: inset(47% 0 34%); }
-      48% { opacity: 1; transform: translate3d(-50%, -50%, 0) scale(1.008); filter: blur(0); clip-path: inset(4% 0); }
-      100% { opacity: 1; transform: translate3d(-50%, -50%, 0) scale(1); filter: blur(0); clip-path: inset(-230px); }
+      0% { opacity: 0; transform: translate3d(-50%, -48%, 0) scale(.965); clip-path: inset(-230px); }
+      42% { opacity: 1; transform: translate3d(-50%, -50%, 0) scale(1.006); }
+      74% { transform: translate3d(-50%, -50%, 0) scale(.998); }
+      100% { opacity: 1; transform: translate3d(-50%, -50%, 0) scale(1); clip-path: inset(-230px); }
     }
 
     @keyframes hud-center-out {
-      0% { opacity: 1; transform: translate3d(-50%, -50%, 0) scale(1); filter: blur(0); clip-path: inset(-230px); }
-      38% { opacity: .8; transform: translate3d(-49.4%, -50.2%, 0) scale(.985); filter: blur(1px); clip-path: inset(20% 0 27%); }
-      100% { opacity: 0; transform: translate3d(-50%, -55%, 0) scale(.90); filter: blur(9px); clip-path: inset(49% 46%); }
+      0%, 42% { opacity: 1; transform: translate3d(-50%, -50%, 0) scale(1); clip-path: inset(-230px); }
+      72% { opacity: .72; transform: translate3d(-50%, -50%, 0) scale(.99); }
+      100% { opacity: 0; transform: translate3d(-50%, -49%, 0) scale(.965); clip-path: inset(-230px); }
     }
 
     .panel-shell {
@@ -1147,8 +1144,6 @@
       filter: none;
       -webkit-backdrop-filter: blur(24px) saturate(104%);
       backdrop-filter: blur(24px) saturate(104%);
-      -webkit-mask-image: radial-gradient(circle 30px at calc(100% + 20px) 50%, transparent 0 27px, #000 28px);
-      mask-image: radial-gradient(circle 30px at calc(100% + 20px) 50%, transparent 0 27px, #000 28px);
     }
 
     .panel-shell::before {
@@ -1211,45 +1206,317 @@
       box-shadow: none;
       filter: drop-shadow(0 0 3px rgba(var(--ion-rgb), .18)) drop-shadow(0 0 13px rgba(var(--ion-rgb), .08));
     }
-    .badge-outer { stroke-width: 1.05; opacity: .46; }
+    .badge-outer { stroke-width: 1.05; opacity: .46; transform-box: fill-box; transform-origin: center; }
+    .badge-outer { stroke-dasharray: .15 .025 .04 .025 .62 .14; }
+    .badge-orbit { stroke-dasharray: .72 .03 .08 .04 .08 .05; }
     .badge-arc { opacity: .72; filter: drop-shadow(0 0 2px rgba(var(--ion-rgb), .34)) drop-shadow(0 0 6px rgba(var(--ion-rgb), .12)); }
     .badge-mark { opacity: .78; filter: drop-shadow(0 0 2px rgba(var(--ion-rgb), .36)) drop-shadow(0 0 6px rgba(var(--ion-rgb), .13)); }
     .badge-dot-bright { opacity: .52; }
     .brand-badge .badge-svg { width: 100%; height: 100%; margin: 0; }
 
-    .panel-notch {
+    /* Synchronized system-awareness activation sequence. */
+    .panel-shell,
+    .brand-badge,
+    .panel-trace,
+    .energy-sweep {
+      will-change: transform, opacity;
+    }
+
+    .panel-trace {
       position: absolute;
-      top: 50%;
-      right: -2px;
-      z-index: 5;
-      width: 10px;
-      height: 42px;
-      border: 1px solid rgba(var(--ion-rgb), .48);
-      border-right: 0;
-      border-radius: 28px 0 0 28px;
-      background: transparent;
-      transform: translateY(-50%);
-      box-shadow: -2px 0 7px rgba(var(--ion-rgb), .12), inset 2px 0 7px rgba(var(--ion-rgb), .06);
+      inset: 0;
+      z-index: 7;
+      width: 100%;
+      height: 100%;
+      overflow: visible;
+      opacity: 0;
       pointer-events: none;
     }
+
+    .panel-trace path {
+      fill: none;
+      stroke: var(--ion-bright);
+      stroke-width: 1.6;
+      stroke-linecap: round;
+      stroke-linejoin: round;
+      stroke-dasharray: 1;
+      stroke-dashoffset: 1;
+      vector-effect: non-scaling-stroke;
+      filter: drop-shadow(0 0 3px rgba(var(--ion-rgb), .78)) drop-shadow(0 0 12px rgba(var(--ion-rgb), .28));
+    }
+
+    .energy-sweep {
+      position: absolute;
+      inset: 1px;
+      z-index: 6;
+      overflow: hidden;
+      opacity: 0;
+      border-radius: 137px 61px 61px 137px;
+      background: linear-gradient(104deg, transparent 32%, rgba(206, 255, 215, .03) 43%, rgba(var(--ion-rgb), .17) 49%, rgba(222, 255, 228, .08) 53%, transparent 64%);
+      mix-blend-mode: screen;
+      transform: translate3d(-145%, 0, 0);
+      pointer-events: none;
+    }
+
+    .brand-badge::before {
+      content: "";
+      position: absolute;
+      inset: 6%;
+      border-radius: 50%;
+      opacity: 0;
+      background: repeating-conic-gradient(from -7deg, rgba(var(--ion-rgb), .72) 0 1deg, transparent 1deg 9deg);
+      -webkit-mask: radial-gradient(circle, transparent 0 72%, #000 72.5% 74%, transparent 74.5%);
+      mask: radial-gradient(circle, transparent 0 72%, #000 72.5% 74%, transparent 74.5%);
+      pointer-events: none;
+    }
+
+    .badge-orbit {
+      transform-box: fill-box;
+      transform-origin: center;
+    }
+
+    .badge-particles {
+      transform-box: view-box;
+      transform-origin: center;
+    }
+
+    .hud-toast.is-entering .panel-shell {
+      animation: panel-glass-in 560ms 130ms cubic-bezier(.16, 1, .3, 1) both;
+    }
+
+    .hud-toast.is-entering .panel-trace {
+      animation: trace-layer-in 530ms 85ms linear both;
+    }
+
+    .hud-toast.is-entering .panel-trace path {
+      animation: perimeter-trace-in 530ms 85ms cubic-bezier(.18, .72, .23, 1) both;
+    }
+
+    .hud-toast.is-entering .brand-badge {
+      animation: badge-assemble 520ms 225ms cubic-bezier(.22, 1.16, .36, 1) both;
+    }
+
+    .hud-toast.is-entering .badge-outer {
+      animation: ring-draw-cw 500ms 245ms cubic-bezier(.16, 1, .3, 1) both;
+    }
+
+    .hud-toast.is-entering .badge-orbit {
+      animation: ring-draw-ccw 520ms 255ms cubic-bezier(.16, 1, .3, 1) both;
+    }
+
+    .hud-toast.is-entering .badge-arc.arc-primary {
+      animation: arc-form-cw 490ms 275ms cubic-bezier(.16, 1, .3, 1) both;
+    }
+
+    .hud-toast.is-entering .badge-arc.arc-secondary {
+      animation: arc-form-ccw 490ms 315ms cubic-bezier(.16, 1, .3, 1) both;
+    }
+
+    .hud-toast.is-entering .badge-particles {
+      animation: particle-orbit-in 520ms 270ms cubic-bezier(.16, 1, .3, 1) both;
+    }
+
+    .hud-toast.is-entering .brand-badge::before {
+      animation: ticks-form 460ms 260ms cubic-bezier(.16, 1, .3, 1) both;
+    }
+
+    .hud-toast.is-entering .brand-badge::after {
+      animation: badge-energy-pulse 620ms 300ms ease-out both;
+    }
+
+    .hud-toast.is-exiting .brand-badge::before,
+    .hud-toast.is-exiting .brand-badge::after {
+      opacity: 0;
+    }
+
+    .hud-toast.is-entering .badge-mark path {
+      stroke-dasharray: 1;
+      animation: glyph-draw 330ms cubic-bezier(.16, 1, .3, 1) both;
+    }
+
+    .hud-toast.is-entering .badge-mark path:nth-child(1) { animation-delay: 410ms; }
+    .hud-toast.is-entering .badge-mark path:nth-child(2) { animation-delay: 465ms; }
+    .hud-toast.is-entering .badge-mark path:nth-child(3) { animation-delay: 520ms; }
+
+    .hud-toast.is-entering .brand-name {
+      animation: header-label-in 260ms 420ms cubic-bezier(.16, 1, .3, 1) both;
+    }
+
+    .hud-toast.is-entering .header-rule {
+      transform-origin: left center;
+      animation: line-grow-in 360ms 440ms cubic-bezier(.16, 1, .3, 1) both;
+    }
+
+    .hud-toast.is-entering .close-button {
+      animation: close-materialize 260ms 520ms cubic-bezier(.22, 1.16, .36, 1) both;
+    }
+
+    .hud-toast.is-entering .event-icon-shell {
+      animation: status-shell-in 360ms 500ms cubic-bezier(.22, 1.16, .36, 1) both;
+    }
+
+    .hud-toast.is-entering .hud-body::before {
+      transform-origin: center;
+      animation: divider-vertical-in 300ms 535ms cubic-bezier(.16, 1, .3, 1) both;
+    }
+
+    .hud-toast.is-entering .event-icon-shell svg > * {
+      stroke-dasharray: 1;
+      animation: icon-stroke-in 300ms 600ms cubic-bezier(.16, 1, .3, 1) both;
+    }
+
+    .text-word { display: inline-block; white-space: nowrap; }
+    .text-char { display: inline-block; }
+
+    .hud-toast.is-entering .event-title .text-char {
+      animation: copy-char-in 300ms cubic-bezier(.16, 1, .3, 1) both;
+      animation-delay: calc(590ms + var(--char-in-delay));
+    }
+
+    .hud-toast.is-entering .event-message .text-char {
+      animation: copy-char-in 300ms cubic-bezier(.16, 1, .3, 1) both;
+      animation-delay: calc(690ms + var(--char-in-delay));
+    }
+
+    .hud-toast.is-entering .hud-footer::before {
+      transform-origin: left center;
+      animation: line-grow-in 290ms 660ms cubic-bezier(.16, 1, .3, 1) both;
+    }
+
+    .hud-toast.is-entering .speaker-icon {
+      animation: speaker-activate 300ms 735ms cubic-bezier(.22, 1.16, .36, 1) both;
+    }
+
+    .hud-toast.is-entering .wave-bar {
+      animation: waveform-center-in 290ms cubic-bezier(.16, 1, .3, 1) both;
+      animation-delay: var(--wave-in-delay);
+    }
+
+    .hud-toast.is-entering .wave-bar.is-dot {
+      animation-name: waveform-dot-center-in;
+    }
+
+    .hud-toast.is-entering .spoken-line {
+      animation: warning-reveal 250ms 930ms cubic-bezier(.22, 1.16, .36, 1) both;
+    }
+
+    .hud-toast.is-entering .energy-sweep {
+      animation: energy-sweep-in 320ms 850ms cubic-bezier(.2, .65, .3, 1) both;
+    }
+
+    @keyframes panel-glass-in {
+      0% { opacity: 0; transform: scale(.97); filter: blur(4px); }
+      72% { opacity: 1; transform: scale(1.004); filter: blur(0); }
+      100% { opacity: 1; transform: scale(1); filter: blur(0); }
+    }
+
+    @keyframes trace-layer-in { 0%, 96% { opacity: 1; } 100% { opacity: 0; } }
+    @keyframes perimeter-trace-in { from { stroke-dashoffset: 1; } to { stroke-dashoffset: 0; } }
+    @keyframes badge-assemble {
+      0% { opacity: 0; transform: translateY(-50%) scale(.72) rotate(-5deg); }
+      72% { opacity: 1; transform: translateY(-50%) scale(1.025) rotate(.7deg); }
+      100% { opacity: 1; transform: translateY(-50%) scale(1) rotate(0); }
+    }
+    @keyframes ring-draw-cw {
+      from { opacity: 0; stroke-dasharray: .06 .94; stroke-dashoffset: .78; transform: rotate(-68deg); }
+      to { opacity: .46; stroke-dasharray: .15 .025 .04 .025 .62 .14; stroke-dashoffset: 0; transform: rotate(0); }
+    }
+    @keyframes ring-draw-ccw {
+      from { opacity: 0; stroke-dasharray: .08 .92; stroke-dashoffset: -.65; transform: rotate(58deg); }
+      to { opacity: 1; stroke-dasharray: .72 .03 .08 .04 .08 .05; stroke-dashoffset: 0; transform: rotate(0); }
+    }
+    @keyframes arc-form-cw {
+      from { opacity: 0; stroke-dasharray: 1; stroke-dashoffset: 1; transform: rotate(-46deg) scale(.86); }
+      72% { opacity: .9; }
+      to { opacity: .72; stroke-dashoffset: 0; transform: rotate(0) scale(1); }
+    }
+    @keyframes arc-form-ccw {
+      from { opacity: 0; stroke-dasharray: 1; stroke-dashoffset: -1; transform: rotate(50deg) scale(.86); }
+      72% { opacity: .9; }
+      to { opacity: .72; stroke-dashoffset: 0; transform: rotate(0) scale(1); }
+    }
+    @keyframes particle-orbit-in {
+      from { opacity: 0; transform: rotate(-58deg) scale(.82); }
+      66% { opacity: .95; }
+      to { opacity: 1; transform: rotate(0) scale(1); }
+    }
+    @keyframes ticks-form { from { opacity: 0; transform: rotate(32deg) scale(.88); } 62% { opacity: .34; } to { opacity: 0; transform: rotate(0) scale(1); } }
+    @keyframes badge-energy-pulse { 0% { opacity: 0; transform: scale(.78); } 42% { opacity: .85; transform: scale(1.12); } 100% { opacity: 1; transform: scale(1); } }
+    @keyframes glyph-draw { from { opacity: 0; stroke-dashoffset: 1; } to { opacity: 1; stroke-dashoffset: 0; } }
+    @keyframes header-label-in { from { opacity: 0; transform: translate3d(-12px, 0, 0); letter-spacing: .45em; } to { opacity: 1; transform: none; } }
+    @keyframes line-grow-in { from { opacity: 0; transform: scaleX(0); } to { opacity: 1; transform: scaleX(1); } }
+    @keyframes close-materialize { from { opacity: 0; transform: scale(.65) rotate(-35deg); } to { opacity: 1; transform: scale(1) rotate(0); } }
+    @keyframes status-shell-in { 0% { opacity: 0; transform: scale(.58); box-shadow: 0 0 0 0 rgba(var(--ion-rgb), .34); } 62% { opacity: 1; transform: scale(1.06); box-shadow: 0 0 0 12px rgba(var(--ion-rgb), 0); } 100% { opacity: 1; transform: scale(1); } }
+    @keyframes divider-vertical-in { from { opacity: 0; transform: scaleY(0); } to { opacity: 1; transform: scaleY(1); } }
+    @keyframes icon-stroke-in { from { opacity: 0; stroke-dashoffset: 1; } to { opacity: 1; stroke-dashoffset: 0; } }
+    @keyframes copy-char-in { from { opacity: 0; transform: translate3d(0, 15px, 0); clip-path: inset(100% 0 0); } to { opacity: 1; transform: none; clip-path: inset(0); } }
+    @keyframes speaker-activate { 0% { opacity: 0; transform: scale(.62); } 55% { opacity: 1; transform: scale(1.12); } 100% { opacity: 1; transform: scale(1); } }
+    @keyframes waveform-center-in { 0% { opacity: 0; transform: scaleY(.05); } 58% { opacity: 1; transform: scaleY(1.16); } 100% { opacity: .72; transform: scaleY(.95); } }
+    @keyframes waveform-dot-center-in { 0% { opacity: 0; transform: scale(0); } 58% { opacity: 1; transform: scale(1.15); } 100% { opacity: .72; transform: scale(.9); } }
+    @keyframes warning-reveal { 0% { opacity: 0; transform: translate3d(12px, 0, 0) scale(.96); text-shadow: 0 0 0 rgba(var(--ion-rgb), 0); } 62% { opacity: 1; transform: none; text-shadow: 0 0 18px rgba(var(--ion-rgb), .52); } 100% { opacity: 1; transform: none; text-shadow: 0 0 10px rgba(var(--ion-rgb), .3); } }
+    @keyframes energy-sweep-in { 0% { opacity: 0; transform: translate3d(-145%, 0, 0); } 36% { opacity: .82; } 100% { opacity: 0; transform: translate3d(145%, 0, 0); } }
+
+    .hud-toast.is-exiting .wave-bar { animation: waveform-flatten-out 170ms var(--wave-out-delay) cubic-bezier(.55, 0, .85, .35) both; }
+    .hud-toast.is-exiting .wave-bar.is-dot { animation-name: waveform-dot-out; }
+    .hud-toast.is-exiting .spoken-line { animation: element-retract 170ms 0ms cubic-bezier(.55, 0, .85, .35) both; }
+    .hud-toast.is-exiting .event-message .text-char { animation: copy-char-out 190ms cubic-bezier(.55, 0, .85, .35) both; animation-delay: var(--char-out-delay); }
+    .hud-toast.is-exiting .event-title .text-char { animation: copy-char-out 205ms cubic-bezier(.55, 0, .85, .35) both; animation-delay: calc(55ms + var(--char-out-delay)); }
+    .hud-toast.is-exiting .speaker-icon { animation: element-retract 180ms 145ms cubic-bezier(.55, 0, .85, .35) both; }
+    .hud-toast.is-exiting .hud-footer::before { transform-origin: right center; animation: line-collapse-out 220ms 150ms cubic-bezier(.55, 0, .85, .35) both; }
+    .hud-toast.is-exiting .event-icon-shell { animation: status-collapse-out 230ms 160ms cubic-bezier(.55, 0, .85, .35) both; }
+    .hud-toast.is-exiting .hud-body::before { transform-origin: center; animation: divider-collapse-out 200ms 175ms cubic-bezier(.55, 0, .85, .35) both; }
+    .hud-toast.is-exiting .header-rule { transform-origin: right center; animation: line-collapse-out 220ms 180ms cubic-bezier(.55, 0, .85, .35) both; }
+    .hud-toast.is-exiting .brand-name { animation: element-retract 180ms 200ms cubic-bezier(.55, 0, .85, .35) both; }
+    .hud-toast.is-exiting .close-button { animation: close-retract 180ms 200ms cubic-bezier(.55, 0, .85, .35) both; }
+    .hud-toast.is-exiting .brand-badge { animation: badge-contract-out 330ms 245ms cubic-bezier(.55, 0, .85, .35) both; }
+    .hud-toast.is-exiting .badge-outer { animation: ring-accelerate-out 310ms 235ms cubic-bezier(.55, 0, .85, .35) both; }
+    .hud-toast.is-exiting .badge-orbit { animation: ring-accelerate-out-reverse 310ms 235ms cubic-bezier(.55, 0, .85, .35) both; }
+    .hud-toast.is-exiting .badge-particles { animation: particle-collapse-out 290ms 245ms cubic-bezier(.55, 0, .85, .35) both; }
+    .hud-toast.is-exiting .panel-shell { animation: panel-glass-out 440ms 290ms cubic-bezier(.55, 0, .85, .35) both; }
+    .hud-toast.is-exiting .energy-sweep { animation: energy-sweep-out 310ms 300ms cubic-bezier(.3, .6, .4, 1) both; }
+    .hud-toast.is-exiting .panel-trace { animation: trace-layer-out 330ms 390ms linear both; }
+    .hud-toast.is-exiting .panel-trace path { animation: perimeter-trace-out 330ms 390ms cubic-bezier(.55, 0, .85, .35) both; }
+
+    @keyframes waveform-flatten-out { from { opacity: .72; transform: scaleY(.95); } to { opacity: 0; transform: scaleY(.04); } }
+    @keyframes waveform-dot-out { from { opacity: .72; transform: scale(.9); } to { opacity: 0; transform: scale(0); } }
+    @keyframes copy-char-out { from { opacity: 1; transform: none; clip-path: inset(0); } to { opacity: 0; transform: translate3d(0, -10px, 0); clip-path: inset(0 0 100%); } }
+    @keyframes element-retract { from { opacity: 1; transform: none; } to { opacity: 0; transform: scale(.72); } }
+    @keyframes close-retract { from { opacity: 1; transform: rotate(0) scale(1); } to { opacity: 0; transform: rotate(32deg) scale(.62); } }
+    @keyframes line-collapse-out { from { opacity: 1; transform: scaleX(1); } to { opacity: 0; transform: scaleX(0); } }
+    @keyframes divider-collapse-out { from { opacity: 1; transform: scaleY(1); } to { opacity: 0; transform: scaleY(0); } }
+    @keyframes status-collapse-out { from { opacity: 1; transform: scale(1); } to { opacity: 0; transform: scale(.45); } }
+    @keyframes badge-contract-out { 0% { opacity: 1; transform: translateY(-50%) scale(1); } 38% { opacity: 1; transform: translateY(-50%) scale(1.025); } 100% { opacity: 0; transform: translateY(-50%) scale(.22); } }
+    @keyframes ring-accelerate-out { from { opacity: .46; transform: rotate(0) scale(1); } to { opacity: 0; transform: rotate(155deg) scale(.3); } }
+    @keyframes ring-accelerate-out-reverse { from { opacity: 1; transform: rotate(0) scale(1); } to { opacity: 0; transform: rotate(-185deg) scale(.3); } }
+    @keyframes particle-collapse-out { from { opacity: 1; transform: rotate(0) scale(1); } to { opacity: 0; transform: rotate(95deg) scale(.18); } }
+    @keyframes panel-glass-out { 0%, 22% { opacity: 1; transform: scale(1); filter: blur(0); } 100% { opacity: 0; transform: scale(.985); filter: blur(3px); } }
+    @keyframes energy-sweep-out { 0% { opacity: 0; transform: translate3d(-140%, 0, 0); } 44% { opacity: .72; } 100% { opacity: 0; transform: translate3d(140%, 0, 0); } }
+    @keyframes trace-layer-out { from { opacity: 1; } to { opacity: 0; } }
+    @keyframes perimeter-trace-out { from { stroke-dashoffset: 0; } to { stroke-dashoffset: -1; } }
+
+    .hud-toast.is-visible .badge-arc,
+    .hud-toast.is-visible .waveform::after,
+    .hud-toast.is-visible .wave-bar { animation: none; }
+    .hud-toast.is-visible .wave-bar { opacity: .72; transform: scaleY(.95); }
+    .hud-toast.is-visible .wave-bar.is-dot { opacity: .72; transform: scale(.9); }
+    .hud-toast.is-entering .waveform::after { animation: none; }
 
     @media (max-width: 1180px), (max-height: 660px) {
       :root { --toast-width: min(960px, calc(100vw - 15vw)); --badge-size: 238px; --panel-height: 272px; --panel-radius: 48px; }
       .hud-toast { top: 50%; left: 50%; }
-      .panel-shell { border-radius: 104px 48px 48px 104px; -webkit-mask-image: radial-gradient(circle 23px at calc(100% + 16px) 50%, transparent 0 20px, #000 21px); mask-image: radial-gradient(circle 23px at calc(100% + 16px) 50%, transparent 0 20px, #000 21px); }
+      .panel-shell { border-radius: 104px 48px 48px 104px; }
       .panel-content { grid-template-rows: 62px 1fr 70px; }
       .hud-header { padding-left: 222px; padding-right: 28px; transform: translateY(8px); }
       .hud-body { grid-template-columns: 78px 1px minmax(0, 1fr); gap: 20px; padding: 2px 34px 15px 222px; }
       .hud-body::before { height: 72px; }
       .event-icon-shell { width: 78px; height: 78px; }
-      .event-icon-shell svg { width: 40px; height: 40px; }
+      .event-icon-shell svg { width: 66px; height: 66px; }
       .event-title { font-size: clamp(23px, 3vw, 31px); }
       .event-message { font-size: 16px; }
       .hud-footer { padding-left: 190px; padding-right: 36px; }
       .hud-footer::before { left: 174px; }
       .waveform { margin-left: 24px; }
       .spoken-line { margin-left: 26px; font-size: 15px; }
-      .panel-notch { width: 8px; height: 34px; }
     }
 
     @media (max-width: 720px) {
@@ -1283,12 +1550,72 @@
     }
 
     @media (prefers-reduced-motion: reduce) {
-      .hud-toast.is-entering { animation: hud-center-fade-in 130ms ease-out both; }
+      :root { --enter-ms: 180ms; --exit-ms: 160ms; }
+      .hud-toast.is-entering { animation: hud-center-fade-in var(--enter-ms) ease-out both; }
       .hud-toast.is-visible { transform: translate3d(-50%, -50%, 0); }
-      .hud-toast.is-exiting { animation: hud-center-fade-out 120ms ease-in both; }
-      .hud-layer.is-entering .screen-overlay { animation: screen-fade-in 130ms ease-out both; }
+      .hud-toast.is-exiting { animation: hud-center-fade-out var(--exit-ms) ease-in both; }
+      .hud-layer.is-entering .screen-overlay { animation: screen-fade-in var(--enter-ms) ease-out both; }
       .hud-layer.is-visible .screen-overlay { opacity: 1; }
-      .hud-layer.is-exiting .screen-overlay { animation: screen-fade-out 120ms ease-in both; }
+      .hud-layer.is-exiting .screen-overlay { animation: screen-fade-out var(--exit-ms) ease-in both; }
+      .hud-toast.is-entering .panel-shell,
+      .hud-toast.is-entering .panel-trace,
+      .hud-toast.is-entering .panel-trace path,
+      .hud-toast.is-entering .brand-badge,
+      .hud-toast.is-entering .badge-outer,
+      .hud-toast.is-entering .badge-orbit,
+      .hud-toast.is-entering .badge-arc,
+      .hud-toast.is-entering .badge-particles,
+      .hud-toast.is-entering .brand-badge::before,
+      .hud-toast.is-entering .brand-badge::after,
+      .hud-toast.is-entering .badge-mark path,
+      .hud-toast.is-entering .brand-name,
+      .hud-toast.is-entering .header-rule,
+      .hud-toast.is-entering .close-button,
+      .hud-toast.is-entering .event-icon-shell,
+      .hud-toast.is-entering .hud-body::before,
+      .hud-toast.is-entering .event-icon-shell svg > *,
+      .hud-toast.is-entering .text-char,
+      .hud-toast.is-entering .hud-footer::before,
+      .hud-toast.is-entering .speaker-icon,
+      .hud-toast.is-entering .wave-bar,
+      .hud-toast.is-entering .spoken-line,
+      .hud-toast.is-entering .energy-sweep,
+      .hud-toast.is-exiting .panel-shell,
+      .hud-toast.is-exiting .panel-trace,
+      .hud-toast.is-exiting .panel-trace path,
+      .hud-toast.is-exiting .brand-badge,
+      .hud-toast.is-exiting .badge-outer,
+      .hud-toast.is-exiting .badge-orbit,
+      .hud-toast.is-exiting .badge-particles,
+      .hud-toast.is-exiting .event-icon-shell,
+      .hud-toast.is-exiting .hud-body::before,
+      .hud-toast.is-exiting .event-icon-shell svg > *,
+      .hud-toast.is-exiting .header-rule,
+      .hud-toast.is-exiting .brand-name,
+      .hud-toast.is-exiting .close-button,
+      .hud-toast.is-exiting .text-char,
+      .hud-toast.is-exiting .hud-footer::before,
+      .hud-toast.is-exiting .speaker-icon,
+      .hud-toast.is-exiting .wave-bar,
+      .hud-toast.is-exiting .spoken-line,
+      .hud-toast.is-exiting .energy-sweep { animation: none !important; }
+      .panel-shell,
+      .brand-badge,
+      .brand-name,
+      .header-rule,
+      .close-button,
+      .event-icon-shell,
+      .hud-body::before,
+      .event-icon-shell svg > *,
+      .text-char,
+      .hud-footer::before,
+      .speaker-icon,
+      .spoken-line { opacity: 1 !important; transform: none; }
+      .brand-badge { transform: translateY(-50%); }
+      .panel-trace,
+      .energy-sweep { display: none; }
+      .wave-bar { opacity: .64 !important; transform: scaleY(.82) !important; }
+      .wave-bar.is-dot { transform: scale(.9) !important; }
       @keyframes hud-center-fade-in {
         from { opacity: 0; transform: translate3d(-50%, -48%, 0); }
         to { opacity: 1; transform: translate3d(-50%, -50%, 0); }
@@ -1354,15 +1681,17 @@
           </footer>
         </div>
       </div>
-      <span class="panel-notch" aria-hidden="true"></span>
+      <svg class="panel-trace" viewBox="0 0 1220 370" preserveAspectRatio="none" aria-hidden="true">
+        <path pathLength="1" d="M138 1 H1158 A61 61 0 0 1 1219 62 V308 A61 61 0 0 1 1158 369 H138 A137 137 0 0 1 1 232 V138 A137 137 0 0 1 138 1 Z"></path>
+      </svg>
 
       <div class="brand-badge" aria-hidden="true">
         <svg class="badge-svg" viewBox="0 0 240 240" role="img" aria-label="Ion Sense brand mark">
-          <circle cx="120" cy="120" r="114" fill="none" class="badge-outer"></circle>
-          <circle cx="120" cy="120" r="101" fill="none" stroke="rgba(126,158,134,.21)" stroke-width="1.35"></circle>
-          <path class="badge-arc arc-primary" d="M79 48 A84 84 0 0 1 204 115" fill="none" stroke-width="8.5" stroke-linecap="round"></path>
-          <path class="badge-arc arc-secondary" d="M169 187 A84 84 0 0 1 37 126" fill="none" stroke-width="8.5" stroke-linecap="round"></path>
-          <g fill="var(--ion)">
+          <circle cx="120" cy="120" r="114" fill="none" class="badge-outer" pathLength="1"></circle>
+          <circle cx="120" cy="120" r="101" fill="none" class="badge-orbit" pathLength="1" stroke="rgba(126,158,134,.21)" stroke-width="1.35"></circle>
+          <path class="badge-arc arc-primary" pathLength="1" d="M79 48 A84 84 0 0 1 204 115" fill="none" stroke-width="8.5" stroke-linecap="round"></path>
+          <path class="badge-arc arc-secondary" pathLength="1" d="M169 187 A84 84 0 0 1 37 126" fill="none" stroke-width="8.5" stroke-linecap="round"></path>
+          <g class="badge-particles" fill="var(--ion)">
             <circle cx="120" cy="18" r="2.1" opacity=".68"></circle>
             <circle cx="198" cy="52" r="2" opacity=".58"></circle>
             <circle cx="215" cy="120" r="2.8" opacity=".66"></circle>
@@ -1370,13 +1699,13 @@
             <circle cx="26" cy="120" r="2.2" opacity=".56"></circle>
           </g>
           <g class="badge-mark" fill="none" stroke-width="9" stroke-linecap="round">
-            <path d="M103 77H137"></path>
-            <path d="M120 92V148"></path>
-            <path d="M103 163H137"></path>
+            <path pathLength="1" d="M103 77H137"></path>
+            <path pathLength="1" d="M120 92V148"></path>
+            <path pathLength="1" d="M103 163H137"></path>
           </g>
         </svg>
       </div>
-      <span class="glitch-slice" aria-hidden="true"></span>
+      <span class="energy-sweep" aria-hidden="true"></span>
     </section>
   </main>
 
@@ -1428,8 +1757,6 @@
 
       const SEVERITIES = new Set(["info", "warning", "critical"]);
       const AUTO_DISMISS_MS = 6200;
-      const EXIT_MS = 420;
-      const ENTER_MS = 560;
       const queue = [];
 
       const toast = document.getElementById("ion-toast");
@@ -1447,6 +1774,13 @@
       let dismissTimer = 0;
       let phaseTimer = 0;
       let speechTimer = 0;
+
+      const prefersReducedMotion = () =>
+        typeof window.matchMedia === "function" &&
+        window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+
+      const enterDuration = () => prefersReducedMotion() ? 180 : 1200;
+      const exitDuration = () => prefersReducedMotion() ? 160 : 800;
 
       function makeWaveform() {
         // A fixed seed keeps the voice signature organic but stable between loads.
@@ -1468,9 +1802,48 @@
           bar.className = `wave-bar${dotted ? " is-dot" : ""}`;
           bar.style.setProperty("--bar-index", index);
           bar.style.setProperty("--bar-height", `${height}px`);
+          bar.style.setProperty("--wave-in-delay", `${720 + Math.abs(index - 30) * 5}ms`);
+          bar.style.setProperty("--wave-out-delay", `${Math.abs(index - 30) * 2}ms`);
           fragment.appendChild(bar);
         }
         waveform.replaceChildren(fragment);
+      }
+
+      function setStaggeredText(node, text) {
+        const value = String(text);
+        const words = value.split(/(\s+)/);
+        const visibleCharacters = Array.from(value).filter((character) => !/\s/.test(character));
+        let characterIndex = 0;
+        const fragment = document.createDocumentFragment();
+
+        node.setAttribute("aria-label", value);
+        node.setAttribute("aria-hidden", "false");
+        words.forEach((word) => {
+          if (/^\s+$/.test(word)) {
+            const spaceNode = document.createElement("span");
+            spaceNode.setAttribute("aria-hidden", "true");
+            spaceNode.textContent = word;
+            fragment.appendChild(spaceNode);
+            return;
+          }
+          if (!word) return;
+
+          const wordNode = document.createElement("span");
+          wordNode.className = "text-word";
+          wordNode.setAttribute("aria-hidden", "true");
+          Array.from(word).forEach((character) => {
+            const charNode = document.createElement("span");
+            const reverseIndex = visibleCharacters.length - characterIndex - 1;
+            charNode.className = "text-char";
+            charNode.textContent = character;
+            charNode.style.setProperty("--char-in-delay", `${Math.min(160, characterIndex * 5)}ms`);
+            charNode.style.setProperty("--char-out-delay", `${Math.min(120, reverseIndex * 3)}ms`);
+            wordNode.appendChild(charNode);
+            characterIndex += 1;
+          });
+          fragment.appendChild(wordNode);
+        });
+        node.replaceChildren(fragment);
       }
 
       function normalizeEvent(candidate) {
@@ -1521,11 +1894,15 @@
 
       function renderEvent(event) {
         const display = DISPLAY[event.type];
-        titleNode.textContent = display.title;
-        messageNode.textContent = event.type === "download_finished"
+        const message = event.type === "download_finished"
           ? "All downloads completed successfully."
           : event.message;
+        setStaggeredText(titleNode, display.title);
+        setStaggeredText(messageNode, message);
         iconNode.innerHTML = display.icon;
+        iconNode.querySelectorAll("path, line, polyline, polygon, circle, rect, ellipse").forEach((geometry) => {
+          geometry.setAttribute("pathLength", "1");
+        });
         iconNode.dataset.icon = event.type;
         toast.dataset.eventType = event.type;
         toast.dataset.severity = event.severity;
@@ -1571,9 +1948,9 @@
           hudLayer.classList.add("is-visible");
           lifecycle = "visible";
           updateDevStatus();
-        }, ENTER_MS);
+        }, enterDuration());
 
-        speechTimer = window.setTimeout(speakWarning, 420);
+        speechTimer = window.setTimeout(speakWarning, prefersReducedMotion() ? 0 : 820);
         dismissTimer = window.setTimeout(() => dismissCurrent("timeout"), AUTO_DISMISS_MS);
       }
 
@@ -1601,7 +1978,7 @@
           lifecycle = "idle";
           updateDevStatus();
           showNext();
-        }, EXIT_MS);
+        }, exitDuration());
         return true;
       }
 
@@ -1737,7 +2114,10 @@
       async function updateCloseHitTarget(generation) {
         if (generation !== cursorGeneration || cursorPollInFlight) return;
         cursorPollInFlight = true;
-        if (toast.getAttribute("aria-hidden") !== "false") {
+        if (
+          toast.getAttribute("aria-hidden") !== "false" ||
+          toast.classList.contains("is-exiting")
+        ) {
           await setClickThrough(true);
           cursorPollInFlight = false;
           return;
@@ -1749,7 +2129,11 @@
             appWindow.innerPosition(),
             appWindow.scaleFactor()
           ]);
-          if (generation !== cursorGeneration || toast.getAttribute("aria-hidden") !== "false") {
+          if (
+            generation !== cursorGeneration ||
+            toast.getAttribute("aria-hidden") !== "false" ||
+            toast.classList.contains("is-exiting")
+          ) {
             return;
           }
           const localX = (cursor.x - origin.x) / scaleFactor;
@@ -1761,7 +2145,11 @@
             localX <= rect.right + padding &&
             localY >= rect.top - padding &&
             localY <= rect.bottom + padding;
-          await setClickThrough(!overClose);
+          if (toast.classList.contains("is-exiting")) {
+            await setClickThrough(true);
+          } else {
+            await setClickThrough(!overClose);
+          }
         } catch (error) {
           console.error("Ion Sense close-button hit test failed", error);
           if (generation === cursorGeneration) await setClickThrough(true);
