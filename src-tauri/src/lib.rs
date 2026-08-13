@@ -302,6 +302,41 @@ fn hud_ready(
 }
 
 #[tauri::command]
+fn hud_present(
+    window: WebviewWindow,
+    app: AppHandle,
+    state: State<'_, NativeState>,
+    timestamp: u64,
+) -> Result<bool, String> {
+    require_window(&window, "hud")?;
+    if state.hud.delivered_timestamp.load(Ordering::Acquire) != timestamp {
+        return Ok(false);
+    }
+    let Some(hud) = app.get_webview_window("hud") else {
+        return Ok(false);
+    };
+    hud.set_ignore_cursor_events(true)
+        .map_err(|error| error.to_string())?;
+    hud.show().map_err(|error| error.to_string())?;
+    hud.set_always_on_top(true)
+        .map_err(|error| error.to_string())?;
+    Ok(true)
+}
+
+#[tauri::command]
+fn hud_has_followup(
+    window: WebviewWindow,
+    state: State<'_, NativeState>,
+    timestamp: u64,
+) -> Result<bool, String> {
+    require_window(&window, "hud")?;
+    if state.hud.delivered_timestamp.load(Ordering::Acquire) != timestamp {
+        return Ok(false);
+    }
+    Ok(state.dispatcher.pending() > 1)
+}
+
+#[tauri::command]
 fn hud_idle(
     window: WebviewWindow,
     app: AppHandle,
@@ -312,10 +347,13 @@ fn hud_idle(
     if state.hud.delivered_timestamp.load(Ordering::Acquire) != timestamp {
         return Ok(false);
     }
+    let has_followup = state.dispatcher.pending() > 1;
     if let Some(hud) = app.get_webview_window("hud") {
         hud.set_ignore_cursor_events(true)
             .map_err(|error| error.to_string())?;
-        hud.hide().map_err(|error| error.to_string())?;
+        if !has_followup {
+            hud.hide().map_err(|error| error.to_string())?;
+        }
     }
     state
         .hud
@@ -323,7 +361,14 @@ fn hud_idle(
         .store(timestamp, Ordering::Release);
     state.hud.changed.notify_waiters();
     #[cfg(debug_assertions)]
-    eprintln!("Ion Sense HUD returned to idle");
+    eprintln!(
+        "Ion Sense HUD returned to idle ({})",
+        if has_followup {
+            "backdrop retained for queued event"
+        } else {
+            "native window hidden"
+        }
+    );
     Ok(true)
 }
 
@@ -440,7 +485,7 @@ fn setup_app(app: &mut App) -> Result<(), Box<dyn std::error::Error>> {
         settings: RwLock::new(settings),
         settings_path,
         detectors: Mutex::new(Some(detectors)),
-        dispatcher,
+        dispatcher: dispatcher.clone(),
         hud: hud.clone(),
     });
     #[cfg(debug_assertions)]
@@ -452,7 +497,12 @@ fn setup_app(app: &mut App) -> Result<(), Box<dyn std::error::Error>> {
     }
 
     let app_handle = app.handle().clone();
-    tauri::async_runtime::spawn(forward_events(app_handle, receiver, hud));
+    tauri::async_runtime::spawn(forward_events(
+        app_handle,
+        receiver,
+        hud,
+        dispatcher.clone(),
+    ));
     Ok(())
 }
 
@@ -460,6 +510,7 @@ async fn forward_events(
     app: AppHandle,
     mut receiver: mpsc::Receiver<IonSenseEvent>,
     hud_state: Arc<HudLifecycle>,
+    dispatcher: EventDispatcher,
 ) {
     while let Some(event) = receiver.recv().await {
         'delivery: loop {
@@ -473,7 +524,7 @@ async fn forward_events(
                 break 'delivery;
             };
             if let Err(error) = position_hud(&hud)
-                .and_then(|_| hud.show())
+                .and_then(|_| hud.set_ignore_cursor_events(true))
                 .and_then(|_| app.emit_to("hud", EVENT_NAME, event.clone()))
             {
                 eprintln!("Ion Sense could not deliver an event to the HUD: {error}");
@@ -498,6 +549,7 @@ async fn forward_events(
                 let _ = tokio::time::timeout(Duration::from_secs(1), changed).await;
             }
         }
+        dispatcher.complete_one();
     }
 }
 
@@ -623,6 +675,8 @@ pub fn run() {
         clear_imap_password,
         clear_discord_token,
         hud_ready,
+        hud_present,
+        hud_has_followup,
         hud_idle,
         fire_test_event
     ]);
@@ -636,6 +690,8 @@ pub fn run() {
         clear_imap_password,
         clear_discord_token,
         hud_ready,
+        hud_present,
+        hud_has_followup,
         hud_idle
     ]);
 

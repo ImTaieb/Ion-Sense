@@ -34,6 +34,7 @@
       width: 100%;
       min-height: 100%;
       margin: 0;
+      background-color: rgba(0, 0, 0, 0);
     }
 
     body {
@@ -166,6 +167,7 @@
       inset: 0;
       z-index: 20;
       pointer-events: none;
+      background-color: rgba(0, 0, 0, 0);
     }
 
     .hud-toast {
@@ -183,7 +185,8 @@
 
     .hud-toast.is-entering,
     .hud-toast.is-visible,
-    .hud-toast.is-exiting {
+    .hud-toast.is-exiting,
+    .hud-toast.is-preparing {
       visibility: visible;
     }
 
@@ -1036,8 +1039,17 @@
       background:
         radial-gradient(ellipse at 50% 48%, rgba(0, 2, 1, .15) 8%, rgba(0, 4, 2, .25) 60%, rgba(18, 54, 6, .28) 100%),
         rgba(0, 3, 1, .28);
-      -webkit-backdrop-filter: blur(12px) saturate(.62) brightness(.48);
-      backdrop-filter: blur(12px) saturate(.62) brightness(.48);
+      will-change: opacity;
+    }
+
+    .screen-blur {
+      position: absolute;
+      inset: 0;
+      opacity: 0;
+      pointer-events: none;
+      background: rgba(0, 0, 0, 0);
+      -webkit-backdrop-filter: blur(12px) saturate(.62) brightness(.78);
+      backdrop-filter: blur(12px) saturate(.62) brightness(.78);
       will-change: opacity;
     }
 
@@ -1072,12 +1084,42 @@
       animation: screen-warn-in var(--enter-ms) cubic-bezier(.16, 1, .3, 1) both;
     }
 
+    .hud-layer.is-preparing .screen-overlay {
+      opacity: .001;
+    }
+
+    .hud-layer.is-preparing .screen-blur {
+      opacity: 1;
+    }
+
+    .hud-layer.is-entering .screen-blur {
+      animation: screen-blur-in 360ms 210ms cubic-bezier(.16, 1, .3, 1) both;
+    }
+
     .hud-layer.is-visible .screen-overlay {
+      opacity: 1;
+    }
+
+    .hud-layer.is-visible .screen-blur {
       opacity: 1;
     }
 
     .hud-layer.is-exiting .screen-overlay {
       animation: screen-warn-out var(--exit-ms) ease-in both;
+    }
+
+    .hud-layer.is-exiting .screen-blur {
+      animation: screen-blur-out var(--exit-ms) ease-in both;
+    }
+
+    .hud-layer.is-bridging .screen-overlay,
+    .hud-layer.is-bridging .screen-blur,
+    .hud-layer.is-exiting.has-followup .screen-overlay,
+    .hud-layer.is-exiting.has-followup .screen-blur,
+    .hud-layer.is-entering.is-continuing .screen-overlay,
+    .hud-layer.is-entering.is-continuing .screen-blur {
+      opacity: 1;
+      animation: none;
     }
 
     @keyframes screen-warn-in {
@@ -1087,6 +1129,16 @@
     }
 
     @keyframes screen-warn-out {
+      0%, 55% { opacity: 1; }
+      100% { opacity: 0; }
+    }
+
+    @keyframes screen-blur-in {
+      from { opacity: 0; }
+      to { opacity: 1; }
+    }
+
+    @keyframes screen-blur-out {
       0%, 55% { opacity: 1; }
       100% { opacity: 0; }
     }
@@ -1102,6 +1154,12 @@
 
     .hud-toast.is-entering {
       animation: hud-center-in var(--enter-ms) cubic-bezier(.16, 1, .3, 1) both;
+    }
+
+    .hud-toast.is-preparing {
+      opacity: 0;
+      transform: translate3d(-50%, -48%, 0) scale(.965);
+      clip-path: inset(-230px);
     }
 
     .hud-toast.is-visible {
@@ -1142,8 +1200,8 @@
         0 0 24px rgba(var(--ion-rgb), .11),
         0 0 48px rgba(var(--ion-rgb), .045);
       filter: none;
-      -webkit-backdrop-filter: blur(24px) saturate(104%);
-      backdrop-filter: blur(24px) saturate(104%);
+      -webkit-backdrop-filter: none;
+      backdrop-filter: none;
     }
 
     .panel-shell::before {
@@ -1271,6 +1329,11 @@
     }
 
     .badge-orbit {
+      transform-box: fill-box;
+      transform-origin: center;
+    }
+
+    .badge-outer {
       transform-box: fill-box;
       transform-origin: center;
     }
@@ -1405,9 +1468,9 @@
     }
 
     @keyframes panel-glass-in {
-      0% { opacity: 0; transform: scale(.97); filter: blur(4px); }
-      72% { opacity: 1; transform: scale(1.004); filter: blur(0); }
-      100% { opacity: 1; transform: scale(1); filter: blur(0); }
+      0% { opacity: 0; transform: scale(.97); }
+      72% { opacity: 1; transform: scale(1.004); }
+      100% { opacity: 1; transform: scale(1); }
     }
 
     @keyframes trace-layer-in { 0%, 96% { opacity: 1; } 100% { opacity: 0; } }
@@ -1472,10 +1535,10 @@
     .hud-toast.is-exiting .badge-outer { animation: ring-accelerate-out 310ms 235ms cubic-bezier(.55, 0, .85, .35) both; }
     .hud-toast.is-exiting .badge-orbit { animation: ring-accelerate-out-reverse 310ms 235ms cubic-bezier(.55, 0, .85, .35) both; }
     .hud-toast.is-exiting .badge-particles { animation: particle-collapse-out 290ms 245ms cubic-bezier(.55, 0, .85, .35) both; }
-    .hud-toast.is-exiting .panel-shell { animation: panel-glass-out 440ms 290ms cubic-bezier(.55, 0, .85, .35) both; }
-    .hud-toast.is-exiting .energy-sweep { animation: energy-sweep-out 310ms 300ms cubic-bezier(.3, .6, .4, 1) both; }
-    .hud-toast.is-exiting .panel-trace { animation: trace-layer-out 330ms 390ms linear both; }
-    .hud-toast.is-exiting .panel-trace path { animation: perimeter-trace-out 330ms 390ms cubic-bezier(.55, 0, .85, .35) both; }
+    .hud-toast.is-exiting .panel-shell { animation: panel-glass-out 420ms 170ms cubic-bezier(.55, 0, .85, .35) both; }
+    .hud-toast.is-exiting .energy-sweep { animation: energy-sweep-out 310ms 190ms cubic-bezier(.3, .6, .4, 1) both; }
+    .hud-toast.is-exiting .panel-trace { animation: trace-layer-out 300ms 350ms linear both; }
+    .hud-toast.is-exiting .panel-trace path { animation: perimeter-trace-out 300ms 350ms cubic-bezier(.55, 0, .85, .35) both; }
 
     @keyframes waveform-flatten-out { from { opacity: .72; transform: scaleY(.95); } to { opacity: 0; transform: scaleY(.04); } }
     @keyframes waveform-dot-out { from { opacity: .72; transform: scale(.9); } to { opacity: 0; transform: scale(0); } }
@@ -1489,7 +1552,7 @@
     @keyframes ring-accelerate-out { from { opacity: .46; transform: rotate(0) scale(1); } to { opacity: 0; transform: rotate(155deg) scale(.3); } }
     @keyframes ring-accelerate-out-reverse { from { opacity: 1; transform: rotate(0) scale(1); } to { opacity: 0; transform: rotate(-185deg) scale(.3); } }
     @keyframes particle-collapse-out { from { opacity: 1; transform: rotate(0) scale(1); } to { opacity: 0; transform: rotate(95deg) scale(.18); } }
-    @keyframes panel-glass-out { 0%, 22% { opacity: 1; transform: scale(1); filter: blur(0); } 100% { opacity: 0; transform: scale(.985); filter: blur(3px); } }
+    @keyframes panel-glass-out { 0%, 22% { opacity: 1; transform: scale(1); } 100% { opacity: 0; transform: scale(.985); } }
     @keyframes energy-sweep-out { 0% { opacity: 0; transform: translate3d(-140%, 0, 0); } 44% { opacity: .72; } 100% { opacity: 0; transform: translate3d(140%, 0, 0); } }
     @keyframes trace-layer-out { from { opacity: 1; } to { opacity: 0; } }
     @keyframes perimeter-trace-out { from { stroke-dashoffset: 0; } to { stroke-dashoffset: -1; } }
@@ -1557,6 +1620,7 @@
       .hud-layer.is-entering .screen-overlay { animation: screen-fade-in var(--enter-ms) ease-out both; }
       .hud-layer.is-visible .screen-overlay { opacity: 1; }
       .hud-layer.is-exiting .screen-overlay { animation: screen-fade-out var(--exit-ms) ease-in both; }
+      .screen-blur { display: none; }
       .hud-toast.is-entering .panel-shell,
       .hud-toast.is-entering .panel-trace,
       .hud-toast.is-entering .panel-trace path,
@@ -1645,7 +1709,7 @@
   </div>
 
   <main class="hud-layer" aria-label="Ion Sense notification layer">
-    <div class="screen-overlay" aria-hidden="true"></div>
+    <div class="screen-overlay" aria-hidden="true"><span class="screen-blur"></span></div>
     <section
       id="ion-toast"
       class="hud-toast"
@@ -1735,7 +1799,7 @@
         },
         overheating: {
           title: "PC OVERHEATING",
-          icon: `<svg viewBox="0 0 32 32"><path d="M13 18.2V7a4 4 0 0 1 8 0v11.2a7 7 0 1 1-8 0Z"></path><path d="M17 9v12"></path><circle cx="17" cy="24" r="2.5"></circle><path d="M24.5 8.5h3M24.5 13h2"></path></svg>`
+          icon: `<svg viewBox="2.75 1 32 32"><path d="M13 18.2V7a4 4 0 0 1 8 0v11.2a7 7 0 1 1-8 0Z"></path><path d="M17 9v12"></path><circle cx="17" cy="24" r="2.5"></circle><path d="M24.5 8.5h3M24.5 13h2"></path></svg>`
         },
         download_finished: {
           title: "DOWNLOADS FINISHED",
@@ -1920,22 +1984,41 @@
         speechTimer = 0;
       }
 
-      function showNext() {
+      function prepareNext() {
         if (lifecycle !== "idle" || queue.length === 0) {
           updateDevStatus();
-          return;
+          return false;
         }
 
         activeEvent = queue.shift();
-        lifecycle = "entering";
+        lifecycle = "preparing";
         renderEvent(activeEvent);
         makeWaveform();
 
-        toast.classList.remove("is-visible", "is-exiting");
-        hudLayer.classList.remove("is-visible", "is-exiting");
-        // Flush style so repeated notifications reliably replay all entry animations.
+        toast.classList.remove("is-entering", "is-visible", "is-exiting");
+        toast.classList.add("is-preparing");
+        hudLayer.classList.remove("is-entering", "is-visible", "is-exiting", "has-followup");
+        hudLayer.classList.add("is-preparing");
+        // Force layout while the native window is still hidden. WebView2 can
+        // now allocate every masked/glowing layer before the first visible frame.
         void toast.offsetWidth;
+        updateDevStatus();
+        return true;
+      }
+
+      function beginPrepared(timestamp = activeEvent?.timestamp) {
+        if (
+          lifecycle !== "preparing" ||
+          !activeEvent ||
+          activeEvent.timestamp !== timestamp
+        ) return false;
+
+        const continuing = hudLayer.classList.contains("is-bridging");
+        lifecycle = "entering";
+        toast.classList.remove("is-preparing");
         toast.classList.add("is-entering");
+        hudLayer.classList.remove("is-bridging", "is-preparing");
+        hudLayer.classList.toggle("is-continuing", continuing);
         hudLayer.classList.add("is-entering");
         toast.setAttribute("aria-hidden", "false");
         updateDevStatus();
@@ -1945,23 +2028,42 @@
           toast.classList.remove("is-entering");
           toast.classList.add("is-visible");
           hudLayer.classList.remove("is-entering");
+          hudLayer.classList.remove("is-continuing");
           hudLayer.classList.add("is-visible");
           lifecycle = "visible";
           updateDevStatus();
         }, enterDuration());
 
         speechTimer = window.setTimeout(speakWarning, prefersReducedMotion() ? 0 : 820);
-        dismissTimer = window.setTimeout(() => dismissCurrent("timeout"), AUTO_DISMISS_MS);
+        dismissTimer = window.setTimeout(() => void dismissCurrent("timeout"), AUTO_DISMISS_MS);
+        return true;
       }
 
-      function dismissCurrent(reason = "manual") {
+      function showNext() {
+        if (!prepareNext()) return;
+        beginPrepared();
+      }
+
+      async function dismissCurrent(reason = "manual") {
         if (lifecycle === "idle" || lifecycle === "dismissing") return false;
 
         clearLifecycleTimers();
         lifecycle = "dismissing";
+        const timestamp = activeEvent?.timestamp;
+        let hasFollowup = queue.length > 0;
+        if (typeof window.__ionSenseContinuationProbe === "function" && Number.isSafeInteger(timestamp)) {
+          try {
+            hasFollowup = (await window.__ionSenseContinuationProbe(timestamp)) || hasFollowup;
+          } catch (error) {
+            console.error("Ion Sense could not inspect its native event queue", error);
+          }
+        }
+        if (lifecycle !== "dismissing" || activeEvent?.timestamp !== timestamp) return false;
+
         toast.classList.remove("is-entering", "is-visible");
         toast.classList.add("is-exiting");
-        hudLayer.classList.remove("is-entering", "is-visible");
+        hudLayer.classList.remove("is-entering", "is-visible", "is-continuing");
+        hudLayer.classList.toggle("has-followup", hasFollowup);
         hudLayer.classList.add("is-exiting");
         toast.dataset.dismissReason = reason;
         updateDevStatus();
@@ -1972,12 +2074,13 @@
 
         phaseTimer = window.setTimeout(() => {
           toast.classList.remove("is-exiting");
-          hudLayer.classList.remove("is-exiting");
+          hudLayer.classList.remove("is-exiting", "has-followup");
+          hudLayer.classList.toggle("is-bridging", hasFollowup);
           toast.setAttribute("aria-hidden", "true");
           activeEvent = null;
           lifecycle = "idle";
           updateDevStatus();
-          showNext();
+          window.setTimeout(showNext, 0);
         }, exitDuration());
         return true;
       }
@@ -1996,11 +2099,23 @@
         return position;
       };
 
-      closeButton.addEventListener("click", () => dismissCurrent("close"));
+      // Native-only two-phase presentation: populate and paint while the
+      // window is hidden, then reveal after Rust confirms the surface is shown.
+      window.__ionSenseStage = function ionSenseStage(event) {
+        const normalized = normalizeEvent(event);
+        queue.push(normalized);
+        const position = queue.length + (lifecycle === "idle" ? 0 : 1);
+        updateDevStatus();
+        const prepared = prepareNext();
+        return { prepared, position, timestamp: normalized.timestamp };
+      };
+      window.__ionSenseReveal = (timestamp) => beginPrepared(timestamp);
+
+      closeButton.addEventListener("click", () => void dismissCurrent("close"));
 
       document.addEventListener("keydown", (event) => {
         if (event.key === "Escape" && lifecycle !== "idle") {
-          dismissCurrent("escape");
+          void dismissCurrent("escape");
         }
       });
 
@@ -2077,9 +2192,18 @@
       let cursorGeneration = 0;
       let cursorPollInFlight = false;
       let unlisten = null;
+      let nativeDeliveryChain = Promise.resolve();
 
       const wait = (milliseconds) =>
         new Promise((resolve) => window.setTimeout(resolve, milliseconds));
+
+      const nextCompositedFrame = () =>
+        Promise.race([
+          new Promise((resolve) =>
+            window.requestAnimationFrame(() => window.requestAnimationFrame(resolve))
+          ),
+          wait(80)
+        ]);
 
       async function invokeAfterNativeSetup(command, args) {
         let lastError;
@@ -2145,7 +2269,11 @@
             localX <= rect.right + padding &&
             localY >= rect.top - padding &&
             localY <= rect.bottom + padding;
-          if (toast.classList.contains("is-exiting")) {
+          if (
+            generation !== cursorGeneration ||
+            toast.getAttribute("aria-hidden") !== "false" ||
+            toast.classList.contains("is-exiting")
+          ) {
             await setClickThrough(true);
           } else {
             await setClickThrough(!overClose);
@@ -2196,8 +2324,27 @@
 
       async function connectNativeBridge() {
         unlisten = await tauri.event.listen(EVENT_NAME, ({ payload }) => {
-          window.ionSenseTrigger(payload);
+          nativeDeliveryChain = nativeDeliveryChain.then(async () => {
+            const staged = window.__ionSenseStage(payload);
+            if (!staged?.prepared) {
+              throw new Error("The HUD received an event while another event was still active");
+            }
+            // Hidden WebViews can throttle rAF. The timeout fallback still
+            // guarantees a layout/style pass before the native surface shows.
+            void toast.getBoundingClientRect();
+            await nextCompositedFrame();
+            const presented = await invoke("hud_present", { timestamp: payload.timestamp });
+            if (!presented) return;
+            await Promise.race([
+              new Promise((resolve) => window.requestAnimationFrame(resolve)),
+              wait(34)
+            ]);
+            window.__ionSenseReveal(payload.timestamp);
+          }).catch((error) => console.error("Ion Sense event presentation failed", error));
         });
+        window.__ionSenseContinuationProbe = (timestamp) =>
+          invoke("hud_has_followup", { timestamp });
+        if (document.fonts?.ready) await document.fonts.ready;
         const isDev = await invokeAfterNativeSetup("hud_ready");
         if (isDev) {
           window.ionSenseTest = (eventType) =>
