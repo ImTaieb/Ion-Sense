@@ -89,13 +89,9 @@ fn run(
                 continue;
             }
 
-            let name = candidate
-                .file_name()
-                .and_then(|value| value.to_str())
-                .unwrap_or("Download");
             let event = IonSenseEvent::new(
                 IonSenseEventType::DownloadFinished,
-                format!("{name} finished downloading."),
+                "All downloads completed successfully.",
                 Severity::Info,
             );
             if let Err(error) = dispatcher.try_dispatch(event) {
