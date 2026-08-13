@@ -69,7 +69,7 @@
       --text: #f3f7f4;
       --muted: #98a39c;
     }
-    html { min-height: 100%; background: #020503; }
+    html { min-height: 100%; background: transparent; }
     body {
       position: relative;
       isolation: isolate;
@@ -308,18 +308,24 @@
 
     /* Production control-center layout. */
     html,
-    body { height: 100%; overflow: hidden; }
-    body { color-scheme: dark; }
+    body { height: 100%; overflow: hidden; background: transparent; }
+    body { padding: 6px; color-scheme: dark; }
     .shell {
       box-sizing: border-box;
       display: grid;
       grid-template-rows: 104px minmax(0, 1fr);
       gap: 12px;
       width: 100%;
-      height: 100dvh;
+      height: calc(100dvh - 12px);
       max-width: none;
-      padding: 16px 18px 0;
+      padding: 14px 14px 0;
       overflow: hidden;
+      border: 1px solid rgba(var(--ion-rgb), .28);
+      border-radius: 22px;
+      background:
+        radial-gradient(circle at 84% -8%, rgba(var(--ion-rgb), .12), transparent 34%),
+        linear-gradient(160deg, rgba(3, 11, 7, .985), rgba(1, 6, 4, .99));
+      box-shadow: inset 0 1px rgba(255,255,255,.045), 0 18px 48px rgba(0,0,0,.48), 0 0 24px rgba(var(--ion-rgb),.07);
     }
     .settings-hero {
       height: 104px;

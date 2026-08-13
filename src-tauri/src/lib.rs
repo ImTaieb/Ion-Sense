@@ -297,6 +297,13 @@ fn hud_ready(
     if let Some(hud) = app.get_webview_window("hud") {
         hud.set_ignore_cursor_events(true)
             .map_err(|error| error.to_string())?;
+        // Keep the transparent WebView2/DWM surface alive between alerts. Repeatedly
+        // showing and hiding a fullscreen transparent surface can expose WebView2's
+        // uninitialised white backing texture for one compositor frame.
+        position_hud(&hud).map_err(|error| error.to_string())?;
+        hud.show().map_err(|error| error.to_string())?;
+        hud.set_always_on_top(true)
+            .map_err(|error| error.to_string())?;
     }
     Ok(tauri::is_dev())
 }
@@ -351,9 +358,9 @@ fn hud_idle(
     if let Some(hud) = app.get_webview_window("hud") {
         hud.set_ignore_cursor_events(true)
             .map_err(|error| error.to_string())?;
-        if !has_followup {
-            hud.hide().map_err(|error| error.to_string())?;
-        }
+        // Do not hide the native surface. The DOM is fully transparent and the
+        // window is click-through while idle, so leaving it compositor-warm avoids
+        // the white flash that WebView2 can produce on the next show/hide cycle.
     }
     state
         .hud
@@ -366,7 +373,7 @@ fn hud_idle(
         if has_followup {
             "backdrop retained for queued event"
         } else {
-            "native window hidden"
+            "transparent surface retained"
         }
     );
     Ok(true)
@@ -594,7 +601,8 @@ fn setup_tray(app: &App) -> tauri::Result<()> {
         .tooltip("Ion Sense")
         .on_menu_event(|app, event| match event.id.as_ref() {
             "settings" => {
-                if let Err(error) = open_settings(app) {
+                let anchor = app.cursor_position().ok();
+                if let Err(error) = open_settings(app, anchor) {
                     eprintln!("Ion Sense could not open settings: {error}");
                 }
             }
@@ -602,16 +610,21 @@ fn setup_tray(app: &App) -> tauri::Result<()> {
             _ => {}
         })
         .on_tray_icon_event(|tray, event| {
-            if matches!(
-                event,
-                TrayIconEvent::Click {
-                    button: MouseButton::Left,
-                    button_state: MouseButtonState::Up,
-                    ..
-                }
-            ) && let Err(error) = open_settings(tray.app_handle())
+            if let TrayIconEvent::Click {
+                position,
+                button: MouseButton::Left,
+                button_state: MouseButtonState::Up,
+                ..
+            } = event
             {
-                eprintln!("Ion Sense could not open settings: {error}");
+                let app = tray.app_handle();
+                if let Some(window) = app.get_webview_window("settings")
+                    && window.is_visible().unwrap_or(false)
+                {
+                    let _ = window.hide();
+                } else if let Err(error) = open_settings(app, Some(position)) {
+                    eprintln!("Ion Sense could not open settings: {error}");
+                }
             }
         });
     if let Some(icon) = app.default_window_icon() {
@@ -621,13 +634,60 @@ fn setup_tray(app: &App) -> tauri::Result<()> {
     Ok(())
 }
 
-fn open_settings(app: &AppHandle) -> tauri::Result<()> {
+fn open_settings(app: &AppHandle, anchor: Option<PhysicalPosition<f64>>) -> tauri::Result<()> {
     if let Some(window) = app.get_webview_window("settings") {
+        position_settings_popover(&window, anchor)?;
         window.show()?;
         window.unminimize()?;
+        window.set_always_on_top(true)?;
         window.set_focus()?;
     }
     Ok(())
+}
+
+fn position_settings_popover(
+    window: &WebviewWindow,
+    anchor: Option<PhysicalPosition<f64>>,
+) -> tauri::Result<()> {
+    let anchor = match anchor {
+        Some(position) => position,
+        None => window.cursor_position()?,
+    };
+    let monitor = window
+        .monitor_from_point(anchor.x, anchor.y)?
+        .or(window.current_monitor()?)
+        .or(window.primary_monitor()?);
+    let Some(monitor) = monitor else {
+        return Ok(());
+    };
+
+    let work = monitor.work_area();
+    let size = window.outer_size()?;
+    let margin = (12.0 * monitor.scale_factor()).round() as i32;
+    let work_left = work.position.x;
+    let work_top = work.position.y;
+    let work_right = work_left + work.size.width as i32;
+    let work_bottom = work_top + work.size.height as i32;
+    let width = size.width as i32;
+    let height = size.height as i32;
+
+    // Right-align with the tray click and open upward from a bottom taskbar.
+    // The alternate branch also behaves correctly for top/side taskbars.
+    let desired_x = anchor.x.round() as i32 - width + margin * 2;
+    let x = desired_x.clamp(
+        work_left + margin,
+        (work_right - width - margin).max(work_left + margin),
+    );
+    let desired_y = if anchor.y > f64::from(work_top + work.size.height as i32 / 2) {
+        anchor.y.round() as i32 - height - margin
+    } else {
+        anchor.y.round() as i32 + margin
+    };
+    let y = desired_y.clamp(
+        work_top + margin,
+        (work_bottom - height - margin).max(work_top + margin),
+    );
+    window.set_position(Position::Physical(PhysicalPosition::new(x, y)))
 }
 
 fn sync_autostart(app: &AppHandle, should_enable: bool) -> anyhow::Result<()> {
@@ -662,6 +722,10 @@ pub fn run() {
         .on_window_event(|window, event| {
             if let WindowEvent::CloseRequested { api, .. } = event {
                 api.prevent_close();
+                let _ = window.hide();
+            } else if window.label() == "settings"
+                && let WindowEvent::Focused(false) = event
+            {
                 let _ = window.hide();
             }
         });

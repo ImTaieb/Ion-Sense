@@ -1045,7 +1045,7 @@
     .screen-blur {
       position: absolute;
       inset: 0;
-      opacity: 0;
+      opacity: .001;
       pointer-events: none;
       background: rgba(0, 0, 0, 0);
       -webkit-backdrop-filter: blur(12px) saturate(.62) brightness(.78);
@@ -1089,7 +1089,7 @@
     }
 
     .hud-layer.is-preparing .screen-blur {
-      opacity: 1;
+      opacity: .001;
     }
 
     .hud-layer.is-entering .screen-blur {
@@ -1134,13 +1134,13 @@
     }
 
     @keyframes screen-blur-in {
-      from { opacity: 0; }
+      from { opacity: .001; }
       to { opacity: 1; }
     }
 
     @keyframes screen-blur-out {
       0%, 55% { opacity: 1; }
-      100% { opacity: 0; }
+      100% { opacity: .001; }
     }
 
     .hud-toast {
