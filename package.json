@@ -1,7 +1,7 @@
 {
   "name": "ion-sense",
   "private": true,
-  "version": "1.0.0",
+  "version": "1.0.1",
   "description": "A tray-resident system-awareness utility with a cinematic notification HUD.",
   "scripts": {
     "tauri": "tauri",

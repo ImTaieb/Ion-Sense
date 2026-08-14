@@ -8,7 +8,7 @@ use std::sync::{
 use std::thread::{self, JoinHandle};
 use std::time::{Duration, Instant, SystemTime};
 
-use anyhow::{Context, Result};
+use anyhow::{Context, Result, bail};
 use notify::{
     Event, EventKind, RecommendedWatcher, RecursiveMode, Watcher,
     event::{ModifyKind, RenameMode},
@@ -61,13 +61,7 @@ fn run(
     dispatcher: EventDispatcher,
     stop: Arc<AtomicBool>,
 ) -> Result<()> {
-    let downloads_dir = settings
-        .directory
-        .as_deref()
-        .filter(|value| !value.trim().is_empty())
-        .map(PathBuf::from)
-        .or_else(dirs::download_dir)
-        .context("the operating system did not provide a Downloads directory")?;
+    let downloads_dir = resolve_downloads_directory(&settings)?;
 
     let (raw_sender, raw_receiver) = mpsc::sync_channel::<notify::Result<Event>>(256);
     let mut watcher: RecommendedWatcher = notify::recommended_watcher(move |result| {
@@ -120,6 +114,49 @@ fn run(
     }
 
     Ok(())
+}
+
+fn resolve_downloads_directory(settings: &DownloadsSettings) -> Result<PathBuf> {
+    if let Some(override_dir) = settings
+        .directory
+        .as_deref()
+        .map(str::trim)
+        .filter(|value| !value.is_empty())
+    {
+        let path = PathBuf::from(override_dir);
+        if path.is_dir() {
+            return Ok(path);
+        }
+        bail!(
+            "configured Downloads folder does not exist: {}",
+            path.display()
+        );
+    }
+
+    // Some Windows profiles report a stale shell Downloads path (for example
+    // C:\\Downloads) even though the real folder remains under USERPROFILE.
+    // Only use a discovered path after proving that it exists.
+    let profile_downloads = std::env::var_os("USERPROFILE")
+        .map(PathBuf::from)
+        .map(|profile| profile.join("Downloads"));
+    let home_downloads = dirs::home_dir().map(|home| home.join("Downloads"));
+    first_existing_directory(
+        [dirs::download_dir(), profile_downloads, home_downloads]
+            .into_iter()
+            .flatten(),
+        Path::is_dir,
+    )
+    .context("could not find an existing Downloads directory; set Folder override in Ion Sense")
+}
+
+fn first_existing_directory<F>(
+    candidates: impl IntoIterator<Item = PathBuf>,
+    is_dir: F,
+) -> Option<PathBuf>
+where
+    F: Fn(&Path) -> bool,
+{
+    candidates.into_iter().find(|path| is_dir(path))
 }
 
 fn completion_candidates(
@@ -242,5 +279,14 @@ mod tests {
             without_temp_extension(Path::new("C:/Downloads/archive.zip.crdownload")),
             PathBuf::from("C:/Downloads/archive.zip")
         );
+    }
+
+    #[test]
+    fn skips_stale_download_locations_for_the_next_existing_candidate() {
+        let stale = PathBuf::from("C:/Downloads");
+        let profile = PathBuf::from("C:/Users/example/Downloads");
+        let selected =
+            first_existing_directory([stale.clone(), profile.clone()], |path| path == profile);
+        assert_eq!(selected, Some(profile));
     }
 }

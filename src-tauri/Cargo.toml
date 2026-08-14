@@ -1,6 +1,6 @@
 [package]
 name = "ion-sense"
-version = "1.0.0"
+version = "1.0.1"
 description = "A tray-resident system-awareness utility with a cinematic notification HUD"
 authors = ["Ion Sense"]
 edition = "2024"
