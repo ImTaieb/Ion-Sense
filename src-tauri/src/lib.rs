@@ -349,6 +349,9 @@ async fn save_settings(
     discord_token: Option<String>,
 ) -> Result<AppSettings, String> {
     require_window(&window, "settings")?;
+    settings
+        .validate()
+        .map_err(|error| format!("Invalid settings: {error}"))?;
     let settings = settings.sanitized();
     settings
         .validate()

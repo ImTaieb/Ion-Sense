@@ -1,6 +1,6 @@
-use std::collections::HashSet;
+use std::collections::{HashSet, VecDeque};
 use std::sync::{
-    Arc,
+    Arc, Mutex,
     atomic::{AtomicBool, Ordering},
 };
 use std::thread::{self, JoinHandle};
@@ -22,6 +22,36 @@ use crate::{
 struct Handler {
     dispatcher: EventDispatcher,
     allowed_channels: HashSet<u64>,
+    recent_messages: Mutex<RecentMessageIds>,
+}
+
+struct RecentMessageIds {
+    capacity: usize,
+    order: VecDeque<u64>,
+    ids: HashSet<u64>,
+}
+
+impl RecentMessageIds {
+    fn new(capacity: usize) -> Self {
+        Self {
+            capacity,
+            order: VecDeque::with_capacity(capacity),
+            ids: HashSet::with_capacity(capacity),
+        }
+    }
+
+    fn accept(&mut self, id: u64) -> bool {
+        if !self.ids.insert(id) {
+            return false;
+        }
+        self.order.push_back(id);
+        while self.order.len() > self.capacity {
+            if let Some(expired) = self.order.pop_front() {
+                self.ids.remove(&expired);
+            }
+        }
+        true
+    }
 }
 
 #[async_trait]
@@ -33,6 +63,14 @@ impl EventHandler for Handler {
 
         let is_direct_message = message.guild_id.is_none();
         if !is_direct_message && !self.allowed_channels.contains(&message.channel_id.get()) {
+            return;
+        }
+        if !self
+            .recent_messages
+            .lock()
+            .unwrap_or_else(|poisoned| poisoned.into_inner())
+            .accept(message.id.get())
+        {
             return;
         }
 
@@ -83,6 +121,7 @@ async fn run(settings: DiscordSettings, dispatcher: EventDispatcher, stop: Arc<A
 
     let handler = Handler {
         dispatcher,
+        recent_messages: Mutex::new(RecentMessageIds::new(512)),
         allowed_channels: settings
             .allowed_channel_ids
             .into_iter()
@@ -134,5 +173,17 @@ mod tests {
     fn truncation_never_slices_inside_utf8() {
         assert_eq!(truncate("hello", 5), "hello");
         assert_eq!(truncate("🙂🙂🙂", 2), "🙂🙂…");
+    }
+
+    #[test]
+    fn recent_message_ids_reject_replays_and_remain_bounded() {
+        let mut recent = RecentMessageIds::new(2);
+        assert!(recent.accept(10));
+        assert!(!recent.accept(10));
+        assert!(recent.accept(11));
+        assert!(recent.accept(12));
+        assert_eq!(recent.order.len(), 2);
+        assert_eq!(recent.ids.len(), 2);
+        assert!(recent.accept(10));
     }
 }

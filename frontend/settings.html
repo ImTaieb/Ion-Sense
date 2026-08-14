@@ -1654,13 +1654,13 @@
           <label class="switch"><input id="discord-enabled" type="checkbox"><span class="track"></span>Enabled</label>
         </div>
         <div class="grid">
-          <label class="field span-2">Allowed guild channel IDs<input id="discord-channels" type="text" placeholder="123456789012345678, 234567890123456789"></label>
+          <label class="field span-2">Allowed guild channel IDs<input id="discord-channels" type="text" autocomplete="off" spellcheck="false" placeholder="123456789012345678, 234567890123456789"></label>
           <div class="credential-row span-2">
             <label class="field">Bot token<input id="discord-token" type="password" autocomplete="new-password" placeholder="Stored in OS keychain"></label>
             <button id="clear-discord-token" type="button" aria-label="Remove saved Discord token and disable Discord messages">Clear</button>
           </div>
         </div>
-        <p class="hint"><span id="discord-credential-dot" class="status-dot"></span><span id="discord-credential-status">No keychain token detected.</span> This receives DMs sent to the bot and allowed guild-channel messages—not a normal user account’s private friend DMs.</p>
+        <p class="hint"><span id="discord-credential-dot" class="status-dot"></span><span id="discord-credential-status">No keychain token detected.</span> Separate channel IDs with commas or spaces. This receives DMs sent to the bot and allowed guild-channel messages—not a normal user account’s private friend DMs.</p>
       </section>
 
       <section id="dev-tools" class="settings-card grid-wide" aria-labelledby="section-developer" hidden>
@@ -1905,6 +1905,23 @@
 
       function collect() {
         if (!currentSettings) throw new Error("Settings are still loading.");
+        const discordChannelInput = field("discord-channels");
+        const discordChannelIds = discordChannelInput.value
+          .trim()
+          .split(/[\s,]+/)
+          .filter(Boolean);
+        const invalidDiscordChannel = discordChannelIds.find((value) => {
+          if (!/^\d{1,20}$/.test(value)) return true;
+          const numeric = BigInt(value);
+          return numeric === 0n || numeric > 18446744073709551615n;
+        });
+        discordChannelInput.setCustomValidity(invalidDiscordChannel
+          ? "Channel IDs must contain only positive whole numbers separated by commas or spaces."
+          : "");
+        if (invalidDiscordChannel) {
+          discordChannelInput.reportValidity();
+          throw new Error("Fix the highlighted Discord channel ID before saving.");
+        }
         return {
           ...currentSettings,
           launch_at_login: checked("launch-at-login"),
@@ -1932,7 +1949,7 @@
           },
           discord: {
             enabled: checked("discord-enabled"),
-            allowed_channel_ids: field("discord-channels").value.split(",").map((value) => value.trim()).filter(Boolean)
+            allowed_channel_ids: discordChannelIds
           }
         };
       }
@@ -2037,6 +2054,10 @@
           await invoke("fire_test_event", { eventType: button.dataset.testEvent });
           setStatus(`Triggered ${button.textContent.trim()}.`, false, "success");
         } catch (error) { setStatus(String(error), true); }
+      });
+
+      field("discord-channels").addEventListener("input", (event) => {
+        event.currentTarget.setCustomValidity("");
       });
 
       field("open-editor").addEventListener("click", () => {

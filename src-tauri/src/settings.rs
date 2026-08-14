@@ -174,6 +174,15 @@ impl AppSettings {
             ensure!(!self.email.username.is_empty(), "IMAP username is required");
             ensure!(!self.email.mailbox.is_empty(), "IMAP mailbox is required");
         }
+        ensure!(
+            self.discord.allowed_channel_ids.iter().all(|value| {
+                value
+                    .trim()
+                    .parse::<u64>()
+                    .is_ok_and(|channel_id| channel_id > 0)
+            }),
+            "Discord channel IDs must contain only positive whole numbers"
+        );
         Ok(())
     }
 
@@ -307,6 +316,13 @@ mod tests {
         settings.email.host = "imap.example.com".into();
         settings.email.username = "user@example.com".into();
         assert!(settings.validate().is_ok());
+    }
+
+    #[test]
+    fn malformed_discord_channel_ids_are_rejected_before_sanitizing() {
+        let mut settings = AppSettings::default();
+        settings.discord.allowed_channel_ids = vec!["123".into(), "not-a-channel".into()];
+        assert!(settings.validate().is_err());
     }
 
     #[test]
