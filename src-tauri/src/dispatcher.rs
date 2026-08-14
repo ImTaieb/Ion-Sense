@@ -27,6 +27,7 @@ impl EventDispatcher {
         )
     }
 
+    #[cfg(debug_assertions)]
     pub async fn dispatch(
         &self,
         event: IonSenseEvent,

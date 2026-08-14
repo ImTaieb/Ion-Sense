@@ -20,6 +20,8 @@ use crate::{
     settings::DownloadsSettings,
 };
 
+use super::wait_until_stopped;
+
 const TEMP_EXTENSIONS: &[&str] = &["crdownload", "part"];
 
 #[derive(Debug, Clone, PartialEq, Eq)]
@@ -36,8 +38,19 @@ pub fn spawn(
     thread::Builder::new()
         .name("ion-downloads-detector".into())
         .spawn(move || {
-            if let Err(error) = run(settings, dispatcher, stop) {
-                eprintln!("Ion Sense downloads detector unavailable: {error:#}");
+            let mut backoff_seconds = 2;
+            while !stop.load(Ordering::Acquire) {
+                match run(settings.clone(), dispatcher.clone(), stop.clone()) {
+                    Ok(()) if stop.load(Ordering::Acquire) => break,
+                    Ok(()) => eprintln!("Ion Sense downloads watcher stopped unexpectedly"),
+                    Err(error) => {
+                        eprintln!("Ion Sense downloads detector unavailable: {error:#}")
+                    }
+                }
+                if wait_until_stopped(&stop, backoff_seconds) {
+                    break;
+                }
+                backoff_seconds = (backoff_seconds * 2).min(60);
             }
         })
         .expect("failed to spawn downloads detector")

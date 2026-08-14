@@ -1,7 +1,7 @@
 [package]
 name = "ion-sense"
-version = "0.1.0"
-description = "A tray-resident desktop notification HUD"
+version = "1.0.0"
+description = "A tray-resident system-awareness utility with a cinematic notification HUD"
 authors = ["Ion Sense"]
 edition = "2024"
 rust-version = "1.88"

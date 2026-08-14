@@ -21,8 +21,8 @@ use crate::{
 
 struct Handler {
     dispatcher: EventDispatcher,
-    allowed_channels: HashSet<u64>,
-    recent_messages: Mutex<RecentMessageIds>,
+    allowed_channels: Arc<HashSet<u64>>,
+    recent_messages: Arc<Mutex<RecentMessageIds>>,
 }
 
 struct RecentMessageIds {
@@ -119,41 +119,78 @@ async fn run(settings: DiscordSettings, dispatcher: EventDispatcher, stop: Arc<A
         }
     };
 
-    let handler = Handler {
-        dispatcher,
-        recent_messages: Mutex::new(RecentMessageIds::new(512)),
-        allowed_channels: settings
+    let allowed_channels: Arc<HashSet<u64>> = Arc::new(
+        settings
             .allowed_channel_ids
             .into_iter()
             .filter_map(|channel| channel.parse::<u64>().ok())
             .collect(),
-    };
+    );
+    let recent_messages = Arc::new(Mutex::new(RecentMessageIds::new(512)));
     let intents = GatewayIntents::DIRECT_MESSAGES
         | GatewayIntents::GUILD_MESSAGES
         | GatewayIntents::MESSAGE_CONTENT;
-    let client_setup = Client::builder(token, intents).event_handler(handler);
-    let mut client = match tokio::time::timeout(Duration::from_secs(20), client_setup).await {
-        Err(_) => {
-            eprintln!("Ion Sense Discord client setup timed out");
+    let mut backoff_seconds = 5_u64;
+
+    while !stop.load(Ordering::Acquire) {
+        let handler = Handler {
+            dispatcher: dispatcher.clone(),
+            allowed_channels: allowed_channels.clone(),
+            recent_messages: recent_messages.clone(),
+        };
+        let client_setup = Client::builder(token.clone(), intents).event_handler(handler);
+        let mut client = match tokio::time::timeout(Duration::from_secs(20), client_setup).await {
+            Err(_) => {
+                eprintln!("Ion Sense Discord client setup timed out");
+                sleep_with_stop(&stop, backoff_seconds).await;
+                backoff_seconds = (backoff_seconds * 2).min(300);
+                continue;
+            }
+            Ok(Ok(client)) => client,
+            Ok(Err(error)) => {
+                eprintln!("Ion Sense Discord client setup failed: {error}");
+                sleep_with_stop(&stop, backoff_seconds).await;
+                backoff_seconds = (backoff_seconds * 2).min(300);
+                continue;
+            }
+        };
+
+        let shard_manager = client.shard_manager.clone();
+        let shutdown_stop = stop.clone();
+        let (cancel_shutdown, mut shutdown_cancelled) = tokio::sync::oneshot::channel();
+        let shutdown_task = tokio::spawn(async move {
+            loop {
+                tokio::select! {
+                    _ = &mut shutdown_cancelled => return,
+                    _ = tokio::time::sleep(Duration::from_secs(1)) => {
+                        if shutdown_stop.load(Ordering::Acquire) {
+                            shard_manager.shutdown_all().await;
+                            return;
+                        }
+                    }
+                }
+            }
+        });
+
+        if let Err(error) = client.start().await {
+            eprintln!("Ion Sense Discord detector stopped: {error}");
+        }
+        let _ = cancel_shutdown.send(());
+        let _ = shutdown_task.await;
+        if stop.load(Ordering::Acquire) {
+            break;
+        }
+        sleep_with_stop(&stop, backoff_seconds).await;
+        backoff_seconds = (backoff_seconds * 2).min(300);
+    }
+}
+
+async fn sleep_with_stop(stop: &AtomicBool, seconds: u64) {
+    for _ in 0..seconds.max(1) {
+        if stop.load(Ordering::Acquire) {
             return;
         }
-        Ok(Ok(client)) => client,
-        Ok(Err(error)) => {
-            eprintln!("Ion Sense Discord client setup failed: {error}");
-            return;
-        }
-    };
-
-    let shard_manager = client.shard_manager.clone();
-    tokio::spawn(async move {
-        while !stop.load(Ordering::Acquire) {
-            tokio::time::sleep(Duration::from_secs(1)).await;
-        }
-        shard_manager.shutdown_all().await;
-    });
-
-    if let Err(error) = client.start().await {
-        eprintln!("Ion Sense Discord detector stopped: {error}");
+        tokio::time::sleep(Duration::from_secs(1)).await;
     }
 }
 

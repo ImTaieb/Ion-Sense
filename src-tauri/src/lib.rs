@@ -15,7 +15,9 @@ use anyhow::Context;
 use credentials::{SecretKind, credential_account, delete_secret, get_secret, set_secret};
 use detectors::DetectorRuntime;
 use dispatcher::EventDispatcher;
-use event::{IonSenseEvent, IonSenseEventType, Severity};
+use event::IonSenseEvent;
+#[cfg(debug_assertions)]
+use event::{IonSenseEventType, Severity};
 use serde::Serialize;
 use settings::AppSettings;
 use tauri::{
@@ -270,7 +272,7 @@ fn settings_present(
     let fade_window = window.clone();
     let fade_lifecycle = lifecycle.clone();
     tauri::async_runtime::spawn(async move {
-        if let Err(error) = fade_settings_window(
+        if let Err(_error) = fade_settings_window(
             &fade_window,
             &fade_lifecycle,
             generation,
@@ -281,7 +283,7 @@ fn settings_present(
         .await
         {
             #[cfg(debug_assertions)]
-            eprintln!("Ion Sense could not fade settings in: {error}");
+            eprintln!("Ion Sense could not fade settings in: {_error}");
         }
     });
     let focus_window = window.clone();
@@ -613,6 +615,7 @@ fn hud_idle(
     if state.hud.delivered_timestamp.load(Ordering::Acquire) != timestamp {
         return Ok(false);
     }
+    #[cfg(debug_assertions)]
     let has_followup = state.dispatcher.pending() > 1;
     if let Some(hud) = app.get_webview_window("hud") {
         hud.set_ignore_cursor_events(true)
