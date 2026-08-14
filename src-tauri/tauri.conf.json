@@ -57,6 +57,6 @@
     }
   },
   "bundle": {
-    "active": false
+    "active": true
   }
 }
