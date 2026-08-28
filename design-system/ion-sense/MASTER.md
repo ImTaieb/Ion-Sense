@@ -6,14 +6,14 @@ ION Sense is a quiet desktop awareness utility: premium system software first, f
 
 ## Core tokens
 
-- Accent: `#5CF47A`; bright linework: `#7BFF96`; accent RGB: `92, 244, 122`.
-- Primary text: `#F1F5F2`; secondary text: `#A7B0AA`; tertiary text: `#87938B`.
-- Base surfaces: `#010403`, `#040A06`, `#07100A`.
-- Hairline: white at 8–10% opacity; active hairline: accent at 20–42% opacity.
-- UI font: Segoe UI Variable Text, with Segoe UI fallback.
-- Display font: Segoe UI Variable Display; Bahnschrift is reserved for compact HUD titles where needed.
-- Spacing rhythm: 4, 8, 12, 16, 24, 32 pixels.
-- Control height: 44 pixels where space allows; no interactive target below 40 pixels.
+- Accent: `#43F28A`; bright linework: `#62F69B`; accent RGB: `67, 242, 138`.
+- Primary text: `#ECF4EE`; secondary text: `rgba(220, 232, 224, 0.66)`; tertiary text: `rgba(190, 205, 196, 0.42)`.
+- Base surfaces: `#030605`, `#040A06`, `#080B0A`.
+- Hairline: `rgba(207, 244, 216, 0.09)`; active hairline: `rgba(67, 242, 138, 0.32)`.
+- UI font: Inter (preferred) with Segoe UI Variable Text and Segoe UI fallbacks.
+- Display font: Inter (preferred) with Segoe UI Variable Display fallback.
+- Spacing rhythm: 4, 8, 12, 16, 20, 24, 32, 40, 48 pixels.
+- Control height: 42–46 pixels where space allows; no interactive target below 40 pixels.
 
 ## Material and depth
 

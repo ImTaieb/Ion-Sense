@@ -578,19 +578,101 @@
     #status[data-state="success"]::before { background: #55f36a; box-shadow: 0 0 8px rgba(var(--ion-rgb),.43); }
     #status[data-state="error"] { color: #ffb5b5; border-color: rgba(255,105,105,.20); background: rgba(255,72,72,.035); }
     #status[data-state="error"]::before { background: #ff7777; box-shadow: 0 0 8px rgba(255,90,90,.36); }
-    button.primary { position: relative; display: grid; place-items: center; width: 218px; min-width: 218px; min-height: 46px; overflow: hidden; color: #071008; border: 1px solid rgba(120,255,139,.72); border-radius: 12px; background: linear-gradient(135deg, #76f986, #45dc5a); box-shadow: inset 0 1px rgba(255,255,255,.34), 0 8px 24px rgba(33,168,54,.16); font-size: 11px; font-weight: 760; }
-    button.primary::before { content: ""; position: absolute; inset: 0; opacity: 0; background: linear-gradient(110deg, transparent 20%, rgba(255,255,255,.42) 46%, transparent 70%); transform: translateX(-130%); transition: opacity 180ms ease; }
-    button.primary:hover:not(:disabled) { color: #030904; border-color: rgba(160,255,173,.9); background: linear-gradient(135deg, #86ff96, #55e868); box-shadow: inset 0 1px rgba(255,255,255,.42), 0 10px 28px rgba(38,205,64,.22), 0 0 18px rgba(var(--ion-rgb),.09); }
-    button.primary:hover:not(:disabled)::before { opacity: 1; animation: button-sheen 760ms ease-out; }
-    .button-label { transition: opacity 160ms ease, transform 160ms ease; }
-    .button-progress { position: absolute; width: 17px; height: 17px; opacity: 0; border: 2px solid rgba(2,10,4,.23); border-top-color: #031006; border-radius: 50%; }
+    button.primary {
+      position: relative;
+      display: grid;
+      place-items: center;
+      width: 218px;
+      min-width: 218px;
+      min-height: 46px;
+      overflow: hidden;
+      color: #041008;
+      border: 1px solid rgba(120, 255, 139, 0.55);
+      border-radius: 12px;
+      background: linear-gradient(135deg, var(--ion-green-bright), var(--ion-green));
+      box-shadow:
+        inset 0 1px 0 rgba(255, 255, 255, 0.32),
+        0 6px 18px rgba(33, 168, 54, 0.14);
+      font-size: 11px;
+      font-weight: 650;
+      letter-spacing: 0.04em;
+      transition:
+        transform var(--ion-motion-fast) var(--ion-spring),
+        box-shadow var(--ion-motion-fast) var(--ion-spring),
+        background var(--ion-motion-fast) var(--ion-spring);
+    }
+    button.primary::before { content: none; }
+    button.primary:hover:not(:disabled) {
+      color: #020904;
+      background: linear-gradient(135deg, #74ff8e, #4ce46a);
+      box-shadow:
+        inset 0 1px 0 rgba(255, 255, 255, 0.42),
+        0 8px 22px rgba(38, 205, 64, 0.18);
+      transform: translateY(-1px);
+    }
+    button.primary:active:not(:disabled) {
+      transform: scale(0.985);
+    }
+    .button-label {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      transition: opacity var(--ion-motion-fast) var(--ion-spring),
+                  transform var(--ion-motion-fast) var(--ion-spring);
+    }
+    button.primary .button-label[hidden] { display: none; }
+    button.primary[data-state="saved"] .button-label[data-label="idle"] { display: none; }
+    button.primary[data-state="saved"] .button-label[data-label="saved"] {
+      display: inline-flex;
+      animation: button-saved-in 320ms var(--ion-spring) both;
+    }
+    @keyframes button-saved-in {
+      from { opacity: 0; transform: translateY(3px); }
+      to   { opacity: 1; transform: none; }
+    }
+    .button-progress {
+      position: absolute;
+      width: 16px;
+      height: 16px;
+      opacity: 0;
+      border: 2px solid rgba(2, 10, 4, 0.22);
+      border-top-color: #031006;
+      border-radius: 50%;
+    }
     form[aria-busy="true"] button.primary .button-label { opacity: 0; transform: translateY(4px); }
     form[aria-busy="true"] button.primary .button-progress { opacity: 1; animation: status-spin 620ms linear infinite; }
+
+    /* Brief §10: brief confirmation that the save actually committed. The
+       data-state attribute is toggled by JS for ~1.4s after a successful
+       save; the label is swapped to a check + "Saved", then reverts. */
+    button.primary[data-state="saved"] {
+      background: linear-gradient(135deg, #4ce66a, #28c44a);
+    }
+    button.primary[data-state="saved"] .button-label::after {
+      content: "";
+      width: 8px;
+      height: 4px;
+      border-left: 1.5px solid #041008;
+      border-bottom: 1.5px solid #041008;
+      transform: rotate(-45deg) translate(1px, -1px);
+    }
+    button.primary[data-state="saved"]::after {
+      content: "";
+      position: absolute;
+      inset: 0;
+      background: radial-gradient(120% 60% at 50% 50%, rgba(255, 255, 255, 0.18), transparent 60%);
+      animation: button-saved-flash 1400ms var(--ion-spring) both;
+      pointer-events: none;
+    }
+    @keyframes button-saved-flash {
+      0%   { opacity: 0; }
+      20%  { opacity: 1; }
+      100% { opacity: 0; }
+    }
     #dev-tools { border-style: dashed; }
     @keyframes control-enter { from { opacity: 0; transform: translateY(-8px) scale(.99); } to { opacity: 1; transform: none; } }
     @keyframes card-enter { from { opacity: 0; transform: translateY(9px); } to { opacity: 1; transform: none; } }
     @keyframes status-spin { to { transform: rotate(360deg); } }
-    @keyframes button-sheen { to { transform: translateX(130%); } }
     @media (max-width: 700px) {
       .shell { grid-template-rows: 92px minmax(0,1fr); padding: 12px 12px 0; }
       .settings-hero { height: 92px; grid-template-columns: 50px minmax(0,1fr); padding: 13px 14px; border-radius: 17px; }
@@ -774,100 +856,98 @@
     }
 
     .utility-overview {
-      grid-template-rows: 54px minmax(0, 1fr) 64px;
-      border-radius: 15px;
+      grid-template-rows: 52px minmax(0, 1fr) 60px;
+      border-radius: var(--radius-window);
       background: transparent;
     }
     .utility-topbar {
       display: grid;
-      grid-template-columns: 30px minmax(0, 1fr) auto;
+      grid-template-columns: 28px minmax(0, 1fr) auto;
       align-items: center;
       gap: 10px;
-      padding: 0 14px;
-      border-bottom: 1px solid rgba(255,255,255,.065);
-      background: rgba(255,255,255,.012);
+      padding: 0 16px;
+      border-bottom: 1px solid var(--ion-border);
+      background: rgba(255, 255, 255, 0.012);
     }
     .utility-app-icon {
       position: relative;
       display: grid;
       place-items: center;
-      width: 28px;
-      height: 28px;
-      color: var(--ion);
-      border: 1px solid rgba(var(--ion-rgb),.35);
-      border-radius: 8px;
-      background: rgba(var(--ion-rgb),.045);
-      font: 750 14px/1 ui-monospace, monospace;
-      box-shadow: inset 0 1px rgba(255,255,255,.035), 0 0 12px rgba(var(--ion-rgb),.045);
+      width: 26px;
+      height: 26px;
+      color: var(--ion-green);
+      border: 1px solid var(--ion-border-active);
+      border-radius: 7px;
+      background: rgba(var(--ion-rgb), 0.05);
+      font: 650 13px/1 ui-monospace, monospace;
+      box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.04);
     }
-    .utility-app-name { color: #edf3ef; font-size: 11px; font-weight: 680; letter-spacing: .08em; }
-    .utility-app-name small { display: block; margin-top: 1px; color: #6f7b73; font-size: 8px; font-weight: 550; letter-spacing: .05em; }
+    .utility-app-name { color: var(--ion-text); font-size: 11px; font-weight: 600; letter-spacing: .08em; }
+    .utility-app-name small { display: block; margin-top: 2px; color: var(--ion-text-tertiary); font-size: 9px; font-weight: 500; letter-spacing: .12em; text-transform: uppercase; }
     .utility-live {
       display: inline-flex;
       align-items: center;
       gap: 6px;
-      color: #9eaaa2;
-      font: 650 8px/1 ui-monospace, monospace;
-      letter-spacing: .12em;
+      color: var(--ion-text-secondary);
+      font: 600 9px/1 ui-monospace, monospace;
+      letter-spacing: .14em;
       text-transform: uppercase;
     }
     .utility-live::before {
       content: "";
-      width: 6px;
-      height: 6px;
+      width: 5px;
+      height: 5px;
       border-radius: 50%;
-      background: var(--ion);
-      box-shadow: 0 0 8px rgba(var(--ion-rgb),.55);
-      animation: live-breathe 2.2s ease-in-out infinite;
+      background: var(--ion-green);
+      animation: live-breathe 2.6s ease-in-out infinite;
     }
     .utility-status {
-      gap: 16px;
-      padding: 24px 24px 20px;
+      gap: 14px;
+      padding: 22px 22px 18px;
       background:
-        radial-gradient(circle at 50% 38%, rgba(var(--ion-rgb), .075), transparent 35%),
-        linear-gradient(180deg, rgba(255,255,255,.008), transparent 32%);
+        radial-gradient(circle at 50% 38%, rgba(var(--ion-rgb), 0.06), transparent 38%),
+        linear-gradient(180deg, rgba(255, 255, 255, 0.012), transparent 32%);
     }
-    .utility-status > .eyebrow { margin-bottom: -6px; color: #76827a; font-size: 8.5px; letter-spacing: .2em; }
+    .utility-status > .eyebrow { margin-bottom: -4px; color: var(--ion-text-tertiary); font-size: 9px; letter-spacing: .22em; }
     .utility-mark {
-      width: 98px;
-      height: 98px;
-      border-color: rgba(var(--ion-rgb), .38);
-      background: radial-gradient(circle, rgba(var(--ion-rgb), .08), rgba(0,3,2,.94) 69%);
-      box-shadow: inset 0 0 0 8px rgba(var(--ion-rgb),.016), 0 0 24px rgba(var(--ion-rgb),.075);
+      width: 84px;
+      height: 84px;
+      border-color: var(--ion-border-active);
+      background: radial-gradient(circle, rgba(var(--ion-rgb), 0.05), rgba(0, 3, 2, 0.94) 70%);
+      box-shadow: inset 0 0 0 6px rgba(var(--ion-rgb), 0.02);
     }
     .utility-mark::before,
-    .utility-mark::after { left: 34px; width: 30px; height: 5px; }
-    .utility-mark::before { top: 26px; }
-    .utility-mark::after { bottom: 26px; }
-    .utility-mark span { width: 5px; height: 36px; }
-    .utility-status h2 { font-size: 25px; font-weight: 590; letter-spacing: -.025em; }
-    .utility-status p { max-width: 286px; margin: -7px 0 0; color: #9aa59e; font-size: 12.5px; line-height: 1.5; }
-    .utility-stat { padding: 7px 11px; color: #87938b; font-size: 9px; background: rgba(var(--ion-rgb),.02); }
+    .utility-mark::after { left: 30px; width: 24px; height: 4px; }
+    .utility-mark::before { top: 24px; }
+    .utility-mark::after  { bottom: 24px; }
+    .utility-mark span { width: 4px; height: 30px; }
+    .utility-status h2 { font-size: 22px; font-weight: 600; letter-spacing: -.02em; }
+    .utility-status p { max-width: 280px; margin: -6px 0 0; color: var(--ion-text-secondary); font-size: 12.5px; line-height: 1.55; }
+    .utility-stat { padding: 6px 10px; color: var(--ion-text-secondary); font-size: 9px; letter-spacing: .12em; text-transform: uppercase; background: rgba(var(--ion-rgb), 0.04); border-radius: 999px; }
     .utility-nav {
-      grid-template-columns: 1fr 62px;
-      min-height: 64px;
-      border-top-color: rgba(255,255,255,.075);
-      background: linear-gradient(180deg, #18211c, #141c18);
-      box-shadow: inset 0 1px rgba(255,255,255,.022);
+      grid-template-columns: 1fr 56px;
+      min-height: 60px;
+      border-top: 1px solid var(--ion-border);
+      background: linear-gradient(180deg, rgba(255, 255, 255, 0.012), transparent);
     }
-    .utility-wordmark { padding-left: 15px; font-size: 14px; letter-spacing: .055em; }
-    .utility-wordmark small { margin-top: 1px; color: #87928b; font-size: 8px; }
+    .utility-wordmark { padding-left: 16px; font-size: 13px; letter-spacing: .04em; color: var(--ion-text); }
+    .utility-wordmark small { margin-top: 1px; color: var(--ion-text-tertiary); font-size: 8px; letter-spacing: .14em; text-transform: uppercase; }
     .utility-settings-button {
-      width: 44px;
-      height: 44px;
-      min-height: 44px;
-      border-color: rgba(255,255,255,.12);
+      width: 40px;
+      height: 40px;
+      min-height: 40px;
+      border-color: var(--ion-border);
       border-radius: 10px;
-      background: linear-gradient(180deg, rgba(255,255,255,.035), rgba(0,0,0,.18));
-      font-size: 21px;
+      background: transparent;
+      font-size: 18px;
     }
-    .utility-settings-button:active:not(:disabled) { transform: translateY(0) scale(.96); }
+    .utility-settings-button:active:not(:disabled) { transform: scale(0.96); }
     .shell[data-view="overview"] { grid-template-rows: minmax(0, 1fr); }
     #dev-tools::after { content: none; }
 
     @keyframes live-breathe {
-      0%, 100% { opacity: .62; transform: scale(.86); }
-      50% { opacity: 1; transform: scale(1); }
+      0%, 100% { opacity: .55; }
+      50%      { opacity: 1; }
     }
 
     /* ION SENSE motion and material system ---------------------------------
@@ -876,40 +956,65 @@
        shadow, pseudo-grid, or nested frame is allowed to reach the native
        window edge. */
     :root {
-      --ion: #5cf47a;
-      --ion-bright: #86ff9e;
-      --ion-mid: #42da62;
-      --ion-deep: #168c3b;
-      --ion-rgb: 92, 244, 122;
-      --motion-micro: 150ms;
-      --motion-control: 210ms;
-      --motion-panel: 420ms;
-      --motion-window-in: 360ms;
-      --motion-window-out: 250ms;
-      --ease-out: cubic-bezier(.16, 1, .3, 1);
-      --ease-in: cubic-bezier(.55, .06, .68, .19);
-      --ease-standard: cubic-bezier(.2, .7, .2, 1);
-      --surface-0: #010403;
-      --surface-1: #040a06;
-      --surface-2: #07100a;
-      --surface-raised: #09130d;
-      --text-primary: #f2f6f3;
-      --text-secondary: #aab5ad;
-      --text-tertiary: #849087;
-      --hairline: rgba(209, 231, 216, .09);
-      --hairline-ion: rgba(var(--ion-rgb), .22);
+      --ion-bg:           #030605;
+      --ion-surface:      rgba(8, 14, 10, 0.86);
+      --ion-surface-raised: rgba(11, 19, 14, 0.92);
+      --ion-border:       rgba(207, 244, 216, 0.09);
+      --ion-border-active: rgba(var(--ion-rgb), 0.32);
+
+      --ion-green:        #43F28A;
+      --ion-green-bright: #62F69B;
+      --ion:              var(--ion-green);
+      --ion-bright:       var(--ion-green-bright);
+      --ion-rgb:          67, 242, 138;
+
+      --ion-text:         #ECF4EE;
+      --ion-text-secondary: rgba(220, 232, 224, 0.66);
+      --ion-text-tertiary:  rgba(190, 205, 196, 0.42);
+      --text:             var(--ion-text);
+      --muted:            var(--ion-text-secondary);
+
+      --ion-radius-sm: 8px;
+      --ion-radius-md: 14px;
+      --ion-radius-lg: 22px;
+
+      --ion-motion-fast:   160ms;
+      --ion-motion-normal: 220ms;
+      --ion-spring:        cubic-bezier(.2, .7, .2, 1);
+      --motion-micro:      var(--ion-motion-fast);
+      --motion-control:    var(--ion-motion-normal);
+      --motion-panel:      420ms;
+      --motion-window-in:  320ms;
+      --motion-window-out: 240ms;
+      --ease-out:          var(--ion-spring);
+      --ease-in:           cubic-bezier(.55, .06, .68, .19);
+      --ease-standard:     var(--ion-spring);
+
+      --surface-0: var(--ion-bg);
+      --surface-1: rgba(6, 12, 9, 0.78);
+      --surface-2: rgba(8, 16, 11, 0.78);
+      --surface-raised: var(--ion-surface-raised);
+      --text-primary: var(--ion-text);
+      --text-secondary: var(--ion-text-secondary);
+      --text-tertiary: var(--ion-text-tertiary);
+      --hairline: var(--ion-border);
+      --hairline-ion: var(--ion-border-active);
+
       --radius-window: 16px;
       --radius-card: 14px;
       --radius-control: 10px;
-      --font-ui: "Segoe UI Variable Text", "Segoe UI", Inter, sans-serif;
-      --font-display: "Segoe UI Variable Display", "Segoe UI", Inter, sans-serif;
-      /* Legacy aliases retained for older rules that still reference them. */
-      --panel: rgba(3, 11, 7, .92);
-      --line: var(--hairline);
-      --text: var(--text-primary);
-      --muted: var(--text-secondary);
+
+      --font-ui: "Inter", "Segoe UI Variable Text", "Segoe UI", system-ui, -apple-system, sans-serif;
+      --font-display: "Inter", "Segoe UI Variable Display", "Segoe UI", system-ui, -apple-system, sans-serif;
+
+      /* Legacy aliases retained so older rules still resolve. */
+      --panel: var(--ion-surface);
+      --line: var(--ion-border);
+      --ion-mid: #42da62;
+      --ion-deep: #168c3b;
+
       color: var(--text);
-      background: var(--surface-0);
+      background: var(--ion-bg);
       font-family: var(--font-ui);
     }
 
@@ -2143,8 +2248,9 @@
       </div>
       <div class="actions">
         <output id="status" role="status" aria-live="polite" data-state="loading">Loading settings…</output>
-        <button class="primary" type="submit">
-          <span class="button-label">Save &amp; restart detectors</span>
+        <button class="primary" type="submit" data-state="idle">
+          <span class="button-label" data-label="idle">Save &amp; restart detectors</span>
+          <span class="button-label" data-label="saved" hidden>Saved</span>
           <span class="button-progress" aria-hidden="true"></span>
         </button>
       </div>
@@ -2351,6 +2457,21 @@
           control.disabled = busy;
         });
         form.setAttribute("aria-busy", String(busy));
+      }
+
+      /* Brief §10: brief confirmation after a successful save. The save button
+         swaps to a check + "Saved" state for ~1.4s, then reverts. The status
+         row already communicates the long-form message, so the button just
+         acknowledges the click landed. */
+      let savedStateTimer = 0;
+      function flashSavedPrimary() {
+        const submit = form.querySelector("button.primary");
+        if (!submit) return;
+        window.clearTimeout(savedStateTimer);
+        submit.dataset.state = "saved";
+        savedStateTimer = window.setTimeout(() => {
+          submit.dataset.state = "idle";
+        }, 1400);
       }
 
       function syncDetectorCard(control, { animate = false } = {}) {
@@ -2578,6 +2699,7 @@
           await refreshCredentialStatus();
           form.dataset.dirty = "false";
           setStatus("Saved. Detectors are restarting in the background.", false, "success");
+          flashSavedPrimary();
         } catch (error) {
           setStatus(String(error), true);
         } finally {
