@@ -11,18 +11,21 @@
     }
   </script>
   <style>
+    /* Single authoritative token layer (design-system/ion-sense/MASTER.md).
+       Values are the final cascade of the previous layered overrides. */
     :root {
-      --ion: #3dff6b;
-      --ion-bright: #3dff6b;
-      --ion-rgb: 61, 255, 107;
-      --ink: #020604;
-      --panel: rgba(3, 10, 7, 0.91);
-      --text: #f3f7f4;
-      --muted: #929c96;
-      --toast-width: min(760px, calc(100vw - 118px));
-      --badge-size: 214px;
-      --enter-ms: 270ms;
-      --exit-ms: 190ms;
+      --ion: #5cf47a;
+      --ion-bright: #7bff96;
+      --ion-rgb: 92, 244, 122;
+      --panel: rgba(1, 8, 5, 0.86);
+      --text: #f1f5f2;
+      --muted: #a7b0aa;
+      --text-tertiary: #7f8c84;
+      --toast-width: min(1220px, calc(100vw - 96px));
+      --badge-size: 294px;
+      --panel-height: 370px;
+      --enter-ms: 1200ms;
+      --exit-ms: 800ms;
     }
 
     * {
@@ -172,14 +175,15 @@
 
     .hud-toast {
       position: absolute;
-      top: clamp(24px, 7vh, 74px);
-      right: clamp(18px, 4vw, 64px);
+      top: 50%;
+      left: 50%;
+      right: auto;
       width: var(--toast-width);
-      min-height: 224px;
+      min-height: var(--panel-height);
       opacity: 0;
       visibility: hidden;
       pointer-events: none;
-      transform-origin: 100% 0;
+      transform-origin: 50% 50%;
       will-change: transform, opacity, clip-path;
     }
 
@@ -192,82 +196,58 @@
 
     .hud-toast.is-entering {
       pointer-events: auto;
-      animation: hud-glitch-in var(--enter-ms) cubic-bezier(0.2, 0.82, 0.25, 1) both;
+      animation: hud-center-in var(--enter-ms) cubic-bezier(.16, 1, .3, 1) both;
+    }
+
+    .hud-toast.is-preparing {
+      opacity: 0;
+      transform: translate3d(-50%, -48%, 0) scale(.965);
+      clip-path: inset(-230px);
     }
 
     .hud-toast.is-visible {
       opacity: 1;
       pointer-events: auto;
-      transform: translate3d(0, 0, 0);
-      clip-path: inset(-30px -30px -30px -145px);
+      transform: translate3d(-50%, -50%, 0);
+      clip-path: inset(-230px);
     }
 
     .hud-toast.is-exiting {
       pointer-events: none;
-      animation: hud-out var(--exit-ms) cubic-bezier(0.5, 0, 0.8, 0.3) both;
+      animation: hud-center-out var(--exit-ms) cubic-bezier(.55, 0, .9, .45) both;
     }
 
-    @keyframes hud-glitch-in {
-      0% {
-        opacity: 0;
-        transform: translate3d(46px, -28px, 0) scaleX(0.94) skewX(-5deg);
-        clip-path: inset(0 0 84% 72%);
-      }
-      24% {
-        opacity: 0.85;
-        transform: translate3d(-7px, 3px, 0) scaleX(1.018) skewX(1.4deg);
-        clip-path: inset(0 0 52% 19%);
-      }
-      38% {
-        transform: translate3d(5px, -1px, 0) scaleX(0.993);
-        clip-path: inset(41% 0 21% 6%);
-      }
-      58% {
-        opacity: 1;
-        transform: translate3d(-2px, 0, 0) scaleX(1.005);
-        clip-path: inset(7% 0 3% 0);
-      }
-      100% {
-        opacity: 1;
-        transform: translate3d(0, 0, 0);
-        clip-path: inset(-30px -30px -30px -145px);
-      }
+    @keyframes hud-center-in {
+      0% { opacity: 0; transform: translate3d(-50%, -48%, 0) scale(.965); clip-path: inset(-230px); }
+      42% { opacity: 1; transform: translate3d(-50%, -50%, 0) scale(1.006); }
+      74% { transform: translate3d(-50%, -50%, 0) scale(.998); }
+      100% { opacity: 1; transform: translate3d(-50%, -50%, 0) scale(1); clip-path: inset(-230px); }
     }
 
-    @keyframes hud-out {
-      0% {
-        opacity: 1;
-        transform: translate3d(0, 0, 0) scaleX(1);
-        clip-path: inset(-30px -30px -30px -145px);
-      }
-      45% {
-        opacity: 0.82;
-        transform: translate3d(7px, -2px, 0) scaleX(0.985);
-        clip-path: inset(18% 0 33% 12%);
-      }
-      100% {
-        opacity: 0;
-        transform: translate3d(40px, -18px, 0) scaleX(0.91);
-        clip-path: inset(0 0 91% 84%);
-      }
+    @keyframes hud-center-out {
+      0%, 42% { opacity: 1; transform: translate3d(-50%, -50%, 0) scale(1); clip-path: inset(-230px); }
+      72% { opacity: .72; transform: translate3d(-50%, -50%, 0) scale(.99); }
+      100% { opacity: 0; transform: translate3d(-50%, -49%, 0) scale(.965); clip-path: inset(-230px); }
     }
 
     .panel-shell {
       position: relative;
-      min-height: 224px;
+      min-height: var(--panel-height);
       overflow: hidden;
-      border: 1px solid rgba(var(--ion-rgb), 0.74);
-      border-radius: 30px;
+      border: 1px solid rgba(var(--ion-rgb), .58);
+      border-radius: 138px 62px 62px 138px;
       background:
-        linear-gradient(104deg, rgba(1, 5, 3, 0.965), rgba(4, 13, 8, 0.925) 61%, rgba(4, 20, 9, 0.91)),
+        radial-gradient(circle at 13% 50%, rgba(var(--ion-rgb), .060), transparent 28%),
+        radial-gradient(circle at 88% 0%, rgba(123, 255, 150, .052), transparent 35%),
+        linear-gradient(112deg, rgba(1, 7, 4, .92), rgba(2, 10, 6, .88) 58%, rgba(2, 12, 7, .84)),
         var(--panel);
       box-shadow:
-        inset 0 1px 0 rgba(255, 255, 255, 0.035),
-        inset 0 -1px 0 rgba(var(--ion-rgb), 0.08);
-      filter:
-        drop-shadow(0 0 4px rgba(var(--ion-rgb), 0.21))
-        drop-shadow(0 0 18px rgba(var(--ion-rgb), 0.13));
-      backdrop-filter: blur(18px) saturate(115%);
+        inset 0 1px 0 rgba(230, 255, 235, .068),
+        inset 0 -1px 0 rgba(var(--ion-rgb), .085),
+        inset 0 0 42px rgba(var(--ion-rgb), .014),
+        0 0 5px rgba(var(--ion-rgb), .16),
+        0 0 22px rgba(var(--ion-rgb), .075),
+        0 18px 56px rgba(0, 0, 0, .34);
     }
 
     .panel-shell::before {
@@ -276,21 +256,22 @@
       inset: 0;
       pointer-events: none;
       background:
-        radial-gradient(circle at 91% 18%, rgba(var(--ion-rgb), 0.115), transparent 28%),
-        linear-gradient(90deg, transparent 12%, rgba(255, 255, 255, 0.017) 49%, transparent 77%);
+        linear-gradient(180deg, rgba(220, 255, 228, .052), transparent 34%),
+        radial-gradient(circle at 88% 14%, rgba(var(--ion-rgb), .082), transparent 28%),
+        linear-gradient(104deg, transparent 28%, rgba(226,255,233,.018) 48%, transparent 65%);
     }
 
     .panel-shell::after {
       content: "";
       position: absolute;
-      top: 72px;
-      right: 22px;
-      width: 104px;
-      height: 68px;
+      top: 80px;
+      right: 34px;
+      width: 118px;
+      height: 82px;
       opacity: 0.18;
       pointer-events: none;
-      background-image: radial-gradient(circle, rgba(var(--ion-rgb), 0.62) 0 1px, transparent 1.3px);
-      background-size: 8px 8px;
+      background-image: radial-gradient(circle, rgba(var(--ion-rgb), .62) 0 1px, transparent 1.3px);
+      background-size: 10px 10px;
       mask-image: linear-gradient(90deg, transparent, #000 38%, #000);
     }
 
@@ -298,9 +279,9 @@
       position: relative;
       z-index: 2;
       display: grid;
-      grid-template-rows: 48px 1fr 62px;
-      min-height: 222px;
-      padding-left: 144px;
+      grid-template-rows: 70px 1fr 92px;
+      min-height: calc(var(--panel-height) - 2px);
+      padding-left: 0;
     }
 
     .hud-header {
@@ -512,15 +493,6 @@
       transform: scale(0.7);
     }
 
-    .wave-bar.is-dotted {
-      width: 2px;
-      background: repeating-linear-gradient(
-        to bottom,
-        currentColor 0 2px,
-        transparent 2px 4px
-      );
-    }
-
     .spoken-line {
       margin: 0;
       color: var(--ion);
@@ -570,7 +542,6 @@
     .badge-outer,
     .badge-arc,
     .badge-mark,
-    .badge-bracket,
     .badge-dot-bright {
       stroke: var(--ion);
       filter:
@@ -588,54 +559,9 @@
       transform-origin: center;
     }
 
-    .is-entering .badge-arc,
-    .is-visible .badge-arc {
-      animation: badge-arc-pulse 720ms 90ms cubic-bezier(0.2, 0.9, 0.3, 1) both;
-    }
-
     .is-entering .badge-arc.arc-secondary,
     .is-visible .badge-arc.arc-secondary {
       animation-delay: 155ms;
-    }
-
-    @keyframes badge-arc-pulse {
-      0% {
-        opacity: 0.28;
-        stroke-width: 6;
-      }
-      46% {
-        opacity: 0.86;
-        stroke-width: 9;
-      }
-      100% {
-        opacity: 0.76;
-        stroke-width: 7.5;
-      }
-    }
-
-    .glitch-slice {
-      position: absolute;
-      right: 5%;
-      top: 16%;
-      z-index: 11;
-      width: 68%;
-      height: 2px;
-      opacity: 0;
-      background: var(--ion);
-      box-shadow: 0 0 10px rgba(var(--ion-rgb), 0.8);
-      pointer-events: none;
-    }
-
-    .is-entering .glitch-slice {
-      animation: glitch-slice 270ms steps(2, jump-none) both;
-    }
-
-    @keyframes glitch-slice {
-      0%, 100% { opacity: 0; transform: translateX(0); }
-      18% { opacity: 0.7; transform: translateX(-13px); }
-      36% { opacity: 0; transform: translateX(8px); }
-      54% { opacity: 0.35; transform: translateX(-5px); top: 66%; }
-      72% { opacity: 0; transform: translateX(0); }
     }
 
     .dev-harness {
@@ -949,27 +875,7 @@
         to { opacity: 0; }
       }
     }
-    /* 2026 full-screen warning composition. */
-    :root {
-      --toast-width: min(1220px, calc(100vw - 96px));
-      --badge-size: 294px;
-      --panel-height: 370px;
-      --panel-radius: 54px;
-      --ion: #5cf47a;
-      --ion-bright: #7bff96;
-      --ion-mid: #48df68;
-      --ion-deep: #168c3b;
-      --ion-mist: #c8fbd2;
-      --ion-rgb: 92, 244, 122;
-      --panel: rgba(1, 8, 5, 0.86);
-      --text: #f1f5f2;
-      --muted: #a7b0aa;
-      --text-tertiary: #7f8c84;
-      --line-soft: rgba(207, 244, 216, .09);
-      --enter-ms: 1200ms;
-      --exit-ms: 800ms;
-    }
-
+    /* 2026 full-screen warning composition: base component rules. */
     .screen-overlay {
       position: absolute;
       inset: 0;
@@ -1051,47 +957,8 @@
       100% { opacity: 0; }
     }
 
-    .hud-toast {
-      top: 50%;
-      left: 50%;
-      right: auto;
-      width: var(--toast-width);
-      min-height: var(--panel-height);
-      transform-origin: 50% 50%;
-    }
-
-    .hud-toast.is-entering {
-      animation: hud-center-in var(--enter-ms) cubic-bezier(.16, 1, .3, 1) both;
-    }
-
-    .hud-toast.is-preparing {
-      opacity: 0;
-      transform: translate3d(-50%, -48%, 0) scale(.965);
-      clip-path: inset(-230px);
-    }
-
-    .hud-toast.is-visible {
-      transform: translate3d(-50%, -50%, 0);
-      clip-path: inset(-230px);
-    }
-
-    .hud-toast.is-exiting {
-      animation: hud-center-out var(--exit-ms) cubic-bezier(.55, 0, .9, .45) both;
-    }
-
-    @keyframes hud-center-in {
-      0% { opacity: 0; transform: translate3d(-50%, -48%, 0) scale(.965); clip-path: inset(-230px); }
-      42% { opacity: 1; transform: translate3d(-50%, -50%, 0) scale(1.006); }
-      74% { transform: translate3d(-50%, -50%, 0) scale(.998); }
-      100% { opacity: 1; transform: translate3d(-50%, -50%, 0) scale(1); clip-path: inset(-230px); }
-    }
-
-    @keyframes hud-center-out {
-      0%, 42% { opacity: 1; transform: translate3d(-50%, -50%, 0) scale(1); clip-path: inset(-230px); }
-      72% { opacity: .72; transform: translate3d(-50%, -50%, 0) scale(.99); }
-      100% { opacity: 0; transform: translate3d(-50%, -49%, 0) scale(.965); clip-path: inset(-230px); }
-    }
-
+    /* Compact-mode overrides for the consolidated .hud-toast and keyframes
+       defined above; the base rules already cover the centered composition. */
     .panel-shell {
       min-height: var(--panel-height);
       border: 1px solid rgba(var(--ion-rgb), .58);

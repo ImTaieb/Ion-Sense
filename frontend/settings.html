@@ -6,19 +6,9 @@
   <meta name="color-scheme" content="dark">
   <title>Ion Sense Settings</title>
   <style>
-    :root {
-      --ion: #3dff6b;
-      --ion-rgb: 61, 255, 107;
-      --panel: #08100b;
-      --line: rgba(176, 205, 185, 0.14);
-      --text: #edf5ef;
-      --muted: #8e9a92;
-      color: var(--text);
-      background: #040806;
-      font-family: "Segoe UI", Inter, sans-serif;
-    }
+    /* (token cascade consolidated below) */
     * { box-sizing: border-box; }
-    body { min-height: 100vh; margin: 0; background: radial-gradient(circle at 80% -10%, rgba(var(--ion-rgb), .11), transparent 35%), #040806; }
+    body { min-height: 100vh; margin: 0; }
     button, input, select { font: inherit; }
     .shell { width: min(700px, 100%); margin: auto; padding: 30px 28px 44px; }
     header { margin-bottom: 24px; }
@@ -59,16 +49,8 @@
     code { color: #b7ffc7; font-family: ui-monospace, monospace; }
     [hidden] { display: none !important; }
     @media (max-width: 600px) { .shell { padding: 20px 15px 34px; } .grid { grid-template-columns: 1fr; } .span-2 { grid-column: auto; } .dev-grid { grid-template-columns: repeat(2, 1fr); } }
-    /* Unified Ion Sense control-surface refresh. */
-    :root {
-      --ion: #53ff6b;
-      --ion-rgb: 83, 255, 107;
-      --panel: rgba(3, 11, 7, .92);
-      --panel-2: rgba(6, 17, 10, .86);
-      --line: rgba(144, 255, 112, .14);
-      --text: #f3f7f4;
-      --muted: #98a39c;
-    }
+    /* The original 3-token cascade is consolidated into the single
+       design-system layer that starts at the third `:root` below. */
     html { min-height: 100%; background: transparent; }
     body {
       position: relative;
@@ -921,6 +903,14 @@
       --radius-control: 10px;
       --font-ui: "Segoe UI Variable Text", "Segoe UI", Inter, sans-serif;
       --font-display: "Segoe UI Variable Display", "Segoe UI", Inter, sans-serif;
+      /* Legacy aliases retained for older rules that still reference them. */
+      --panel: rgba(3, 11, 7, .92);
+      --line: var(--hairline);
+      --text: var(--text-primary);
+      --muted: var(--text-secondary);
+      color: var(--text);
+      background: var(--surface-0);
+      font-family: var(--font-ui);
     }
 
     html,
