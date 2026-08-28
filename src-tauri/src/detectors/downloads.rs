@@ -22,7 +22,7 @@ use crate::{
 
 use super::wait_until_stopped;
 
-const TEMP_EXTENSIONS: &[&str] = &["crdownload", "part"];
+const TEMP_EXTENSIONS: &[&str] = &["crdownload", "part", "partial", "download"];
 
 #[derive(Debug, Clone, PartialEq, Eq)]
 struct FileStamp {
@@ -199,8 +199,12 @@ fn completion_candidates(
                     .cloned();
                 if let Some(temp) = matched {
                     temp_files.remove(&temp);
-                    candidates.push(path.clone());
                 }
+                // Some browsers and download managers write directly to the
+                // final name, while drag/drop and "Save as" operations can
+                // arrive as a plain create or rename-to event. Stability checks
+                // below prevent an alert until the final file stops changing.
+                candidates.push(path.clone());
             }
         }
         _ => {}
@@ -269,6 +273,8 @@ mod tests {
     fn recognizes_only_supported_browser_temp_extensions() {
         assert!(is_temp(Path::new("archive.zip.crdownload")));
         assert!(is_temp(Path::new("video.mp4.PART")));
+        assert!(is_temp(Path::new("document.pdf.partial")));
+        assert!(is_temp(Path::new("installer.exe.download")));
         assert!(!is_temp(Path::new("notes.txt")));
         assert!(!is_temp(Path::new("random.tmp")));
     }
@@ -288,5 +294,17 @@ mod tests {
         let selected =
             first_existing_directory([stale.clone(), profile.clone()], |path| path == profile);
         assert_eq!(selected, Some(profile));
+    }
+
+    #[test]
+    fn accepts_stable_final_name_creations_as_download_candidates() {
+        let final_path = PathBuf::from("C:/Downloads/report.pdf");
+        let event = Event::new(EventKind::Create(notify::event::CreateKind::File))
+            .add_path(final_path.clone());
+        let mut temp_files = HashMap::new();
+        assert_eq!(
+            completion_candidates(&event, &mut temp_files),
+            vec![final_path]
+        );
     }
 }

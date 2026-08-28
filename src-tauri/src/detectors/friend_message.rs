@@ -8,7 +8,10 @@ use std::time::Duration;
 
 use serenity::{
     Client, async_trait,
-    model::{channel::Message, gateway::GatewayIntents},
+    model::{
+        channel::Message,
+        gateway::{GatewayIntents, Ready},
+    },
     prelude::{Context, EventHandler},
 };
 
@@ -56,6 +59,13 @@ impl RecentMessageIds {
 
 #[async_trait]
 impl EventHandler for Handler {
+    async fn ready(&self, _context: Context, ready: Ready) {
+        eprintln!(
+            "Ion Sense Discord detector connected as {}",
+            ready.user.name
+        );
+    }
+
     async fn message(&self, _context: Context, message: Message) {
         if message.author.bot || message.webhook_id.is_some() {
             return;
@@ -111,14 +121,6 @@ pub fn spawn(
 
 async fn run(settings: DiscordSettings, dispatcher: EventDispatcher, stop: Arc<AtomicBool>) {
     let credential = credential_account(SecretKind::DiscordBotToken, "discord-bot");
-    let token = match get_secret(SecretKind::DiscordBotToken, &credential) {
-        Ok(token) => token,
-        Err(error) => {
-            eprintln!("Ion Sense Discord detector needs an OS-keychain token: {error:#}");
-            return;
-        }
-    };
-
     let allowed_channels: Arc<HashSet<u64>> = Arc::new(
         settings
             .allowed_channel_ids
@@ -127,12 +129,28 @@ async fn run(settings: DiscordSettings, dispatcher: EventDispatcher, stop: Arc<A
             .collect(),
     );
     let recent_messages = Arc::new(Mutex::new(RecentMessageIds::new(512)));
-    let intents = GatewayIntents::DIRECT_MESSAGES
-        | GatewayIntents::GUILD_MESSAGES
-        | GatewayIntents::MESSAGE_CONTENT;
+    // Bot DMs do not require Discord's privileged MESSAGE_CONTENT intent.
+    // Request it only when guild channel monitoring is actually configured;
+    // otherwise Discord can reject an otherwise valid DM-only bot session.
+    let intents = gateway_intents(!allowed_channels.is_empty());
     let mut backoff_seconds = 5_u64;
 
     while !stop.load(Ordering::Acquire) {
+        let token = match get_secret(SecretKind::DiscordBotToken, &credential) {
+            Ok(token) if !token.trim().is_empty() => token.trim().to_owned(),
+            Ok(_) => {
+                eprintln!("Ion Sense Discord detector found an empty OS-keychain token");
+                sleep_with_stop(&stop, backoff_seconds).await;
+                backoff_seconds = (backoff_seconds * 2).min(300);
+                continue;
+            }
+            Err(error) => {
+                eprintln!("Ion Sense Discord detector needs an OS-keychain token: {error:#}");
+                sleep_with_stop(&stop, backoff_seconds).await;
+                backoff_seconds = (backoff_seconds * 2).min(300);
+                continue;
+            }
+        };
         let handler = Handler {
             dispatcher: dispatcher.clone(),
             allowed_channels: allowed_channels.clone(),
@@ -185,6 +203,16 @@ async fn run(settings: DiscordSettings, dispatcher: EventDispatcher, stop: Arc<A
     }
 }
 
+fn gateway_intents(monitors_guild_channels: bool) -> GatewayIntents {
+    if monitors_guild_channels {
+        GatewayIntents::DIRECT_MESSAGES
+            | GatewayIntents::GUILD_MESSAGES
+            | GatewayIntents::MESSAGE_CONTENT
+    } else {
+        GatewayIntents::DIRECT_MESSAGES
+    }
+}
+
 async fn sleep_with_stop(stop: &AtomicBool, seconds: u64) {
     for _ in 0..seconds.max(1) {
         if stop.load(Ordering::Acquire) {
@@ -222,5 +250,21 @@ mod tests {
         assert_eq!(recent.order.len(), 2);
         assert_eq!(recent.ids.len(), 2);
         assert!(recent.accept(10));
+    }
+
+    #[test]
+    fn dm_only_mode_does_not_request_privileged_message_content() {
+        let intents = gateway_intents(false);
+        assert!(intents.contains(GatewayIntents::DIRECT_MESSAGES));
+        assert!(!intents.contains(GatewayIntents::MESSAGE_CONTENT));
+        assert!(!intents.contains(GatewayIntents::GUILD_MESSAGES));
+    }
+
+    #[test]
+    fn guild_channel_mode_requests_the_required_intents() {
+        let intents = gateway_intents(true);
+        assert!(intents.contains(GatewayIntents::DIRECT_MESSAGES));
+        assert!(intents.contains(GatewayIntents::MESSAGE_CONTENT));
+        assert!(intents.contains(GatewayIntents::GUILD_MESSAGES));
     }
 }

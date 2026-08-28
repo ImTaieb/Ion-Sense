@@ -51,17 +51,18 @@ pub fn spawn(
 
 async fn run(settings: EmailSettings, dispatcher: EventDispatcher, stop: Arc<AtomicBool>) {
     let credential = credential_account(SecretKind::ImapPassword, &settings.username);
-    let password = match get_secret(SecretKind::ImapPassword, &credential) {
-        Ok(password) => password,
-        Err(error) => {
-            eprintln!("Ion Sense email detector needs an OS-keychain password: {error:#}");
-            return;
-        }
-    };
-
     let mut cursor = MailboxCursor::default();
     let mut backoff = 5_u64;
     while !stop.load(Ordering::Acquire) {
+        let password = match get_secret(SecretKind::ImapPassword, &credential) {
+            Ok(password) => password,
+            Err(error) => {
+                eprintln!("Ion Sense email detector needs an OS-keychain password: {error:#}");
+                sleep_with_stop(&stop, Duration::from_secs(backoff)).await;
+                backoff = (backoff * 2).min(300);
+                continue;
+            }
+        };
         match monitor_connection(&settings, &password, &dispatcher, &stop, &mut cursor).await {
             Ok(()) if stop.load(Ordering::Acquire) => break,
             Ok(()) => backoff = 5,
@@ -93,6 +94,12 @@ async fn monitor_connection(
         .context("reading IMAP capabilities timed out")?
         .context("read IMAP capabilities")?;
     let supports_idle = capabilities.has_str("IDLE");
+    eprintln!(
+        "Ion Sense email detector connected to {} mailbox {} ({})",
+        settings.host,
+        settings.mailbox,
+        if supports_idle { "IDLE" } else { "polling" }
+    );
 
     if cursor.uid_validity != mailbox.uid_validity || cursor.last_uid.is_none() {
         cursor.uid_validity = mailbox.uid_validity;

@@ -6,7 +6,7 @@ mod settings;
 
 use std::path::PathBuf;
 use std::sync::{
-    Arc, Mutex, RwLock,
+    Arc, Mutex, OnceLock, RwLock,
     atomic::{AtomicBool, AtomicU8, AtomicU64, Ordering},
 };
 use std::time::Duration;
@@ -53,6 +53,29 @@ fn set_native_window_alpha(window: &WebviewWindow, alpha: u8) -> tauri::Result<(
         SetLayeredWindowAttributes(hwnd, COLORREF(0), alpha, LWA_ALPHA)
             .map_err(|error| tauri::Error::Anyhow(error.into()))?;
     }
+    Ok(())
+}
+
+#[cfg(windows)]
+fn apply_hud_window_style(window: &WebviewWindow) -> tauri::Result<()> {
+    use windows::Win32::UI::WindowsAndMessaging::{
+        GWL_EXSTYLE, GetWindowLongW, SetWindowLongW, WS_EX_APPWINDOW, WS_EX_NOACTIVATE,
+        WS_EX_TOOLWINDOW,
+    };
+
+    let hwnd = window.hwnd()?;
+    unsafe {
+        let style = GetWindowLongW(hwnd, GWL_EXSTYLE);
+        let style = (style & !(WS_EX_APPWINDOW.0 as i32))
+            | WS_EX_TOOLWINDOW.0 as i32
+            | WS_EX_NOACTIVATE.0 as i32;
+        let _ = SetWindowLongW(hwnd, GWL_EXSTYLE, style);
+    }
+    Ok(())
+}
+
+#[cfg(not(windows))]
+fn apply_hud_window_style(_window: &WebviewWindow) -> tauri::Result<()> {
     Ok(())
 }
 
@@ -762,11 +785,6 @@ fn setup_app(app: &mut App) -> Result<(), Box<dyn std::error::Error>> {
     #[cfg(debug_assertions)]
     eprintln!("Ion Sense native state ready");
 
-    setup_tray(app)?;
-    if let Some(hud) = app.get_webview_window("hud") {
-        hud.set_ignore_cursor_events(true)?;
-    }
-
     let app_handle = app.handle().clone();
     tauri::async_runtime::spawn(forward_events(
         app_handle,
@@ -838,8 +856,14 @@ fn position_hud(hud: &WebviewWindow) -> tauri::Result<()> {
     let Some(monitor) = hud.primary_monitor()? else {
         return Ok(());
     };
-    let monitor_position = monitor.position();
-    let monitor_size = monitor.size();
+    // The HUD belongs above applications, not above the Windows shell. A
+    // monitor-sized topmost WebView also covers the taskbar and makes its blur,
+    // vignette, and z-order visibly flicker. Restrict the transparent surface to
+    // the monitor work area so Windows owns the taskbar pixels uninterrupted.
+    let work_area = monitor.work_area();
+    let monitor_position = work_area.position;
+    let monitor_size = work_area.size;
+    apply_hud_window_style(hud)?;
     hud.set_position(Position::Physical(PhysicalPosition::new(
         monitor_position.x,
         monitor_position.y,
@@ -853,13 +877,21 @@ fn position_hud(hud: &WebviewWindow) -> tauri::Result<()> {
     hud.set_always_on_top(true)
 }
 
-fn setup_tray(app: &App) -> tauri::Result<()> {
+fn setup_tray(app: &AppHandle) -> tauri::Result<()> {
     let settings_item = MenuItem::with_id(app, "settings", "Settings…", true, None::<&str>)?;
     let separator = PredefinedMenuItem::separator(app)?;
     let quit_item = MenuItem::with_id(app, "quit", "Quit Ion Sense", true, None::<&str>)?;
     let menu = Menu::with_items(app, &[&settings_item, &separator, &quit_item])?;
+    // Use Tauri's compiled Windows icon resource. It is already converted to a
+    // native HICON by the runtime and avoids Explorer rejecting an HICON
+    // reconstructed from PNG pixels on some Windows 11 configurations.
+    let icon = app
+        .default_window_icon()
+        .cloned()
+        .ok_or_else(|| tauri::Error::Anyhow(anyhow::anyhow!("default app icon is unavailable")))?;
 
-    let mut builder = TrayIconBuilder::new()
+    let builder = TrayIconBuilder::with_id("ion-sense")
+        .icon(icon)
         .menu(&menu)
         .show_menu_on_left_click(false)
         .tooltip("Ion Sense")
@@ -893,10 +925,233 @@ fn setup_tray(app: &App) -> tauri::Result<()> {
                 }
             }
         });
-    if let Some(icon) = app.default_window_icon() {
-        builder = builder.icon(icon.clone());
+    // Create the icon only after Tauri's event loop has entered RunEvent::Ready.
+    // On this Windows installation, registering it from the setup callback is
+    // too early: Explorer rejects NIM_ADD and tray-icon intentionally treats
+    // that as recoverable, leaving the application alive without an icon.
+    let tray_icon = builder.build(app)?;
+    match tray_icon.rect() {
+        Ok(Some(rect)) => eprintln!("Ion Sense tray registered with Explorer: {rect:?}"),
+        Ok(None) => {
+            eprintln!("Ion Sense tray registration has no Explorer rectangle");
+        }
+        Err(error) => eprintln!("Ion Sense could not verify tray registration: {error}"),
     }
-    builder.build(app)?;
+    app.manage(tray_icon);
+    Ok(())
+}
+
+#[cfg(windows)]
+static NATIVE_TRAY_APP: OnceLock<AppHandle> = OnceLock::new();
+
+#[cfg(windows)]
+const NATIVE_TRAY_MESSAGE: u32 = windows::Win32::UI::WindowsAndMessaging::WM_APP + 0x49;
+#[cfg(windows)]
+const NATIVE_TRAY_SUBCLASS_ID: usize = 0x494f4e53;
+#[cfg(windows)]
+const NATIVE_TRAY_GUID: windows::core::GUID =
+    windows::core::GUID::from_u128(0x9b74b617_2959_4a9e_b55d_58bcb370f382);
+
+#[cfg(windows)]
+fn activate_native_tray(position: Option<PhysicalPosition<f64>>) {
+    let Some(app) = NATIVE_TRAY_APP.get().cloned() else {
+        return;
+    };
+    tauri::async_runtime::spawn(async move {
+        if let Some(window) = app.get_webview_window("settings")
+            && window.is_visible().unwrap_or(false)
+        {
+            if let Err(error) = request_settings_close(&window) {
+                eprintln!("Ion Sense could not close settings: {error}");
+            }
+        } else if let Err(error) = open_settings(&app, position) {
+            eprintln!("Ion Sense could not open settings: {error}");
+        }
+    });
+}
+
+#[cfg(windows)]
+fn quit_from_native_tray() {
+    if let Some(app) = NATIVE_TRAY_APP.get().cloned() {
+        tauri::async_runtime::spawn(async move { app.exit(0) });
+    }
+}
+
+#[cfg(windows)]
+unsafe fn native_tray_data(
+    hwnd: windows::Win32::Foundation::HWND,
+    icon: windows::Win32::UI::WindowsAndMessaging::HICON,
+) -> windows::Win32::UI::Shell::NOTIFYICONDATAW {
+    use windows::Win32::UI::Shell::{NIF_GUID, NIF_ICON, NIF_MESSAGE, NIF_TIP};
+
+    let mut data = windows::Win32::UI::Shell::NOTIFYICONDATAW {
+        cbSize: std::mem::size_of::<windows::Win32::UI::Shell::NOTIFYICONDATAW>() as u32,
+        hWnd: hwnd,
+        uID: 1,
+        uFlags: NIF_GUID | NIF_ICON | NIF_MESSAGE | NIF_TIP,
+        uCallbackMessage: NATIVE_TRAY_MESSAGE,
+        hIcon: icon,
+        guidItem: NATIVE_TRAY_GUID,
+        ..Default::default()
+    };
+    for (destination, source) in data.szTip.iter_mut().zip("Ion Sense\0".encode_utf16()) {
+        *destination = source;
+    }
+    data
+}
+
+#[cfg(windows)]
+unsafe fn remove_native_tray(hwnd: windows::Win32::Foundation::HWND) {
+    use windows::Win32::UI::Shell::{NIF_GUID, NIM_DELETE, NOTIFYICONDATAW, Shell_NotifyIconW};
+
+    let data = NOTIFYICONDATAW {
+        cbSize: std::mem::size_of::<NOTIFYICONDATAW>() as u32,
+        hWnd: hwnd,
+        uID: 1,
+        uFlags: NIF_GUID,
+        guidItem: NATIVE_TRAY_GUID,
+        ..Default::default()
+    };
+    let _ = unsafe { Shell_NotifyIconW(NIM_DELETE, &data) };
+}
+
+#[cfg(windows)]
+unsafe fn show_native_tray_menu(hwnd: windows::Win32::Foundation::HWND) {
+    use windows::Win32::Foundation::{LPARAM, POINT, WPARAM};
+    use windows::Win32::UI::WindowsAndMessaging::{
+        AppendMenuW, CreatePopupMenu, DestroyMenu, GetCursorPos, MF_SEPARATOR, MF_STRING,
+        PostMessageW, SetForegroundWindow, TPM_NONOTIFY, TPM_RETURNCMD, TPM_RIGHTBUTTON,
+        TrackPopupMenu, WM_NULL,
+    };
+    use windows::core::w;
+
+    let Ok(menu) = (unsafe { CreatePopupMenu() }) else {
+        return;
+    };
+    let _ = unsafe { AppendMenuW(menu, MF_STRING, 1, w!("Settings…")) };
+    let _ = unsafe { AppendMenuW(menu, MF_SEPARATOR, 0, None) };
+    let _ = unsafe { AppendMenuW(menu, MF_STRING, 2, w!("Quit Ion Sense")) };
+    let mut cursor = POINT::default();
+    if unsafe { GetCursorPos(&mut cursor) }.is_ok() {
+        let _ = unsafe { SetForegroundWindow(hwnd) };
+        let command = unsafe {
+            TrackPopupMenu(
+                menu,
+                TPM_RETURNCMD | TPM_NONOTIFY | TPM_RIGHTBUTTON,
+                cursor.x,
+                cursor.y,
+                None,
+                hwnd,
+                None,
+            )
+        }
+        .0 as usize;
+        let _ = unsafe { PostMessageW(Some(hwnd), WM_NULL, WPARAM(0), LPARAM(0)) };
+        match command {
+            1 => activate_native_tray(Some(PhysicalPosition::new(
+                cursor.x as f64,
+                cursor.y as f64,
+            ))),
+            2 => quit_from_native_tray(),
+            _ => {}
+        }
+    }
+    let _ = unsafe { DestroyMenu(menu) };
+}
+
+#[cfg(windows)]
+unsafe extern "system" fn native_tray_window_proc(
+    hwnd: windows::Win32::Foundation::HWND,
+    message: u32,
+    wparam: windows::Win32::Foundation::WPARAM,
+    lparam: windows::Win32::Foundation::LPARAM,
+    _subclass_id: usize,
+    _reference_data: usize,
+) -> windows::Win32::Foundation::LRESULT {
+    use windows::Win32::UI::Shell::{DefSubclassProc, RemoveWindowSubclass};
+    use windows::Win32::UI::WindowsAndMessaging::{
+        WM_CONTEXTMENU, WM_DESTROY, WM_LBUTTONUP, WM_RBUTTONUP,
+    };
+
+    if message == NATIVE_TRAY_MESSAGE {
+        match (lparam.0 as u32) & 0xffff {
+            WM_LBUTTONUP => activate_native_tray(None),
+            WM_RBUTTONUP | WM_CONTEXTMENU => unsafe { show_native_tray_menu(hwnd) },
+            _ => {}
+        }
+        return windows::Win32::Foundation::LRESULT(0);
+    }
+    if message == WM_DESTROY {
+        unsafe { remove_native_tray(hwnd) };
+        let _ = unsafe {
+            RemoveWindowSubclass(hwnd, Some(native_tray_window_proc), NATIVE_TRAY_SUBCLASS_ID)
+        };
+    }
+    unsafe { DefSubclassProc(hwnd, message, wparam, lparam) }
+}
+
+#[cfg(windows)]
+fn setup_native_windows_tray(app: &AppHandle) -> tauri::Result<()> {
+    use windows::Win32::Foundation::HINSTANCE;
+    use windows::Win32::System::LibraryLoader::GetModuleHandleW;
+    use windows::Win32::UI::Shell::{
+        NIM_ADD, NIM_SETVERSION, NOTIFYICON_VERSION_4, SetWindowSubclass, Shell_NotifyIconW,
+    };
+    use windows::Win32::UI::WindowsAndMessaging::LoadIconW;
+    use windows::core::PCWSTR;
+
+    let window = app
+        .get_webview_window("settings")
+        .ok_or_else(|| tauri::Error::Anyhow(anyhow::anyhow!("settings window is unavailable")))?;
+    let hwnd = window.hwnd()?;
+    let _ = NATIVE_TRAY_APP.set(app.clone());
+
+    unsafe {
+        let module = GetModuleHandleW(None).map_err(|error| tauri::Error::Anyhow(error.into()))?;
+        // Tauri embeds the configured application icon as resource 32512.
+        let icon = LoadIconW(Some(HINSTANCE(module.0)), PCWSTR(32512usize as *const u16))
+            .map_err(|error| tauri::Error::Anyhow(error.into()))?;
+        if !SetWindowSubclass(
+            hwnd,
+            Some(native_tray_window_proc),
+            NATIVE_TRAY_SUBCLASS_ID,
+            0,
+        )
+        .as_bool()
+        {
+            return Err(tauri::Error::Anyhow(std::io::Error::last_os_error().into()));
+        }
+
+        let mut data = native_tray_data(hwnd, icon);
+        if !Shell_NotifyIconW(NIM_ADD, &data).as_bool() {
+            return Err(tauri::Error::Anyhow(std::io::Error::last_os_error().into()));
+        }
+        data.Anonymous.uVersion = NOTIFYICON_VERSION_4;
+        if !Shell_NotifyIconW(NIM_SETVERSION, &data).as_bool() {
+            remove_native_tray(hwnd);
+            return Err(tauri::Error::Anyhow(std::io::Error::last_os_error().into()));
+        }
+    }
+    eprintln!("Ion Sense native Windows tray fallback registered");
+    Ok(())
+}
+
+#[cfg(windows)]
+fn ensure_windows_tray(app: &AppHandle) {
+    let tauri_tray_is_registered = app
+        .tray_by_id("ion-sense")
+        .and_then(|tray| tray.rect().ok().flatten())
+        .is_some();
+    if !tauri_tray_is_registered && let Err(error) = setup_native_windows_tray(app) {
+        eprintln!("Ion Sense could not create its native tray fallback: {error}");
+    }
+}
+
+#[cfg(not(windows))]
+fn ensure_windows_tray(_app: &AppHandle) {}
+
+#[cfg(not(windows))]
+fn setup_native_windows_tray(_app: &AppHandle) -> tauri::Result<()> {
     Ok(())
 }
 
@@ -1054,6 +1309,17 @@ pub fn run() {
         )
         .setup(setup_app)
         .on_page_load(|webview, payload| {
+            if payload.event() == PageLoadEvent::Finished && webview.label() == "settings" {
+                ensure_windows_tray(webview.app_handle());
+            }
+            if payload.event() == PageLoadEvent::Finished
+                && webview.label() == "hud"
+                && let Some(hud) = webview.app_handle().get_webview_window("hud")
+                && let Err(error) =
+                    position_hud(&hud).and_then(|_| hud.set_ignore_cursor_events(true))
+            {
+                eprintln!("Ion Sense could not initialize HUD window style: {error}");
+            }
             if payload.event() == PageLoadEvent::Started
                 && webview.label() == "hud"
                 && let Some(state) = webview.try_state::<NativeState>()
@@ -1145,9 +1411,18 @@ pub fn run() {
         hud_idle
     ]);
 
-    builder
-        .run(tauri::generate_context!())
-        .expect("failed to run Ion Sense");
+    let app = builder
+        .build(tauri::generate_context!())
+        .expect("failed to build Ion Sense");
+
+    app.run(|app_handle, event| {
+        if let tauri::RunEvent::Ready = event
+            && let Err(error) = setup_tray(app_handle)
+        {
+            eprintln!("Ion Sense could not create its tray icon: {error}");
+            app_handle.exit(1);
+        }
+    });
 }
 
 #[cfg(test)]
