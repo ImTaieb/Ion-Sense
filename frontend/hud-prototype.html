@@ -11,27 +11,26 @@
     }
   </script>
   <style>
-    /* Authoritative design-system layer. The legacy aliases below are the
-       bridge that keeps every existing rule resolving identically. */
+    /* Authoritative design tokens. Reverted to c922804 composition; no
+       per-element entrance choreography; no overshoot easings. */
     :root {
-      --ion-bg:           #030605;
-      --ion-surface:      rgba(8, 14, 10, 0.78);
-      --ion-surface-raised: rgba(11, 19, 14, 0.88);
-      --ion-border:       rgba(207, 244, 216, 0.09);
-      --ion-border-active: rgba(var(--ion-rgb), 0.32);
+      --ion-bg:            #030605;
+      --ion-surface:       rgba(8, 14, 10, 0.86);
+      --ion-surface-raised: rgba(11, 19, 14, 0.92);
+      --ion-border:        rgba(207, 244, 216, 0.09);
+      --ion-border-active: rgba(67, 242, 138, 0.32);
 
-      --ion-green:        #43F28A;
-      --ion-green-bright: #62F69B;
-      --ion:              var(--ion-green);
-      --ion-bright:       var(--ion-green-bright);
-      --ion-rgb:          67, 242, 138;
+      --ion-green:         #45EE86;
+      --ion-green-bright:  #65F59B;
+      --ion:               var(--ion-green);
+      --ion-bright:        var(--ion-green-bright);
+      --ion-rgb:           69, 238, 134;
 
-      --ion-text:         #ECF4EE;
+      --ion-text:          #ECF4EE;
       --ion-text-secondary: rgba(220, 232, 224, 0.66);
       --ion-text-tertiary:  rgba(190, 205, 196, 0.42);
-      --text:             var(--ion-text);
-      --muted:            var(--ion-text-secondary);
-      --text-tertiary:    var(--ion-text-tertiary);
+      --text:              var(--ion-text);
+      --muted:             var(--ion-text-secondary);
 
       --ion-radius-sm: 8px;
       --ion-radius-md: 14px;
@@ -40,13 +39,12 @@
       --ion-motion-fast:   160ms;
       --ion-motion-normal: 220ms;
       --ion-spring:        cubic-bezier(.2, .7, .2, 1);
-      --enter-ms:          1200ms;
-      --exit-ms:           800ms;
 
       --panel:        var(--ion-surface);
-      --panel-height: 370px;
-      --toast-width:  min(1220px, calc(100vw - 96px));
-      --badge-size:   294px;
+      --toast-width:  min(820px, calc(100vw - 96px));
+      --badge-size:   220px;
+      --enter-ms:     360ms;
+      --exit-ms:      200ms;
     }
 
     * {
@@ -192,20 +190,19 @@
       inset: 0;
       z-index: 20;
       pointer-events: none;
-      background-color: transparent;
+      background-color: rgba(0, 0, 0, 0);
     }
 
     .hud-toast {
       position: absolute;
-      top: 50%;
-      left: 50%;
-      right: auto;
+      top: clamp(24px, 7vh, 74px);
+      right: clamp(18px, 4vw, 64px);
       width: var(--toast-width);
-      min-height: var(--panel-height);
+      min-height: 224px;
       opacity: 0;
       visibility: hidden;
       pointer-events: none;
-      transform-origin: 50% 50%;
+      transform-origin: 100% 0;
       will-change: transform, opacity, clip-path;
     }
 
@@ -218,56 +215,46 @@
 
     .hud-toast.is-entering {
       pointer-events: auto;
-      animation: hud-center-in var(--enter-ms) cubic-bezier(.16, 1, .3, 1) both;
-    }
-
-    .hud-toast.is-preparing {
-      opacity: 0;
-      transform: translate3d(-50%, -48%, 0) scale(.965);
-      clip-path: inset(-230px);
+      animation: hud-in var(--enter-ms) var(--ion-spring) both;
     }
 
     .hud-toast.is-visible {
       opacity: 1;
       pointer-events: auto;
-      transform: translate3d(-50%, -50%, 0);
-      clip-path: inset(-230px);
+      transform: translate3d(0, 0, 0);
     }
 
     .hud-toast.is-exiting {
       pointer-events: none;
-      animation: hud-center-out var(--exit-ms) cubic-bezier(.55, 0, .9, .45) both;
+      animation: hud-out var(--exit-ms) var(--ion-spring) both;
     }
 
-    @keyframes hud-center-in {
-      0% { opacity: 0; transform: translate3d(-50%, -48%, 0) scale(.965); clip-path: inset(-230px); }
-      42% { opacity: 1; transform: translate3d(-50%, -50%, 0) scale(1.006); }
-      74% { transform: translate3d(-50%, -50%, 0) scale(.998); }
-      100% { opacity: 1; transform: translate3d(-50%, -50%, 0) scale(1); clip-path: inset(-230px); }
+    @keyframes hud-in {
+      from { opacity: 0; transform: translateY(5px) scale(0.985); }
+      to   { opacity: 1; transform: translateY(0)    scale(1); }
     }
 
-    @keyframes hud-center-out {
-      0%, 42% { opacity: 1; transform: translate3d(-50%, -50%, 0) scale(1); clip-path: inset(-230px); }
-      72% { opacity: .72; transform: translate3d(-50%, -50%, 0) scale(.99); }
-      100% { opacity: 0; transform: translate3d(-50%, -49%, 0) scale(.965); clip-path: inset(-230px); }
+    @keyframes hud-out {
+      from { opacity: 1; transform: translateY(0)    scale(1); }
+      to   { opacity: 0; transform: translateY(-3px) scale(0.992); }
     }
 
     .panel-shell {
       position: relative;
-      min-height: var(--panel-height);
+      min-height: 224px;
       overflow: hidden;
-      border: 1px solid var(--ion-border);
-      border-radius: 110px 26px 26px 110px;
+      border: 1px solid rgba(var(--ion-rgb), 0.74);
+      border-radius: 30px;
       background:
-        radial-gradient(140% 100% at 0% 50%, rgba(var(--ion-rgb), 0.05), transparent 32%),
-        radial-gradient(80% 60% at 100% 0%, rgba(var(--ion-rgb), 0.04), transparent 38%),
-        linear-gradient(112deg, rgba(7, 14, 10, 0.92), rgba(4, 10, 7, 0.88) 60%, rgba(2, 8, 5, 0.86)),
-        var(--ion-surface);
+        linear-gradient(104deg, rgba(1, 5, 3, 0.965), rgba(4, 13, 8, 0.925) 61%, rgba(4, 20, 9, 0.91)),
+        var(--panel);
       box-shadow:
-        inset 0 1px 0 rgba(230, 255, 235, 0.05),
-        0 1px 0 rgba(0, 0, 0, 0.4),
-        0 18px 48px rgba(0, 0, 0, 0.28);
-      backdrop-filter: blur(14px) saturate(112%);
+        inset 0 1px 0 rgba(255, 255, 255, 0.035),
+        inset 0 -1px 0 rgba(var(--ion-rgb), 0.08);
+      filter:
+        drop-shadow(0 0 4px rgba(var(--ion-rgb), 0.21))
+        drop-shadow(0 0 18px rgba(var(--ion-rgb), 0.13));
+      backdrop-filter: blur(18px) saturate(115%);
     }
 
     .panel-shell::before {
@@ -276,20 +263,20 @@
       inset: 0;
       pointer-events: none;
       background:
-        linear-gradient(180deg, rgba(220, 255, 228, 0.045), transparent 30%),
-        radial-gradient(60% 60% at 92% 0%, rgba(var(--ion-rgb), 0.06), transparent 35%);
+        radial-gradient(circle at 91% 18%, rgba(var(--ion-rgb), 0.115), transparent 28%),
+        linear-gradient(90deg, transparent 12%, rgba(255, 255, 255, 0.017) 49%, transparent 77%);
     }
 
     .panel-shell::after {
       content: "";
       position: absolute;
-      top: 56px;
-      right: 32px;
-      width: 96px;
-      height: 80px;
-      opacity: 0.12;
+      top: 72px;
+      right: 22px;
+      width: 104px;
+      height: 68px;
+      opacity: 0.18;
       pointer-events: none;
-      background-image: radial-gradient(circle, rgba(var(--ion-rgb), 0.55) 0 1px, transparent 1.3px);
+      background-image: radial-gradient(circle, rgba(var(--ion-rgb), 0.62) 0 1px, transparent 1.3px);
       background-size: 8px 8px;
       mask-image: linear-gradient(90deg, transparent, #000 38%, #000);
     }
@@ -298,107 +285,121 @@
       position: relative;
       z-index: 2;
       display: grid;
-      grid-template-rows: 64px 1fr 88px;
-      min-height: calc(var(--panel-height) - 2px);
-      padding-left: 0;
+      grid-template-rows: 48px 1fr 62px;
+      min-height: 222px;
+      padding-left: 144px;
     }
 
     .hud-header {
       display: flex;
       align-items: center;
       min-width: 0;
-      padding: 6px 16px 0 18px;
+      padding: 7px 13px 0 18px;
     }
 
     .brand-name {
       flex: 0 0 auto;
-      color: var(--ion-green);
-      letter-spacing: 0.32em;
+      color: var(--ion);
+      letter-spacing: 0.29em;
       text-transform: uppercase;
-      font-family: "Segoe UI Variable Text", "Segoe UI", system-ui, sans-serif;
-      font-size: 11px;
-      font-weight: 600;
+      text-shadow: 0 0 10px rgba(var(--ion-rgb), 0.38);
+      font-family: "Arial Narrow", "Segoe UI", sans-serif;
+      font-size: 12px;
+      font-weight: 750;
     }
 
     .header-rule {
       height: 1px;
       min-width: 24px;
-      margin: 0 14px 0 16px;
+      margin: 1px 14px 0 16px;
       flex: 1;
-      background: linear-gradient(90deg, var(--ion-border-active), transparent);
+      background: linear-gradient(90deg, rgba(var(--ion-rgb), 0.82), rgba(var(--ion-rgb), 0.07));
+      box-shadow: 0 0 8px rgba(var(--ion-rgb), 0.25);
     }
 
     .close-button {
       position: relative;
-      width: 28px;
-      height: 28px;
-      flex: 0 0 28px;
+      width: 34px;
+      height: 34px;
+      flex: 0 0 34px;
       border: 0;
       border-radius: 50%;
-      color: var(--ion-text-secondary);
+      color: var(--ion);
       background: transparent;
       cursor: pointer;
-      transition: color var(--ion-motion-fast) var(--ion-spring),
-                  background-color var(--ion-motion-fast) var(--ion-spring),
-                  transform var(--ion-motion-fast) var(--ion-spring);
+      transition: background 140ms ease, transform 140ms ease, box-shadow 140ms ease;
     }
 
     .close-button::before,
     .close-button::after {
       content: "";
       position: absolute;
-      left: 8px;
-      top: 13px;
-      width: 12px;
-      height: 1px;
+      left: 9px;
+      top: 16px;
+      width: 16px;
+      height: 1.5px;
       border-radius: 999px;
       background: currentColor;
+      box-shadow: 0 0 7px rgba(var(--ion-rgb), 0.55);
     }
 
-    .close-button::before { transform: rotate(45deg); }
-    .close-button::after  { transform: rotate(-45deg); }
+    .close-button::before {
+      transform: rotate(45deg);
+    }
+
+    .close-button::after {
+      transform: rotate(-45deg);
+    }
 
     .close-button:hover {
-      color: var(--ion-text);
-      background: rgba(var(--ion-rgb), 0.06);
+      background: rgba(var(--ion-rgb), 0.08);
+      box-shadow: inset 0 0 0 1px rgba(var(--ion-rgb), 0.2);
+      transform: rotate(4deg);
     }
 
-    .close-button:active { transform: scale(0.94); }
-
     .close-button:focus-visible {
-      outline: 1px solid var(--ion-border-active);
-      outline-offset: 3px;
+      outline: 1px solid var(--ion);
+      outline-offset: 2px;
+      background: rgba(var(--ion-rgb), 0.1);
     }
 
     .hud-body {
       display: grid;
-      grid-template-columns: 56px minmax(0, 1fr);
+      grid-template-columns: 64px minmax(0, 1fr);
       align-items: center;
-      gap: 20px;
+      gap: 18px;
       min-width: 0;
-      padding: 4px 32px 12px 22px;
+      padding: 2px 28px 12px 20px;
     }
 
     .event-icon-shell {
       display: grid;
       place-items: center;
-      width: 48px;
-      height: 48px;
-      border: 1px solid var(--ion-border-active);
+      width: 64px;
+      height: 64px;
+      border: 1px solid rgba(var(--ion-rgb), 0.5);
       border-radius: 50%;
-      color: var(--ion-green);
-      background: rgba(0, 0, 0, 0.18);
+      color: var(--ion);
+      background:
+        radial-gradient(circle, rgba(var(--ion-rgb), 0.1), transparent 68%),
+        rgba(0, 0, 0, 0.28);
+      box-shadow:
+        inset 0 0 0 7px rgba(var(--ion-rgb), 0.025),
+        0 0 16px rgba(var(--ion-rgb), 0.09);
     }
 
     .event-icon-shell svg {
-      width: 24px;
-      height: 24px;
+      width: 33px;
+      height: 33px;
       overflow: visible;
       fill: none;
       stroke: currentColor;
-      stroke-width: 1.5;
+      stroke-width: 1.8;
       stroke-linecap: round;
       stroke-linejoin: round;
+      filter:
+        drop-shadow(0 0 2px rgba(var(--ion-rgb), 0.58))
+        drop-shadow(0 0 8px rgba(var(--ion-rgb), 0.22));
     }
 
     .event-copy {
@@ -407,49 +408,55 @@
 
     .event-title {
       overflow: hidden;
-      margin: 0 0 8px;
-      color: var(--ion-text);
-      letter-spacing: -0.012em;
+      margin: 0 0 7px;
+      color: var(--text);
+      letter-spacing: 0.055em;
       text-overflow: ellipsis;
+      text-transform: uppercase;
       white-space: nowrap;
-      font-family: "Inter", "Segoe UI Variable Display", "Segoe UI", system-ui, sans-serif;
-      font-size: clamp(22px, 2.3vw, 28px);
-      font-weight: 600;
-      line-height: 1.15;
+      text-shadow: 0 1px 0 #000, 0 0 16px rgba(255, 255, 255, 0.04);
+      font-family: "Arial Narrow", "Segoe UI", sans-serif;
+      font-size: clamp(20px, 2.6vw, 29px);
+      font-weight: 730;
+      line-height: 1.05;
     }
 
     .event-message {
       display: -webkit-box;
       overflow: hidden;
       margin: 0;
-      color: var(--ion-text-secondary);
-      letter-spacing: -0.005em;
+      color: var(--muted);
+      letter-spacing: 0.01em;
       -webkit-box-orient: vertical;
       -webkit-line-clamp: 2;
       font-size: 14px;
-      font-weight: 400;
-      line-height: 1.5;
+      font-weight: 430;
+      line-height: 1.45;
     }
 
     .hud-footer {
       display: grid;
-      grid-template-columns: 22px minmax(120px, 1fr) auto;
+      grid-template-columns: 28px minmax(90px, 1fr) auto;
       align-items: center;
-      gap: 18px;
+      gap: 16px;
       min-width: 0;
-      padding: 0 32px 0 22px;
-      border-top: 1px solid var(--ion-border);
+      padding: 0 25px 1px 21px;
+      border-top: 1px solid rgba(var(--ion-rgb), 0.23);
+      background: linear-gradient(90deg, rgba(var(--ion-rgb), 0.035), transparent 44%);
     }
 
     .speaker-icon {
-      width: 18px;
-      height: 18px;
-      color: var(--ion-text-secondary);
+      width: 25px;
+      height: 25px;
+      color: var(--ion);
       fill: none;
       stroke: currentColor;
-      stroke-width: 1.4;
+      stroke-width: 1.7;
       stroke-linecap: round;
       stroke-linejoin: round;
+      filter:
+        drop-shadow(0 0 2px rgba(var(--ion-rgb), 0.52))
+        drop-shadow(0 0 7px rgba(var(--ion-rgb), 0.2));
     }
 
     .waveform {
@@ -458,10 +465,13 @@
       align-items: center;
       justify-content: space-between;
       gap: 0;
-      height: 28px;
+      height: 35px;
       min-width: 0;
       overflow: hidden;
-      color: var(--ion-green);
+      color: var(--ion);
+      filter:
+        drop-shadow(0 0 2px rgba(var(--ion-rgb), 0.4))
+        drop-shadow(0 0 7px rgba(var(--ion-rgb), 0.14));
     }
 
     .waveform::after {
@@ -469,35 +479,45 @@
     }
 
     .wave-bar {
-      width: 1.5px;
+      width: 2px;
       height: var(--bar-height);
-      min-height: 1.5px;
-      flex: 0 0 1.5px;
+      min-height: 2px;
+      flex: 0 0 2px;
       border-radius: 999px;
-      opacity: 0.18;
+      opacity: 0.2;
       transform: scaleY(0.24);
       transform-origin: center;
       background: currentColor;
     }
 
     .wave-bar.is-dot {
-      width: 2px;
-      height: 2px;
-      min-height: 2px;
-      flex-basis: 2px;
+      width: 3px;
+      height: 3px;
+      min-height: 3px;
+      flex-basis: 3px;
       border-radius: 50%;
-      transform: scale(0.6);
+      transform: scale(0.7);
+    }
+
+    .wave-bar.is-dotted {
+      width: 2px;
+      background: repeating-linear-gradient(
+        to bottom,
+        currentColor 0 2px,
+        transparent 2px 4px
+      );
     }
 
     .spoken-line {
       margin: 0;
-      color: var(--ion-text);
-      letter-spacing: 0.06em;
+      color: var(--ion);
+      letter-spacing: 0.12em;
       text-transform: uppercase;
       white-space: nowrap;
-      font-family: "Segoe UI Variable Text", "Segoe UI", system-ui, sans-serif;
-      font-size: 11px;
-      font-weight: 600;
+      text-shadow: 0 0 10px rgba(var(--ion-rgb), 0.3);
+      font-family: ui-monospace, "SFMono-Regular", Consolas, monospace;
+      font-size: 14px;
+      font-weight: 650;
     }
 
     .brand-badge {
@@ -510,18 +530,21 @@
       border-radius: 50%;
       transform: translateY(-50%);
       background:
-        radial-gradient(60% 60% at 50% 50%, rgba(var(--ion-rgb), 0.06), transparent 70%),
-        radial-gradient(circle, rgba(7, 16, 10, 0.92) 0%, rgba(2, 5, 3, 0.92) 70%, rgba(0, 0, 0, 0.92) 100%);
-      box-shadow: 8px 0 22px rgba(0, 0, 0, 0.4);
+        radial-gradient(circle at 45% 40%, rgba(var(--ion-rgb), 0.09), transparent 45%),
+        radial-gradient(circle, #07100a 0%, #020503 70%, #000 100%);
+      box-shadow: 12px 0 28px rgba(0, 0, 0, 0.54);
+      filter:
+        drop-shadow(0 0 5px rgba(var(--ion-rgb), 0.2))
+        drop-shadow(0 0 18px rgba(var(--ion-rgb), 0.15));
       pointer-events: none;
     }
 
     .brand-badge::after {
       content: "";
       position: absolute;
-      inset: 22%;
+      inset: 16%;
       border-radius: 50%;
-      background: radial-gradient(circle, transparent 64%, rgba(var(--ion-rgb), 0.04) 65%, transparent 70%);
+      background: radial-gradient(circle, transparent 57%, rgba(var(--ion-rgb), 0.03) 58%, transparent 62%);
     }
 
     .badge-svg {
@@ -534,13 +557,17 @@
     .badge-outer,
     .badge-arc,
     .badge-mark,
+    .badge-bracket,
     .badge-dot-bright {
-      stroke: var(--ion-green);
+      stroke: var(--ion);
+      filter:
+        drop-shadow(0 0 2px rgba(var(--ion-rgb), 0.75))
+        drop-shadow(0 0 8px rgba(var(--ion-rgb), 0.32));
     }
 
     .badge-arc,
     .badge-mark {
-      stroke: var(--ion-green-bright);
+      stroke: var(--ion-bright);
     }
 
     .badge-arc {
@@ -864,7 +891,27 @@
         to { opacity: 0; }
       }
     }
-    /* 2026 full-screen warning composition: base component rules. */
+    /* 2026 full-screen warning composition. */
+    :root {
+      --toast-width: min(1220px, calc(100vw - 96px));
+      --badge-size: 294px;
+      --panel-height: 370px;
+      --panel-radius: 54px;
+      --ion: #5cf47a;
+      --ion-bright: #7bff96;
+      --ion-mid: #48df68;
+      --ion-deep: #168c3b;
+      --ion-mist: #c8fbd2;
+      --ion-rgb: 92, 244, 122;
+      --panel: rgba(1, 8, 5, 0.86);
+      --text: #f1f5f2;
+      --muted: #a7b0aa;
+      --text-tertiary: #7f8c84;
+      --line-soft: rgba(207, 244, 216, .09);
+      --enter-ms: 1200ms;
+      --exit-ms: 800ms;
+    }
+
     .screen-overlay {
       position: absolute;
       inset: 0;
@@ -872,64 +919,116 @@
       opacity: 0;
       pointer-events: none;
       background:
-        radial-gradient(ellipse 80% 60% at 50% 48%, rgba(0, 4, 2, 0.18) 0%, rgba(0, 4, 2, 0.06) 60%, transparent 100%);
-      -webkit-mask-image: linear-gradient(to bottom, #000 0, #000 calc(100% - 32px), transparent 100%);
-      mask-image: linear-gradient(to bottom, #000 0, #000 calc(100% - 32px), transparent 100%);
+        radial-gradient(ellipse at 50% 48%, rgba(0, 2, 1, .12) 8%, rgba(0, 4, 2, .24) 60%, rgba(14, 40, 8, .22) 100%),
+        rgba(0, 3, 1, .30);
+      -webkit-mask-image: linear-gradient(to bottom, #000 0, #000 calc(100% - 20px), transparent 100%);
+      mask-image: linear-gradient(to bottom, #000 0, #000 calc(100% - 20px), transparent 100%);
       will-change: opacity;
     }
 
-    .screen-blur { display: none; }
+    .screen-blur {
+      display: none;
+    }
 
-    /* Top hairline + faint corner brackets. The corner brackets draw only on
-       entrance and never animate again — a quiet frame around the alert. */
     .screen-overlay::before {
       content: "";
       position: absolute;
-      inset: 16px 16px auto 16px;
-      height: 1px;
-      background: linear-gradient(90deg, transparent, rgba(var(--ion-rgb), 0.22) 20%, rgba(var(--ion-rgb), 0.22) 80%, transparent);
+      inset: 1px;
+      border: 1px solid rgba(var(--ion-rgb), .18);
+      border-bottom: 0;
+      box-shadow:
+        inset 0 0 12px rgba(var(--ion-rgb), .09),
+        inset 0 0 64px rgba(var(--ion-rgb), .045),
+        inset 0 0 150px rgba(var(--ion-rgb), .025),
+        0 0 8px rgba(var(--ion-rgb), .10);
+      filter: drop-shadow(0 0 3px rgba(var(--ion-rgb), .14)) drop-shadow(0 0 12px rgba(var(--ion-rgb), .055));
     }
 
     .screen-overlay::after {
       content: "";
       position: absolute;
       inset: 0;
-      pointer-events: none;
+      opacity: .18;
       background:
-        linear-gradient(90deg, rgba(var(--ion-rgb), 0.32), transparent 18%) 16px 16px / 14% 1px no-repeat,
-        linear-gradient(270deg, rgba(var(--ion-rgb), 0.32), transparent 18%) top right / 14% 1px no-repeat;
+        linear-gradient(90deg, rgba(var(--ion-rgb), .52), transparent 12%) top left / 22% 1px no-repeat,
+        linear-gradient(270deg, rgba(var(--ion-rgb), .52), transparent 12%) top right / 22% 1px no-repeat,
+        repeating-linear-gradient(180deg, transparent 0 4px, rgba(var(--ion-rgb), .012) 5px 6px);
+      mix-blend-mode: screen;
     }
 
     .hud-layer.is-entering .screen-overlay {
-      animation: screen-warn-in 520ms var(--ion-spring) both;
+      animation: screen-warn-in var(--enter-ms) cubic-bezier(.16, 1, .3, 1) both;
     }
 
-    .hud-layer.is-preparing .screen-overlay { opacity: 0; }
-    .hud-layer.is-visible .screen-overlay { opacity: 1; }
+    .hud-layer.is-preparing .screen-overlay {
+      opacity: .001;
+    }
+
+    .hud-layer.is-visible .screen-overlay {
+      opacity: 1;
+    }
 
     .hud-layer.is-exiting .screen-overlay {
       animation: screen-warn-out var(--exit-ms) ease-in both;
     }
 
     .hud-layer.is-bridging .screen-overlay,
+    .hud-layer.is-bridging .screen-blur,
     .hud-layer.is-exiting.has-followup .screen-overlay,
-    .hud-layer.is-entering.is-continuing .screen-overlay {
+    .hud-layer.is-exiting.has-followup .screen-blur,
+    .hud-layer.is-entering.is-continuing .screen-overlay,
+    .hud-layer.is-entering.is-continuing .screen-blur {
       opacity: 1;
       animation: none;
     }
 
     @keyframes screen-warn-in {
-      0%   { opacity: 0; }
+      0% { opacity: 0; }
+      28% { opacity: .76; }
       100% { opacity: 1; }
     }
 
     @keyframes screen-warn-out {
-      0%   { opacity: 1; }
+      0%, 55% { opacity: 1; }
       100% { opacity: 0; }
     }
 
-    /* Compact-mode overrides for the consolidated .hud-toast and keyframes
-       defined above; the base rules already cover the centered composition. */
+    .hud-toast {
+      top: 50%;
+      left: 50%;
+      right: auto;
+      width: var(--toast-width);
+      min-height: var(--panel-height);
+      transform-origin: 50% 50%;
+    }
+
+    .hud-toast.is-entering {
+      animation: hud-center-in var(--enter-ms) var(--ion-spring) both;
+    }
+
+    .hud-toast.is-preparing {
+      opacity: 0;
+      transform: translate3d(-50%, -48%, 0) scale(0.985);
+    }
+
+    .hud-toast.is-visible {
+      transform: translate3d(-50%, -50%, 0);
+    }
+
+    .hud-toast.is-exiting {
+      animation: hud-center-out var(--exit-ms) var(--ion-spring) both;
+    }
+
+    @keyframes hud-center-in {
+      from { opacity: 0; transform: translate3d(-50%, -48%, 0) scale(0.985); }
+      to   { opacity: 1; transform: translate3d(-50%, -50%, 0) scale(1); }
+    }
+
+    @keyframes hud-center-out {
+      from { opacity: 1; transform: translate3d(-50%, -50%, 0) scale(1); }
+      to   { opacity: 0; transform: translate3d(-50%, -52%, 0) scale(0.992); }
+    }
+
     .panel-shell {
       min-height: var(--panel-height);
       border: 1px solid rgba(var(--ion-rgb), .58);
@@ -1051,53 +1150,23 @@
     .badge-dot-bright { opacity: .52; }
     .brand-badge .badge-svg { width: 100%; height: 100%; margin: 0; }
 
-    /* Synchronized system-awareness activation sequence. */
+    /* Subtle will-change hints for the elements that actually animate. */
     .panel-shell,
-    .brand-badge,
-    .panel-trace,
-    .energy-sweep {
+    .brand-badge {
       will-change: transform, opacity;
     }
 
-    .panel-trace {
+    .brand-badge::before {
+      content: "";
       position: absolute;
-      inset: 0;
-      z-index: 7;
-      width: 100%;
-      height: 100%;
-      overflow: visible;
+      inset: 6%;
+      border-radius: 50%;
       opacity: 0;
+      background: repeating-conic-gradient(from -7deg, rgba(var(--ion-rgb), .72) 0 1deg, transparent 1deg 9deg);
+      -webkit-mask: radial-gradient(circle, transparent 0 72%, #000 72.5% 74%, transparent 74.5%);
+      mask: radial-gradient(circle, transparent 0 72%, #000 72.5% 74%, transparent 74.5%);
       pointer-events: none;
     }
-
-    .panel-trace path {
-      fill: none;
-      stroke: var(--ion-bright);
-      stroke-width: 1.6;
-      stroke-linecap: round;
-      stroke-linejoin: round;
-      stroke-dasharray: 1;
-      stroke-dashoffset: 1;
-      vector-effect: non-scaling-stroke;
-      filter: drop-shadow(0 0 3px rgba(var(--ion-rgb), .78)) drop-shadow(0 0 12px rgba(var(--ion-rgb), .28));
-    }
-
-    .energy-sweep {
-      position: absolute;
-      inset: 1px;
-      z-index: 6;
-      overflow: hidden;
-      opacity: 0;
-      border-radius: 137px 61px 61px 137px;
-      background: linear-gradient(104deg, transparent 32%, rgba(var(--ion-rgb), .018) 43%, rgba(var(--ion-rgb), .085) 49%, rgba(var(--ion-rgb), .035) 53%, transparent 64%);
-      mix-blend-mode: normal;
-      transform: translate3d(-145%, 0, 0);
-      pointer-events: none;
-    }
-
-    /* Brand badge keeps a single hairline outline. Heavy radar-sweep
-       overlays were removed in the premium pass. */
-
 
     .badge-orbit {
       transform-box: fill-box;
@@ -1114,42 +1183,6 @@
       transform-origin: center;
     }
 
-    .hud-toast.is-entering .panel-shell {
-      animation: panel-glass-in 560ms 130ms cubic-bezier(.16, 1, .3, 1) both;
-    }
-
-    .hud-toast.is-entering .panel-trace {
-      animation: trace-layer-in 530ms 85ms linear both;
-    }
-
-    .hud-toast.is-entering .panel-trace path {
-      animation: perimeter-trace-in 530ms 85ms cubic-bezier(.18, .72, .23, 1) both;
-    }
-
-    .hud-toast.is-entering .brand-badge {
-      animation: badge-assemble 520ms 225ms cubic-bezier(.22, 1.16, .36, 1) both;
-    }
-
-    .hud-toast.is-entering .badge-outer {
-      animation: ring-draw-cw 500ms 245ms cubic-bezier(.16, 1, .3, 1) both;
-    }
-
-    .hud-toast.is-entering .badge-orbit {
-      animation: ring-draw-ccw 520ms 255ms cubic-bezier(.16, 1, .3, 1) both;
-    }
-
-    .hud-toast.is-entering .badge-arc.arc-primary {
-      animation: arc-form-cw 490ms 275ms cubic-bezier(.16, 1, .3, 1) both;
-    }
-
-    .hud-toast.is-entering .badge-arc.arc-secondary {
-      animation: arc-form-ccw 490ms 315ms cubic-bezier(.16, 1, .3, 1) both;
-    }
-
-    .hud-toast.is-entering .badge-particles {
-      animation: particle-orbit-in 520ms 270ms cubic-bezier(.16, 1, .3, 1) both;
-    }
-
     .hud-toast.is-entering .brand-badge::after {
       animation: badge-energy-pulse 620ms 300ms ease-out both;
     }
@@ -1158,196 +1191,82 @@
       opacity: 0;
     }
 
-    .hud-toast.is-entering .badge-mark path {
-      stroke-dasharray: 1;
-      animation: glyph-draw 330ms cubic-bezier(.16, 1, .3, 1) both;
+    /* Title and message fade in as a single block; no per-character reveal. */
+    .hud-toast.is-entering .event-title,
+    .hud-toast.is-entering .event-message {
+      animation: hud-fade-in var(--ion-motion-normal) var(--ion-spring) both;
+    }
+    .hud-toast.is-entering .event-message { animation-delay: 40ms; }
+
+    .hud-toast.is-exiting .event-title,
+    .hud-toast.is-exiting .event-message {
+      animation: hud-fade-out var(--ion-motion-fast) var(--ion-spring) both;
     }
 
-    .hud-toast.is-entering .badge-mark path:nth-child(1) { animation-delay: 410ms; }
-    .hud-toast.is-entering .badge-mark path:nth-child(2) { animation-delay: 465ms; }
-    .hud-toast.is-entering .badge-mark path:nth-child(3) { animation-delay: 520ms; }
-
-    .hud-toast.is-entering .brand-name {
-      animation: header-label-in 260ms 420ms cubic-bezier(.16, 1, .3, 1) both;
+    @keyframes hud-fade-in {
+      from { opacity: 0; transform: translateY(3px); }
+      to   { opacity: 1; transform: none; }
     }
-
-    .hud-toast.is-entering .header-rule {
-      transform-origin: left center;
-      animation: line-grow-in 360ms 440ms cubic-bezier(.16, 1, .3, 1) both;
+    @keyframes hud-fade-out {
+      from { opacity: 1; }
+      to   { opacity: 0; }
     }
-
-    .hud-toast.is-entering .close-button {
-      animation: close-materialize 260ms 520ms cubic-bezier(.22, 1.16, .36, 1) both;
+    @keyframes badge-energy-pulse {
+      0% { opacity: 0; }
+      42% { opacity: 0.85; }
+      100% { opacity: 1; }
     }
-
-    .hud-toast.is-entering .event-icon-shell {
-      animation: status-shell-in 360ms 500ms cubic-bezier(.22, 1.16, .36, 1) both;
-    }
-
-    .hud-toast.is-entering .hud-body::before {
-      transform-origin: center;
-      animation: divider-vertical-in 300ms 535ms cubic-bezier(.16, 1, .3, 1) both;
-    }
-
-    .hud-toast.is-entering .event-icon-shell svg > * {
-      stroke-dasharray: 1;
-      animation: icon-stroke-in 300ms 600ms cubic-bezier(.16, 1, .3, 1) both;
-    }
-
-    .text-word { display: inline-block; white-space: nowrap; }
-    .text-char { display: inline-block; }
-
-    .hud-toast.is-entering .event-title .text-char {
-      animation: copy-char-in 300ms cubic-bezier(.16, 1, .3, 1) both;
-      animation-delay: calc(590ms + var(--char-in-delay));
-    }
-
-    .hud-toast.is-entering .event-message .text-char {
-      animation: copy-char-in 300ms cubic-bezier(.16, 1, .3, 1) both;
-      animation-delay: calc(690ms + var(--char-in-delay));
-    }
-
-    .hud-toast.is-entering .hud-footer::before {
-      transform-origin: left center;
-      animation: line-grow-in 290ms 660ms cubic-bezier(.16, 1, .3, 1) both;
-    }
-
-    .hud-toast.is-entering .speaker-icon {
-      animation: speaker-activate 300ms 735ms cubic-bezier(.22, 1.16, .36, 1) both;
-    }
-
-    .hud-toast.is-entering .spoken-line {
-      animation: warning-reveal 250ms 930ms cubic-bezier(.22, 1.16, .36, 1) both;
-    }
-
-    .hud-toast.is-entering .energy-sweep {
-      animation: energy-sweep-in 320ms 850ms cubic-bezier(.2, .65, .3, 1) both;
-    }
-
-    @keyframes panel-glass-in {
-      0% { opacity: 0; transform: scale(.97); }
-      72% { opacity: 1; transform: scale(1.004); }
-      100% { opacity: 1; transform: scale(1); }
-    }
-
-    @keyframes trace-layer-in { 0%, 96% { opacity: 1; } 100% { opacity: 0; } }
-    @keyframes perimeter-trace-in { from { stroke-dashoffset: 1; } to { stroke-dashoffset: 0; } }
-    @keyframes badge-assemble {
-      0% { opacity: 0; transform: translateY(-50%) scale(.72) rotate(-5deg); }
-      72% { opacity: 1; transform: translateY(-50%) scale(1.025) rotate(.7deg); }
-      100% { opacity: 1; transform: translateY(-50%) scale(1) rotate(0); }
-    }
-    @keyframes ring-draw-cw {
-      from { opacity: 0; stroke-dasharray: .06 .94; stroke-dashoffset: .78; transform: rotate(-68deg); }
-      to { opacity: .46; stroke-dasharray: .15 .025 .04 .025 .62 .14; stroke-dashoffset: 0; transform: rotate(0); }
-    }
-    @keyframes ring-draw-ccw {
-      from { opacity: 0; stroke-dasharray: .08 .92; stroke-dashoffset: -.65; transform: rotate(58deg); }
-      to { opacity: 1; stroke-dasharray: .72 .03 .08 .04 .08 .05; stroke-dashoffset: 0; transform: rotate(0); }
-    }
-    @keyframes arc-form-cw {
-      from { opacity: 0; stroke-dasharray: 1; stroke-dashoffset: 1; transform: rotate(-46deg) scale(.86); }
-      72% { opacity: .9; }
-      to { opacity: .72; stroke-dashoffset: 0; transform: rotate(0) scale(1); }
-    }
-    @keyframes arc-form-ccw {
-      from { opacity: 0; stroke-dasharray: 1; stroke-dashoffset: -1; transform: rotate(50deg) scale(.86); }
-      72% { opacity: .9; }
-      to { opacity: .72; stroke-dashoffset: 0; transform: rotate(0) scale(1); }
-    }
-    @keyframes particle-orbit-in {
-      from { opacity: 0; transform: rotate(-58deg) scale(.82); }
-      66% { opacity: .95; }
-      to { opacity: 1; transform: rotate(0) scale(1); }
-    }
-    @keyframes ticks-form { from { opacity: 0; transform: rotate(32deg) scale(.88); } 62% { opacity: .34; } to { opacity: 0; transform: rotate(0) scale(1); } }
-    @keyframes badge-energy-pulse { 0% { opacity: 0; transform: scale(.78); } 42% { opacity: .85; transform: scale(1.12); } 100% { opacity: 1; transform: scale(1); } }
-    @keyframes glyph-draw { from { opacity: 0; stroke-dashoffset: 1; } to { opacity: 1; stroke-dashoffset: 0; } }
-    @keyframes header-label-in { from { opacity: 0; transform: translate3d(-12px, 0, 0); letter-spacing: .45em; } to { opacity: 1; transform: none; } }
-    @keyframes line-grow-in { from { opacity: 0; transform: scaleX(0); } to { opacity: 1; transform: scaleX(1); } }
-    @keyframes close-materialize { from { opacity: 0; transform: scale(.65) rotate(-35deg); } to { opacity: 1; transform: scale(1) rotate(0); } }
-    @keyframes status-shell-in { 0% { opacity: 0; transform: scale(.58); box-shadow: 0 0 0 0 rgba(var(--ion-rgb), .34); } 62% { opacity: 1; transform: scale(1.06); box-shadow: 0 0 0 12px rgba(var(--ion-rgb), 0); } 100% { opacity: 1; transform: scale(1); } }
-    @keyframes divider-vertical-in { from { opacity: 0; transform: scaleY(0); } to { opacity: 1; transform: scaleY(1); } }
-    @keyframes icon-stroke-in { from { opacity: 0; stroke-dashoffset: 1; } to { opacity: 1; stroke-dashoffset: 0; } }
-    @keyframes copy-char-in { from { opacity: 0; transform: translate3d(0, 15px, 0); clip-path: inset(100% 0 0); } to { opacity: 1; transform: none; clip-path: inset(0); } }
-    @keyframes speaker-activate { 0% { opacity: 0; transform: scale(.62); } 55% { opacity: 1; transform: scale(1.12); } 100% { opacity: 1; transform: scale(1); } }
-    @keyframes warning-reveal { 0% { opacity: 0; transform: translate3d(12px, 0, 0) scale(.96); text-shadow: 0 0 0 rgba(var(--ion-rgb), 0); } 62% { opacity: 1; transform: none; text-shadow: 0 0 18px rgba(var(--ion-rgb), .52); } 100% { opacity: 1; transform: none; text-shadow: 0 0 10px rgba(var(--ion-rgb), .3); } }
-    @keyframes energy-sweep-in { 0% { opacity: 0; transform: translate3d(-145%, 0, 0); } 36% { opacity: .82; } 100% { opacity: 0; transform: translate3d(145%, 0, 0); } }
-
-    .hud-toast.is-exiting .spoken-line { animation: element-retract 170ms 0ms cubic-bezier(.55, 0, .85, .35) both; }
-    .hud-toast.is-exiting .event-message .text-char { animation: copy-char-out 190ms cubic-bezier(.55, 0, .85, .35) both; animation-delay: var(--char-out-delay); }
-    .hud-toast.is-exiting .event-title .text-char { animation: copy-char-out 205ms cubic-bezier(.55, 0, .85, .35) both; animation-delay: calc(55ms + var(--char-out-delay)); }
-    .hud-toast.is-exiting .speaker-icon { animation: element-retract 180ms 145ms cubic-bezier(.55, 0, .85, .35) both; }
-    .hud-toast.is-exiting .hud-footer::before { transform-origin: right center; animation: line-collapse-out 220ms 150ms cubic-bezier(.55, 0, .85, .35) both; }
-    .hud-toast.is-exiting .event-icon-shell { animation: status-collapse-out 230ms 160ms cubic-bezier(.55, 0, .85, .35) both; }
-    .hud-toast.is-exiting .hud-body::before { transform-origin: center; animation: divider-collapse-out 200ms 175ms cubic-bezier(.55, 0, .85, .35) both; }
-    .hud-toast.is-exiting .header-rule { transform-origin: right center; animation: line-collapse-out 220ms 180ms cubic-bezier(.55, 0, .85, .35) both; }
-    .hud-toast.is-exiting .brand-name { animation: element-retract 180ms 200ms cubic-bezier(.55, 0, .85, .35) both; }
-    .hud-toast.is-exiting .close-button { animation: close-retract 180ms 200ms cubic-bezier(.55, 0, .85, .35) both; }
-    .hud-toast.is-exiting .brand-badge { animation: badge-contract-out 330ms 245ms cubic-bezier(.55, 0, .85, .35) both; }
-    .hud-toast.is-exiting .badge-outer { animation: ring-accelerate-out 310ms 235ms cubic-bezier(.55, 0, .85, .35) both; }
-    .hud-toast.is-exiting .badge-orbit { animation: ring-accelerate-out-reverse 310ms 235ms cubic-bezier(.55, 0, .85, .35) both; }
-    .hud-toast.is-exiting .badge-particles { animation: particle-collapse-out 290ms 245ms cubic-bezier(.55, 0, .85, .35) both; }
-    .hud-toast.is-exiting .panel-shell { animation: panel-glass-out 420ms 170ms cubic-bezier(.55, 0, .85, .35) both; }
-    .hud-toast.is-exiting .energy-sweep { animation: energy-sweep-out 310ms 190ms cubic-bezier(.3, .6, .4, 1) both; }
-    .hud-toast.is-exiting .panel-trace { animation: trace-layer-out 300ms 350ms linear both; }
-    .hud-toast.is-exiting .panel-trace path { animation: perimeter-trace-out 300ms 350ms cubic-bezier(.55, 0, .85, .35) both; }
-
-    @keyframes copy-char-out { from { opacity: 1; transform: none; clip-path: inset(0); } to { opacity: 0; transform: translate3d(0, -10px, 0); clip-path: inset(0 0 100%); } }
-    @keyframes element-retract { from { opacity: 1; transform: none; } to { opacity: 0; transform: scale(.72); } }
-    @keyframes close-retract { from { opacity: 1; transform: rotate(0) scale(1); } to { opacity: 0; transform: rotate(32deg) scale(.62); } }
-    @keyframes line-collapse-out { from { opacity: 1; transform: scaleX(1); } to { opacity: 0; transform: scaleX(0); } }
-    @keyframes divider-collapse-out { from { opacity: 1; transform: scaleY(1); } to { opacity: 0; transform: scaleY(0); } }
-    @keyframes status-collapse-out { from { opacity: 1; transform: scale(1); } to { opacity: 0; transform: scale(.45); } }
-    @keyframes badge-contract-out { 0% { opacity: 1; transform: translateY(-50%) scale(1); } 38% { opacity: 1; transform: translateY(-50%) scale(1.025); } 100% { opacity: 0; transform: translateY(-50%) scale(.22); } }
-    @keyframes ring-accelerate-out { from { opacity: .46; transform: rotate(0) scale(1); } to { opacity: 0; transform: rotate(155deg) scale(.3); } }
-    @keyframes ring-accelerate-out-reverse { from { opacity: 1; transform: rotate(0) scale(1); } to { opacity: 0; transform: rotate(-185deg) scale(.3); } }
-    @keyframes particle-collapse-out { from { opacity: 1; transform: rotate(0) scale(1); } to { opacity: 0; transform: rotate(95deg) scale(.18); } }
-    @keyframes panel-glass-out { 0%, 22% { opacity: 1; transform: scale(1); } 100% { opacity: 0; transform: scale(.985); } }
-    @keyframes energy-sweep-out { 0% { opacity: 0; transform: translate3d(-140%, 0, 0); } 44% { opacity: .72; } 100% { opacity: 0; transform: translate3d(140%, 0, 0); } }
-    @keyframes trace-layer-out { from { opacity: 1; } to { opacity: 0; } }
-    @keyframes perimeter-trace-out { from { stroke-dashoffset: 0; } to { stroke-dashoffset: -1; } }
 
     .hud-toast.is-visible .badge-arc { animation: none; }
 
     @media (max-width: 1180px), (max-height: 660px) {
-      :root { --toast-width: min(960px, calc(100vw - 12vw)); --badge-size: 220px; --panel-height: 268px; }
-      .panel-shell { border-radius: 92px 22px 22px 92px; }
-      .panel-content { grid-template-rows: 56px 1fr 80px; }
-      .brand-badge { left: 24px; }
-      .hud-header { padding-left: 250px; padding-right: 24px; }
-      .hud-body { padding-left: 250px; padding-right: 28px; }
-      .hud-footer { padding-left: 200px; padding-right: 28px; }
-      .alert-progress { right: 28px; left: 200px; }
+      :root { --toast-width: min(960px, calc(100vw - 15vw)); --badge-size: 214px; --panel-height: 272px; --panel-radius: 48px; }
+      .hud-toast { top: 50%; left: 50%; }
+      .panel-shell { border-radius: 104px 48px 48px 104px; }
+      .panel-content { grid-template-rows: 62px 1fr 70px; }
+      .brand-badge { left: 27px; }
+      .hud-header { padding-left: 240px; padding-right: 28px; transform: translateY(8px); }
+      .hud-body { grid-template-columns: 78px 1px minmax(0, 1fr); gap: 20px; padding: 2px 34px 15px 240px; }
+      .hud-body::before { height: 72px; }
+      .event-icon-shell { width: 78px; height: 78px; }
+      .event-icon-shell svg { width: 66px; height: 66px; }
+      .event-title { font-size: clamp(23px, 3vw, 30px); }
+      .event-message { font-size: 16px; }
+      .hud-footer { padding-left: 190px; padding-right: 36px; }
+      .hud-footer::before { left: 174px; }
+      .waveform { margin-left: 24px; }
+      .spoken-line { margin-left: 26px; font-size: 15px; }
     }
 
     @media (max-width: 720px) {
-      :root { --toast-width: calc(100vw - 28px); --badge-size: 150px; --panel-height: 232px; }
-      .panel-shell { border-radius: 56px 20px 20px 56px; }
-      .panel-content { grid-template-rows: 48px 1fr 70px; }
-      .brand-badge { left: 10px; }
-      .hud-header, .hud-body { padding-left: 178px; }
-      .hud-header { padding-right: 14px; }
-      .hud-body { padding-right: 18px; gap: 16px; }
+      :root { --toast-width: calc(100vw - 28px); --badge-size: 148px; --panel-height: 246px; --panel-radius: 34px; }
+      .brand-badge { left: 8px; }
+      .panel-content { grid-template-rows: 52px 1fr 62px; }
+      .hud-header, .hud-body { padding-left: 166px; }
+      .hud-header { padding-right: 14px; transform: translateY(3px); }
+      .brand-name { font-size: 13px; letter-spacing: .22em; }
+      .hud-body { grid-template-columns: 56px minmax(0, 1fr); gap: 14px; padding-right: 18px; }
       .hud-body::before { display: none; }
-      .event-icon-shell { width: 44px; height: 44px; }
-      .event-icon-shell svg { width: 22px; height: 22px; }
-      .event-title { font-size: clamp(18px, 4vw, 24px); }
+      .event-icon-shell { width: 56px; height: 56px; }
+      .event-copy { grid-column: 2; }
+      .event-icon-shell svg { width: 30px; height: 30px; }
+      .event-title { font-size: clamp(16px, 4vw, 23px); }
       .event-message { font-size: 13px; }
-      .hud-footer { gap: 14px; padding-left: 24px; padding-right: 18px; }
-      .alert-progress { right: 18px; left: 24px; }
+      .hud-footer { gap: 10px; padding-left: 22px; padding-right: 20px; }
+      .hud-footer::before { left: 0; }
+      .waveform, .spoken-line { margin-left: 0; }
+      .panel-shell { border-radius: 62px 34px 34px 62px; }
     }
 
     @media (max-width: 480px) {
-      :root { --badge-size: 110px; --panel-height: 220px; }
-      .panel-shell { border-radius: 44px 18px 18px 44px; }
-      .hud-header, .hud-body { padding-left: 130px; }
-      .hud-body { gap: 12px; }
-      .event-icon-shell { width: 40px; height: 40px; }
-      .event-icon-shell svg { width: 20px; height: 20px; }
-      .event-title { font-size: 17px; }
-      .event-message { font-size: 12px; }
-      .hud-footer { padding-left: 20px; padding-right: 14px; }
+      :root { --badge-size: 106px; --panel-height: 236px; --panel-radius: 26px; }
+      .brand-badge { left: 5px; }
+      .hud-header, .hud-body { padding-left: 120px; }
+      .brand-name { font-size: 11px; letter-spacing: .18em; }
+      .hud-body { grid-template-columns: 44px minmax(0, 1fr); gap: 10px; }
+      .event-icon-shell { width: 44px; height: 44px; }
+      .event-title { font-size: 15px; }
+      .spoken-line { font-size: 10px; }
     }
 
     @media (prefers-reduced-motion: reduce) {
@@ -1367,6 +1286,7 @@
       .hud-toast.is-entering .badge-orbit,
       .hud-toast.is-entering .badge-arc,
       .hud-toast.is-entering .badge-particles,
+      .hud-toast.is-entering .brand-badge::before,
       .hud-toast.is-entering .brand-badge::after,
       .hud-toast.is-entering .badge-mark path,
       .hud-toast.is-entering .brand-name,
@@ -1610,42 +1530,48 @@
       --dot-glow: .2;
     }
     .hud-toast[data-severity="info"] {
-      --severity-border: .22;
-      --severity-energy: .32;
+      --severity-border: .51;
+      --severity-energy: .48;
       --severity-cycle: 36s;
-      --progress-opacity: .28;
+      --particle-cycle: 26s;
+      --progress-opacity: .41;
+      --dot-glow: .15;
     }
     .hud-toast[data-severity="warning"] {
-      --severity-border: .38;
-      --severity-energy: .56;
+      --severity-border: .61;
+      --severity-energy: .68;
       --severity-cycle: 27s;
-      --progress-opacity: .36;
+      --particle-cycle: 20s;
+      --progress-opacity: .47;
+      --dot-glow: .22;
     }
     .hud-toast[data-severity="critical"] {
-      --severity-border: .6;
-      --severity-energy: .78;
+      --severity-border: .72;
+      --severity-energy: .92;
       --severity-cycle: 18s;
-      --progress-opacity: .44;
+      --particle-cycle: 13s;
+      --progress-opacity: .52;
+      --dot-glow: .3;
     }
     .hud-toast[data-severity] .panel-shell {
       border-color: rgba(var(--ion-rgb), var(--severity-border));
     }
-    .hud-layer[data-severity="info"] .screen-overlay::before { opacity: .55; }
-    .hud-layer[data-severity="warning"] .screen-overlay::before { opacity: .7; }
-    .hud-layer[data-severity="critical"] .screen-overlay::before { opacity: .9; }
-    .hud-layer[data-severity="critical"] .screen-overlay::after { opacity: .18; }
+    .hud-layer[data-severity="info"] .screen-overlay::before { opacity: .72; }
+    .hud-layer[data-severity="warning"] .screen-overlay::before { opacity: .86; }
+    .hud-layer[data-severity="critical"] .screen-overlay::before { opacity: 1; }
+    .hud-layer[data-severity="critical"] .screen-overlay::after { opacity: .24; }
 
     .event-meta {
       display: flex;
       align-items: center;
-      gap: 10px;
-      max-width: 640px;
-      margin-top: 14px;
-      color: var(--ion-text-tertiary);
-      font-family: "Segoe UI Variable Text", "Segoe UI", system-ui, sans-serif;
+      gap: 9px;
+      max-width: 650px;
+      margin-top: 13px;
+      color: var(--text-tertiary);
+      font-family: "Segoe UI Variable Text", "Segoe UI", sans-serif;
       font-size: 10px;
-      font-weight: 500;
-      letter-spacing: .14em;
+      font-weight: 620;
+      letter-spacing: .13em;
       line-height: 1;
       text-transform: uppercase;
       white-space: nowrap;
@@ -1654,36 +1580,37 @@
       display: inline-flex;
       align-items: center;
       gap: 7px;
-      padding: 4px 9px;
-      border: 1px solid var(--ion-border);
+      padding: 5px 8px;
+      border: 1px solid rgba(var(--ion-rgb), .11);
       border-radius: 999px;
-      color: var(--ion-text-secondary);
-      background: rgba(var(--ion-rgb), 0.04);
+      color: rgba(200, 230, 208, .78);
+      background: linear-gradient(180deg, rgba(var(--ion-rgb), .035), rgba(var(--ion-rgb), .012));
     }
     .signal-readout i {
-      width: 5px;
-      height: 5px;
-      flex: 0 0 5px;
-      border: 1px solid rgba(var(--ion-rgb), 0.7);
+      width: 6px;
+      height: 6px;
+      flex: 0 0 6px;
+      border: 1px solid rgba(var(--ion-rgb), .74);
       border-radius: 50%;
-      background: rgba(var(--ion-rgb), 0.6);
+      background: rgba(var(--ion-rgb), .58);
+      box-shadow: 0 0 7px rgba(var(--ion-rgb), var(--dot-glow));
     }
     .meta-divider {
       width: 1px;
-      height: 9px;
-      background: var(--ion-border);
+      height: 10px;
+      background: rgba(var(--ion-rgb), .18);
     }
-    .event-source { color: var(--ion-text-tertiary); }
+    .event-source { color: #818d85; }
     .event-time {
       margin-left: auto;
-      color: var(--ion-text-tertiary);
+      color: rgba(173, 194, 180, .58);
       font-variant-numeric: tabular-nums;
-      letter-spacing: .1em;
+      letter-spacing: .09em;
     }
-    .hud-toast[data-severity="critical"] .signal-readout { color: var(--ion-text); }
+    .hud-toast[data-severity="critical"] .signal-readout { color: rgba(210, 239, 216, .84); }
     .hud-toast[data-severity="critical"] .signal-readout i {
-      background: var(--ion-green-bright);
-      border-color: var(--ion-green-bright);
+      background: var(--ion-bright);
+      box-shadow: 0 0 4px rgba(var(--ion-rgb), .72), 0 0 12px rgba(var(--ion-rgb), .28);
     }
 
     .alert-progress {
@@ -1695,26 +1622,25 @@
       height: 1px;
       overflow: hidden;
       opacity: 0;
-      background: var(--ion-border);
+      background: rgba(var(--ion-rgb), .055);
       pointer-events: none;
     }
     .alert-progress::after {
       content: "";
       position: absolute;
       inset: 0;
-      background: linear-gradient(90deg, transparent, rgba(var(--ion-rgb), 0.6) 8%, rgba(var(--ion-rgb), 0.35) 78%, transparent);
+      background: linear-gradient(90deg, transparent, rgba(var(--ion-rgb), .72) 8%, rgba(var(--ion-rgb), .44) 78%, transparent);
       transform: scaleX(1);
       transform-origin: left center;
+      box-shadow: 0 0 7px rgba(var(--ion-rgb), .2);
     }
     .hud-toast.is-visible .alert-progress { opacity: var(--progress-opacity); }
     .hud-toast.is-visible .alert-progress::after { animation: alert-dwell 5s linear both; }
     .hud-toast.is-entering .event-meta { animation: meta-readout-in 280ms 810ms var(--ion-spring) both; }
     .hud-toast.is-exiting .event-meta { animation: meta-readout-out 150ms 20ms cubic-bezier(.55, 0, .85, .35) both; }
-    /* Idle motion is restricted to one slow breath on the panel inner
-       highlight, and only the badge orbit rotates — no particles, no
-       critical pulses, no header packets. */
-    .hud-toast.is-visible .badge-orbit { animation: badge-idle-reverse var(--severity-cycle) linear infinite; }
-    .hud-toast.is-visible .panel-shell::before { animation: panel-ambient-breathe 9s ease-in-out infinite; }
+    /* Idle motion is restricted to one 6s opacity breath on the panel inner
+       highlight. The brief explicitly bans continuous 360deg rotation. */
+    .hud-toast.is-visible .panel-shell::before { animation: panel-ambient-breathe 6s ease-in-out infinite; }
 
     @keyframes meta-readout-in {
       from { opacity: 0; transform: translate3d(0, 7px, 0); clip-path: inset(100% 0 0); }
@@ -1725,8 +1651,6 @@
       to { opacity: 0; transform: translate3d(0, -5px, 0); }
     }
     @keyframes alert-dwell { from { transform: scaleX(1); } to { transform: scaleX(0); } }
-    @keyframes badge-idle-forward { to { transform: rotate(360deg); } }
-    @keyframes badge-idle-reverse { to { transform: rotate(-360deg); } }
     @keyframes panel-ambient-breathe { 0%, 100% { opacity: .72; } 50% { opacity: 1; } }
     @keyframes header-signal-packet {
       0%, 12% { opacity: 0; transform: translateX(0); }
@@ -1848,9 +1772,6 @@
         </div>
         <span class="alert-progress" aria-hidden="true"></span>
       </div>
-      <svg class="panel-trace" viewBox="0 0 1220 370" preserveAspectRatio="none" aria-hidden="true">
-        <path pathLength="1" d="M138 1 H1158 A61 61 0 0 1 1219 62 V308 A61 61 0 0 1 1158 369 H138 A137 137 0 0 1 1 232 V138 A137 137 0 0 1 138 1 Z"></path>
-      </svg>
 
       <div class="brand-badge" aria-hidden="true">
         <svg class="badge-svg" viewBox="0 0 240 240" role="img" aria-label="Ion Sense brand mark">
@@ -2136,41 +2057,12 @@
         if (nextState === "active" || nextState === "speaking") startVisualizerLoop();
       }
 
+      /* Sets a node's text content. No per-character split: the title and
+         message each fade in as a single block via the .is-entering rules. */
       function setStaggeredText(node, text) {
-        const value = String(text);
-        const words = value.split(/(\s+)/);
-        const visibleCharacters = Array.from(value).filter((character) => !/\s/.test(character));
-        let characterIndex = 0;
-        const fragment = document.createDocumentFragment();
-
         node.removeAttribute("aria-label");
         node.setAttribute("aria-hidden", "true");
-        words.forEach((word) => {
-          if (/^\s+$/.test(word)) {
-            const spaceNode = document.createElement("span");
-            spaceNode.setAttribute("aria-hidden", "true");
-            spaceNode.textContent = word;
-            fragment.appendChild(spaceNode);
-            return;
-          }
-          if (!word) return;
-
-          const wordNode = document.createElement("span");
-          wordNode.className = "text-word";
-          wordNode.setAttribute("aria-hidden", "true");
-          Array.from(word).forEach((character) => {
-            const charNode = document.createElement("span");
-            const reverseIndex = visibleCharacters.length - characterIndex - 1;
-            charNode.className = "text-char";
-            charNode.textContent = character;
-            charNode.style.setProperty("--char-in-delay", `${Math.min(160, characterIndex * 5)}ms`);
-            charNode.style.setProperty("--char-out-delay", `${Math.min(120, reverseIndex * 3)}ms`);
-            wordNode.appendChild(charNode);
-            characterIndex += 1;
-          });
-          fragment.appendChild(wordNode);
-        });
-        node.replaceChildren(fragment);
+        node.textContent = String(text);
       }
 
       function normalizeEvent(candidate) {

@@ -2,20 +2,66 @@
 
 ## Product character
 
-ION Sense is a quiet desktop awareness utility: premium system software first, futuristic instrumentation second. Interfaces stay compact, legible, and calm. Green communicates activity and focus; it is never used as a full-screen decorative fill.
+ION Sense is a quiet desktop awareness utility: premium system software first, futuristic instrumentation second. The interface should feel approximately 50% Apple/macOS, 30% ION identity, 20% Iron Man/JARVIS. When idle, almost nothing moves. When something happens, ION wakes up, expresses itself briefly, then settles back down. Future technology should look effortless, not theatrical.
 
 ## Core tokens
 
-- Accent: `#43F28A`; bright linework: `#62F69B`; accent RGB: `67, 242, 138`.
+- Accent: `#45EE86`; bright linework: `#65F59B`; accent RGB: `69, 238, 134`.
 - Primary text: `#ECF4EE`; secondary text: `rgba(220, 232, 224, 0.66)`; tertiary text: `rgba(190, 205, 196, 0.42)`.
-- Base surfaces: `#030605`, `#040A06`, `#080B0A`.
-- Hairline: `rgba(207, 244, 216, 0.09)`; active hairline: `rgba(67, 242, 138, 0.32)`.
+- Base surfaces: `#030605`, `#050807`, `#070A08`.
+- Hairline: `rgba(207, 244, 216, 0.09)`; active hairline: `rgba(69, 238, 134, 0.32)`.
 - UI font: Inter (preferred) with Segoe UI Variable Text and Segoe UI fallbacks.
 - Display font: Inter (preferred) with Segoe UI Variable Display fallback.
 - Spacing rhythm: 4, 8, 12, 16, 20, 24, 32, 40, 48 pixels.
 - Control height: 42–46 pixels where space allows; no interactive target below 40 pixels.
+- Corner radii: small controls 8–10px, inputs/buttons 10–12px, detector sections 14–16px, main windows 20–28px. Use pills only for status badges and metadata.
 
 ## Material and depth
+
+- Dark translucent charcoal surfaces (`rgba(8, 14, 10, 0.86)` and similar).
+- 1px hairline border. No glowing thick outlines.
+- 1px inset top highlight on raised surfaces.
+- Soft outer shadow; no multi-drop-shadow filter chains.
+- Subtle backdrop blur (12–14px) on raised surfaces only.
+- Optional very subtle green tint near active components (≤ 32% alpha on borders).
+- Do not outline every object in bright green. Reserve green for active states, alerts, the ION core, primary actions, the live indicator.
+
+## Motion system
+
+- Micro interaction: 150–160ms.
+- Controls: 200ms with `--ion-spring` (cubic-bezier(.2, .7, .2, 1) — no overshoot).
+- Panels and view transitions: 200–320ms.
+- HUD entrance: 360ms (opacity 0→1, translateY 5px→0, scale 0.985→1).
+- HUD exit: 200ms (opacity 1→0, translateY 0→-3px, scale 1→0.992).
+- Settings window entrance: 320ms on the shell only (no per-child stagger).
+- Save success: 700ms swap to a small check + "SAVED", then revert. No radial flash, no bounce.
+- Live indicator: 2.4s opacity 0.55↔1, no scale wobble, no glow.
+- Monitor core: ~1% breath on a 6s cycle; one short arc travelling 10–20 degrees. No continuous 360° rotation.
+- Toggles: thumb translateX only, 200ms `--ion-spring`, no overshoot, no halo.
+- Buttons: press `scale(0.985)` for 100ms. No Y-translate on hover. No elastic bounce.
+- Easing: one curve (`--ion-spring: cubic-bezier(.2, .7, .2, 1)`). No overshoot, no `cubic-bezier(.22, 1.16, .36, 1)`, no `cubic-bezier(.2, .85, .3, 1.15)`.
+- For glow: use pseudo-elements and animate opacity. Do not animate `box-shadow`, `filter`, or `backdrop-filter`.
+
+## Performance and idle state
+
+- Target 60 FPS. Animate `transform` and `opacity` only.
+- Avoid continuously animating: blur, large box shadows, background filters, huge gradients.
+- Most of the interface should be black/dark neutral. Most pixels should not move.
+- Respect `prefers-reduced-motion: reduce`. All new animations have a reduced-motion fallback.
+
+## Forbidden patterns
+
+- Spinning circles, continuous 360° rotation, radar sweeps, scan lines.
+- Strong pulsing, bounce easing, elastic easing.
+- Giant green borders, glowing every card, nested card-in-card.
+- Excessively rounded pills on non-pill elements.
+- Random grid backgrounds, particle clouds, fake data, hexagons.
+- RGB-looking bloom, long stagger delays, giant gradients, floating decorations.
+- Per-character text reveal, per-element entrance choreography on the alert HUD or settings window.
+- Radial flash on save success, click-through-goes-through-redirect, hover translateY, rotate on hover.
+
+## Material and depth (legacy)
+
 
 - Use smoked black-green glass with restrained radial green reflections.
 - Borders stay one physical pixel. Depth comes from inner highlights and low-opacity shadow layers, never from thick neon outlines.

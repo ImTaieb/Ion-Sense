@@ -6,7 +6,20 @@
   <meta name="color-scheme" content="dark">
   <title>Ion Sense Settings</title>
   <style>
-    /* (token cascade consolidated below) */
+    /* Authoritative design tokens. The pre-existing :root (line ~900) is
+       the consolidated layer; the legacy aliases below keep older rules
+       resolving. */
+    :root {
+      --ion: #45ee86;
+      --ion-rgb: 69, 238, 134;
+      --panel: rgba(8, 14, 10, 0.86);
+      --line: rgba(207, 244, 216, 0.09);
+      --text: #ecf4ee;
+      --muted: rgba(220, 232, 224, 0.66);
+      color: var(--text);
+      background: #030605;
+      font-family: "Inter", "Segoe UI Variable Text", "Segoe UI", system-ui, -apple-system, sans-serif;
+    }
     * { box-sizing: border-box; }
     body { min-height: 100vh; margin: 0; }
     button, input, select { font: inherit; }
@@ -36,10 +49,9 @@
     .switch input:focus-visible + .track { outline: 2px solid var(--ion); outline-offset: 3px; }
     .hint { margin: 8px 0 0; font-size: 10px; }
     .credential-row { display: grid; grid-template-columns: 1fr auto; gap: 8px; align-items: end; }
-    button { min-height: 38px; padding: 0 14px; color: #b9c5bd; border: 1px solid rgba(181,203,188,.17); border-radius: 9px; background: #0b130e; cursor: pointer; transition: .14s ease; }
-    button:hover { color: var(--ion); border-color: rgba(var(--ion-rgb), .46); background: rgba(var(--ion-rgb), .07); }
-    button.primary { color: #041007; border-color: var(--ion); background: var(--ion); font-weight: 750; box-shadow: 0 0 13px rgba(var(--ion-rgb), .2); }
-    button.primary:hover { color: #020904; background: #74ff91; }
+    /* The comprehensive button.primary lives further down; c922804-era
+       green glow variants removed (brief: no giant glow on the save button). */
+
     .status-dot { display: inline-block; width: 6px; height: 6px; margin-right: 5px; border-radius: 50%; background: #677168; }
     .status-dot.saved { background: var(--ion); box-shadow: 0 0 7px rgba(var(--ion-rgb), .7); }
     .dev-grid { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 7px; }
@@ -49,8 +61,16 @@
     code { color: #b7ffc7; font-family: ui-monospace, monospace; }
     [hidden] { display: none !important; }
     @media (max-width: 600px) { .shell { padding: 20px 15px 34px; } .grid { grid-template-columns: 1fr; } .span-2 { grid-column: auto; } .dev-grid { grid-template-columns: repeat(2, 1fr); } }
-    /* The original 3-token cascade is consolidated into the single
-       design-system layer that starts at the third `:root` below. */
+    /* Unified Ion Sense control-surface refresh. */
+    :root {
+      --ion: #53ff6b;
+      --ion-rgb: 83, 255, 107;
+      --panel: rgba(3, 11, 7, .92);
+      --panel-2: rgba(6, 17, 10, .86);
+      --line: rgba(144, 255, 112, .14);
+      --text: #f3f7f4;
+      --muted: #98a39c;
+    }
     html { min-height: 100%; background: transparent; }
     body {
       position: relative;
@@ -483,8 +503,6 @@
         rgba(3,10,6,.91);
       box-shadow: inset 0 1px rgba(255,255,255,.028), 0 12px 28px rgba(0,0,0,.16);
       transition: transform 190ms cubic-bezier(.16,1,.3,1), border-color 190ms ease, box-shadow 190ms ease, background 190ms ease;
-      animation: card-enter 360ms cubic-bezier(.16,1,.3,1) both;
-      animation-delay: calc(60ms + var(--card-index, 0) * 38ms);
     }
     section.settings-card:nth-child(1) { --card-index: 0; }
     section.settings-card:nth-child(2) { --card-index: 1; }
@@ -507,26 +525,26 @@
     input[type="number"] {
       min-height: 44px;
       padding: 10px 12px;
-      color: #eef4ef;
-      border: 1px solid rgba(176,205,185,.14);
-      border-radius: 11px;
-      background: linear-gradient(180deg, rgba(0,3,2,.86), rgba(1,7,4,.82));
-      box-shadow: inset 0 1px rgba(255,255,255,.018);
+      color: var(--ion-text);
+      border: 1px solid var(--ion-border);
+      border-radius: 10px;
+      background: rgba(0, 4, 2, 0.6);
+      box-shadow: inset 0 1px rgba(255, 255, 255, 0.025);
       font-size: 12px;
-      transition: border-color 170ms ease, box-shadow 170ms ease, background 170ms ease, opacity 170ms ease;
+      transition: border-color 170ms var(--ion-spring), background 170ms var(--ion-spring), opacity 170ms ease;
     }
-    input:hover:not(:disabled) { border-color: rgba(var(--ion-rgb),.27); background: rgba(2,10,6,.94); }
-    input:focus { border-color: rgba(var(--ion-rgb),.62); box-shadow: 0 0 0 3px rgba(var(--ion-rgb),.065), inset 0 1px rgba(255,255,255,.025); }
-    input:user-invalid { border-color: rgba(255,105,105,.66); box-shadow: 0 0 0 3px rgba(255,90,90,.065); }
-    input:disabled { cursor: not-allowed; opacity: .46; }
-    input::placeholder { color: #536159; opacity: .84; }
+    input:hover:not(:disabled) { border-color: var(--ion-border-active); }
+    input:focus { border-color: var(--ion); outline: none; }
+    input:user-invalid { border-color: rgba(255, 105, 105, 0.66); }
+    input:disabled { cursor: not-allowed; opacity: 0.46; }
+    input::placeholder { color: var(--ion-text-tertiary); }
     .hint { margin-top: 9px; color: #859189; font-size: 10.5px; line-height: 1.45; }
     .switch { gap: 8px; padding-right: 30px; color: #9ea9a1; font-size: 10px; font-weight: 650; letter-spacing: .08em; }
-    .track { width: 40px; height: 22px; border-color: rgba(181,203,188,.18); background: rgba(0,3,2,.86); box-shadow: inset 0 1px 3px rgba(0,0,0,.55); transition: background 180ms ease, border-color 180ms ease, box-shadow 180ms ease; }
-    .track::after { top: 2px; left: 2px; width: 16px; height: 16px; background: #69746c; box-shadow: 0 1px 4px rgba(0,0,0,.45); transition: transform 180ms cubic-bezier(.22,1.16,.36,1), background 180ms ease, box-shadow 180ms ease; }
-    .switch input:checked + .track { border-color: rgba(var(--ion-rgb),.48); background: rgba(var(--ion-rgb),.09); box-shadow: inset 0 0 9px rgba(var(--ion-rgb),.045); }
-    .switch input:checked + .track::after { left: 2px; transform: translateX(18px); background: #55f36a; box-shadow: 0 0 8px rgba(var(--ion-rgb),.36); }
-    .switch input:focus-visible + .track { outline: 2px solid rgba(var(--ion-rgb),.82); outline-offset: 3px; }
+    .track { width: 40px; height: 22px; border-color: rgba(181,203,188,.18); background: rgba(0,3,2,.86); box-shadow: inset 0 1px 3px rgba(0,0,0,.55); transition: background 200ms var(--ion-spring), border-color 200ms var(--ion-spring); }
+    .track::after { top: 2px; left: 2px; width: 16px; height: 16px; background: #69746c; box-shadow: 0 1px 4px rgba(0,0,0,.45); transition: transform 200ms var(--ion-spring), background 200ms var(--ion-spring); }
+    .switch input:checked + .track { border-color: rgba(var(--ion-rgb),.32); background: rgba(var(--ion-rgb),.06); box-shadow: none; }
+    .switch input:checked + .track::after { transform: translateX(18px); background: var(--ion); box-shadow: none; }
+    .switch input:focus-visible + .track { outline: 2px solid var(--ion); outline-offset: 3px; }
     .credential-row { gap: 9px; }
     button { min-height: 42px; padding: 0 15px; border-radius: 10px; font-size: 10px; transition: transform 160ms cubic-bezier(.16,1,.3,1), color 160ms ease, border-color 160ms ease, background 160ms ease, box-shadow 160ms ease; }
     button:hover:not(:disabled) { transform: translateY(-1px); border-color: rgba(var(--ion-rgb),.35); box-shadow: 0 9px 20px rgba(0,0,0,.18), 0 0 14px rgba(var(--ion-rgb),.045); }
@@ -534,7 +552,7 @@
     button:focus-visible { outline: 2px solid rgba(var(--ion-rgb),.82); outline-offset: 3px; }
     button:disabled { cursor: wait; opacity: .58; }
     .status-dot { width: 6px; height: 6px; }
-    .platform-note { margin: 0; padding: 12px 14px; border: 1px solid rgba(var(--ion-rgb),.10); border-left: 2px solid rgba(var(--ion-rgb),.42); border-radius: 11px; background: rgba(var(--ion-rgb),.022); color: #87938b; font-size: 10px; line-height: 1.45; animation: card-enter 360ms 320ms cubic-bezier(.16,1,.3,1) both; }
+    .platform-note { margin: 0; padding: 12px 14px; border: 1px solid rgba(var(--ion-rgb),.10); border-left: 2px solid rgba(var(--ion-rgb),.42); border-radius: 11px; background: rgba(var(--ion-rgb),.022); color: #87938b; font-size: 10px; line-height: 1.45; }
     .actions {
       position: relative;
       inset: auto;
@@ -587,48 +605,35 @@
       min-height: 46px;
       overflow: hidden;
       color: #041008;
-      border: 1px solid rgba(120, 255, 139, 0.55);
+      border: 1px solid rgba(101, 245, 155, 0.55);
       border-radius: 12px;
-      background: linear-gradient(135deg, var(--ion-green-bright), var(--ion-green));
-      box-shadow:
-        inset 0 1px 0 rgba(255, 255, 255, 0.32),
-        0 6px 18px rgba(33, 168, 54, 0.14);
+      background: var(--ion-green);
+      box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.18);
+      font-family: inherit;
       font-size: 11px;
       font-weight: 650;
       letter-spacing: 0.04em;
+      cursor: pointer;
       transition:
-        transform var(--ion-motion-fast) var(--ion-spring),
-        box-shadow var(--ion-motion-fast) var(--ion-spring),
-        background var(--ion-motion-fast) var(--ion-spring);
+        background 160ms var(--ion-spring),
+        border-color 160ms var(--ion-spring),
+        transform 100ms var(--ion-spring);
     }
     button.primary::before { content: none; }
     button.primary:hover:not(:disabled) {
-      color: #020904;
-      background: linear-gradient(135deg, #74ff8e, #4ce46a);
-      box-shadow:
-        inset 0 1px 0 rgba(255, 255, 255, 0.42),
-        0 8px 22px rgba(38, 205, 64, 0.18);
-      transform: translateY(-1px);
+      background: var(--ion-green-bright);
+      border-color: rgba(101, 245, 155, 0.7);
     }
-    button.primary:active:not(:disabled) {
-      transform: scale(0.985);
+    button.primary:active:not(:disabled) { transform: scale(0.985); }
+    button.primary:focus-visible {
+      outline: 2px solid var(--ion);
+      outline-offset: 3px;
     }
     .button-label {
       display: inline-flex;
       align-items: center;
-      gap: 8px;
-      transition: opacity var(--ion-motion-fast) var(--ion-spring),
-                  transform var(--ion-motion-fast) var(--ion-spring);
-    }
-    button.primary .button-label[hidden] { display: none; }
-    button.primary[data-state="saved"] .button-label[data-label="idle"] { display: none; }
-    button.primary[data-state="saved"] .button-label[data-label="saved"] {
-      display: inline-flex;
-      animation: button-saved-in 320ms var(--ion-spring) both;
-    }
-    @keyframes button-saved-in {
-      from { opacity: 0; transform: translateY(3px); }
-      to   { opacity: 1; transform: none; }
+      gap: 6px;
+      transition: opacity 160ms var(--ion-spring), transform 160ms var(--ion-spring);
     }
     .button-progress {
       position: absolute;
@@ -639,39 +644,26 @@
       border-top-color: #031006;
       border-radius: 50%;
     }
-    form[aria-busy="true"] button.primary .button-label { opacity: 0; transform: translateY(4px); }
+    form[aria-busy="true"] button.primary .button-label { opacity: 0; transform: translateY(2px); }
     form[aria-busy="true"] button.primary .button-progress { opacity: 1; animation: status-spin 620ms linear infinite; }
-
-    /* Brief §10: brief confirmation that the save actually committed. The
-       data-state attribute is toggled by JS for ~1.4s after a successful
-       save; the label is swapped to a check + "Saved", then reverts. */
+    /* 700ms saved-state swap (brief §10). No radial flash, no bounce. */
     button.primary[data-state="saved"] {
-      background: linear-gradient(135deg, #4ce66a, #28c44a);
+      background: #2fbf5a;
+      border-color: rgba(101, 245, 155, 0.7);
     }
+    button.primary[data-state="saved"] .button-label[data-label="idle"] { display: none; }
+    button.primary[data-state="saved"] .button-label[data-label="saved"] { display: inline-flex; }
     button.primary[data-state="saved"] .button-label::after {
       content: "";
-      width: 8px;
-      height: 4px;
+      width: 7px;
+      height: 3px;
       border-left: 1.5px solid #041008;
       border-bottom: 1.5px solid #041008;
       transform: rotate(-45deg) translate(1px, -1px);
     }
-    button.primary[data-state="saved"]::after {
-      content: "";
-      position: absolute;
-      inset: 0;
-      background: radial-gradient(120% 60% at 50% 50%, rgba(255, 255, 255, 0.18), transparent 60%);
-      animation: button-saved-flash 1400ms var(--ion-spring) both;
-      pointer-events: none;
-    }
-    @keyframes button-saved-flash {
-      0%   { opacity: 0; }
-      20%  { opacity: 1; }
-      100% { opacity: 0; }
-    }
+    button.primary .button-label[data-label="saved"] { display: none; }
     #dev-tools { border-style: dashed; }
     @keyframes control-enter { from { opacity: 0; transform: translateY(-8px) scale(.99); } to { opacity: 1; transform: none; } }
-    @keyframes card-enter { from { opacity: 0; transform: translateY(9px); } to { opacity: 1; transform: none; } }
     @keyframes status-spin { to { transform: rotate(360deg); } }
     @media (max-width: 700px) {
       .shell { grid-template-rows: 92px minmax(0,1fr); padding: 12px 12px 0; }
@@ -856,97 +848,99 @@
     }
 
     .utility-overview {
-      grid-template-rows: 52px minmax(0, 1fr) 60px;
-      border-radius: var(--radius-window);
+      grid-template-rows: 54px minmax(0, 1fr) 64px;
+      border-radius: 15px;
       background: transparent;
     }
     .utility-topbar {
       display: grid;
-      grid-template-columns: 28px minmax(0, 1fr) auto;
+      grid-template-columns: 30px minmax(0, 1fr) auto;
       align-items: center;
       gap: 10px;
-      padding: 0 16px;
-      border-bottom: 1px solid var(--ion-border);
-      background: rgba(255, 255, 255, 0.012);
+      padding: 0 14px;
+      border-bottom: 1px solid rgba(255,255,255,.065);
+      background: rgba(255,255,255,.012);
     }
     .utility-app-icon {
       position: relative;
       display: grid;
       place-items: center;
-      width: 26px;
-      height: 26px;
-      color: var(--ion-green);
-      border: 1px solid var(--ion-border-active);
-      border-radius: 7px;
-      background: rgba(var(--ion-rgb), 0.05);
-      font: 650 13px/1 ui-monospace, monospace;
-      box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.04);
+      width: 28px;
+      height: 28px;
+      color: var(--ion);
+      border: 1px solid rgba(var(--ion-rgb),.35);
+      border-radius: 8px;
+      background: rgba(var(--ion-rgb),.045);
+      font: 750 14px/1 ui-monospace, monospace;
+      box-shadow: inset 0 1px rgba(255,255,255,.035), 0 0 12px rgba(var(--ion-rgb),.045);
     }
-    .utility-app-name { color: var(--ion-text); font-size: 11px; font-weight: 600; letter-spacing: .08em; }
-    .utility-app-name small { display: block; margin-top: 2px; color: var(--ion-text-tertiary); font-size: 9px; font-weight: 500; letter-spacing: .12em; text-transform: uppercase; }
+    .utility-app-name { color: #edf3ef; font-size: 11px; font-weight: 680; letter-spacing: .08em; }
+    .utility-app-name small { display: block; margin-top: 1px; color: #6f7b73; font-size: 8px; font-weight: 550; letter-spacing: .05em; }
     .utility-live {
       display: inline-flex;
       align-items: center;
       gap: 6px;
-      color: var(--ion-text-secondary);
-      font: 600 9px/1 ui-monospace, monospace;
-      letter-spacing: .14em;
+      color: #9eaaa2;
+      font: 650 8px/1 ui-monospace, monospace;
+      letter-spacing: .12em;
       text-transform: uppercase;
     }
     .utility-live::before {
       content: "";
-      width: 5px;
-      height: 5px;
+      width: 6px;
+      height: 6px;
       border-radius: 50%;
-      background: var(--ion-green);
-      animation: live-breathe 2.6s ease-in-out infinite;
+      background: var(--ion);
+      box-shadow: 0 0 8px rgba(var(--ion-rgb),.55);
+      animation: live-breathe 2.2s ease-in-out infinite;
     }
     .utility-status {
-      gap: 14px;
-      padding: 22px 22px 18px;
+      gap: 16px;
+      padding: 24px 24px 20px;
       background:
-        radial-gradient(circle at 50% 38%, rgba(var(--ion-rgb), 0.06), transparent 38%),
-        linear-gradient(180deg, rgba(255, 255, 255, 0.012), transparent 32%);
+        radial-gradient(circle at 50% 38%, rgba(var(--ion-rgb), .075), transparent 35%),
+        linear-gradient(180deg, rgba(255,255,255,.008), transparent 32%);
     }
-    .utility-status > .eyebrow { margin-bottom: -4px; color: var(--ion-text-tertiary); font-size: 9px; letter-spacing: .22em; }
+    .utility-status > .eyebrow { margin-bottom: -6px; color: #76827a; font-size: 8.5px; letter-spacing: .2em; }
     .utility-mark {
-      width: 84px;
-      height: 84px;
-      border-color: var(--ion-border-active);
-      background: radial-gradient(circle, rgba(var(--ion-rgb), 0.05), rgba(0, 3, 2, 0.94) 70%);
-      box-shadow: inset 0 0 0 6px rgba(var(--ion-rgb), 0.02);
+      width: 98px;
+      height: 98px;
+      border-color: rgba(var(--ion-rgb), .38);
+      background: radial-gradient(circle, rgba(var(--ion-rgb), .08), rgba(0,3,2,.94) 69%);
+      box-shadow: inset 0 0 0 8px rgba(var(--ion-rgb),.016), 0 0 24px rgba(var(--ion-rgb),.075);
     }
     .utility-mark::before,
-    .utility-mark::after { left: 30px; width: 24px; height: 4px; }
-    .utility-mark::before { top: 24px; }
-    .utility-mark::after  { bottom: 24px; }
-    .utility-mark span { width: 4px; height: 30px; }
-    .utility-status h2 { font-size: 22px; font-weight: 600; letter-spacing: -.02em; }
-    .utility-status p { max-width: 280px; margin: -6px 0 0; color: var(--ion-text-secondary); font-size: 12.5px; line-height: 1.55; }
-    .utility-stat { padding: 6px 10px; color: var(--ion-text-secondary); font-size: 9px; letter-spacing: .12em; text-transform: uppercase; background: rgba(var(--ion-rgb), 0.04); border-radius: 999px; }
+    .utility-mark::after { left: 34px; width: 30px; height: 5px; }
+    .utility-mark::before { top: 26px; }
+    .utility-mark::after { bottom: 26px; }
+    .utility-mark span { width: 5px; height: 36px; }
+    .utility-status h2 { font-size: 25px; font-weight: 590; letter-spacing: -.025em; }
+    .utility-status p { max-width: 286px; margin: -7px 0 0; color: #9aa59e; font-size: 12.5px; line-height: 1.5; }
+    .utility-stat { padding: 7px 11px; color: #87938b; font-size: 9px; background: rgba(var(--ion-rgb),.02); }
     .utility-nav {
-      grid-template-columns: 1fr 56px;
-      min-height: 60px;
-      border-top: 1px solid var(--ion-border);
-      background: linear-gradient(180deg, rgba(255, 255, 255, 0.012), transparent);
+      grid-template-columns: 1fr 62px;
+      min-height: 64px;
+      border-top-color: rgba(255,255,255,.075);
+      background: linear-gradient(180deg, #18211c, #141c18);
+      box-shadow: inset 0 1px rgba(255,255,255,.022);
     }
-    .utility-wordmark { padding-left: 16px; font-size: 13px; letter-spacing: .04em; color: var(--ion-text); }
-    .utility-wordmark small { margin-top: 1px; color: var(--ion-text-tertiary); font-size: 8px; letter-spacing: .14em; text-transform: uppercase; }
+    .utility-wordmark { padding-left: 15px; font-size: 14px; letter-spacing: .055em; }
+    .utility-wordmark small { margin-top: 1px; color: #87928b; font-size: 8px; }
     .utility-settings-button {
-      width: 40px;
-      height: 40px;
-      min-height: 40px;
-      border-color: var(--ion-border);
+      width: 44px;
+      height: 44px;
+      min-height: 44px;
+      border-color: rgba(255,255,255,.12);
       border-radius: 10px;
-      background: transparent;
-      font-size: 18px;
+      background: linear-gradient(180deg, rgba(255,255,255,.035), rgba(0,0,0,.18));
+      font-size: 21px;
     }
-    .utility-settings-button:active:not(:disabled) { transform: scale(0.96); }
+    .utility-settings-button:active:not(:disabled) { transform: translateY(0) scale(.96); }
     .shell[data-view="overview"] { grid-template-rows: minmax(0, 1fr); }
     #dev-tools::after { content: none; }
 
     @keyframes live-breathe {
-      0%, 100% { opacity: .55; }
+      0%, 100% { opacity: 0.55; }
       50%      { opacity: 1; }
     }
 
@@ -956,66 +950,33 @@
        shadow, pseudo-grid, or nested frame is allowed to reach the native
        window edge. */
     :root {
-      --ion-bg:           #030605;
-      --ion-surface:      rgba(8, 14, 10, 0.86);
-      --ion-surface-raised: rgba(11, 19, 14, 0.92);
-      --ion-border:       rgba(207, 244, 216, 0.09);
-      --ion-border-active: rgba(var(--ion-rgb), 0.32);
-
-      --ion-green:        #43F28A;
-      --ion-green-bright: #62F69B;
-      --ion:              var(--ion-green);
-      --ion-bright:       var(--ion-green-bright);
-      --ion-rgb:          67, 242, 138;
-
-      --ion-text:         #ECF4EE;
-      --ion-text-secondary: rgba(220, 232, 224, 0.66);
-      --ion-text-tertiary:  rgba(190, 205, 196, 0.42);
-      --text:             var(--ion-text);
-      --muted:            var(--ion-text-secondary);
-
-      --ion-radius-sm: 8px;
-      --ion-radius-md: 14px;
-      --ion-radius-lg: 22px;
-
-      --ion-motion-fast:   160ms;
-      --ion-motion-normal: 220ms;
-      --ion-spring:        cubic-bezier(.2, .7, .2, 1);
-      --motion-micro:      var(--ion-motion-fast);
-      --motion-control:    var(--ion-motion-normal);
-      --motion-panel:      420ms;
-      --motion-window-in:  320ms;
-      --motion-window-out: 240ms;
-      --ease-out:          var(--ion-spring);
-      --ease-in:           cubic-bezier(.55, .06, .68, .19);
-      --ease-standard:     var(--ion-spring);
-
-      --surface-0: var(--ion-bg);
-      --surface-1: rgba(6, 12, 9, 0.78);
-      --surface-2: rgba(8, 16, 11, 0.78);
-      --surface-raised: var(--ion-surface-raised);
-      --text-primary: var(--ion-text);
-      --text-secondary: var(--ion-text-secondary);
-      --text-tertiary: var(--ion-text-tertiary);
-      --hairline: var(--ion-border);
-      --hairline-ion: var(--ion-border-active);
-
+      --ion: #5cf47a;
+      --ion-bright: #86ff9e;
+      --ion-mid: #42da62;
+      --ion-deep: #168c3b;
+      --ion-rgb: 92, 244, 122;
+      --motion-micro: 150ms;
+      --motion-control: 210ms;
+      --motion-panel: 420ms;
+      --motion-window-in: 360ms;
+      --motion-window-out: 250ms;
+      --ease-out: cubic-bezier(.16, 1, .3, 1);
+      --ease-in: cubic-bezier(.55, .06, .68, .19);
+      --ease-standard: cubic-bezier(.2, .7, .2, 1);
+      --surface-0: #010403;
+      --surface-1: #040a06;
+      --surface-2: #07100a;
+      --surface-raised: #09130d;
+      --text-primary: #f2f6f3;
+      --text-secondary: #aab5ad;
+      --text-tertiary: #849087;
+      --hairline: rgba(209, 231, 216, .09);
+      --hairline-ion: rgba(var(--ion-rgb), .22);
       --radius-window: 16px;
       --radius-card: 14px;
       --radius-control: 10px;
-
-      --font-ui: "Inter", "Segoe UI Variable Text", "Segoe UI", system-ui, -apple-system, sans-serif;
-      --font-display: "Inter", "Segoe UI Variable Display", "Segoe UI", system-ui, -apple-system, sans-serif;
-
-      /* Legacy aliases retained so older rules still resolve. */
-      --panel: var(--ion-surface);
-      --line: var(--ion-border);
-      --ion-mid: #42da62;
-      --ion-deep: #168c3b;
-
-      color: var(--text);
-      background: var(--ion-bg);
-      font-family: var(--font-ui);
+      --font-ui: "Segoe UI Variable Text", "Segoe UI", Inter, sans-serif;
+      --font-display: "Segoe UI Variable Display", "Segoe UI", Inter, sans-serif;
     }
 
     html,
@@ -1204,21 +1165,23 @@
     .shell[data-view="overview"][data-view-motion="transitioning"] #settings-form {
       animation: editor-view-out 210ms var(--ease-standard) both;
     }
+    /* Brief §17 settings navigation: small crossfade, optional 2-4px
+       directional translation, ~180-240ms. No scale, no overshoot. */
     @keyframes overview-view-out {
-      from { visibility: visible; opacity: 1; transform: none; }
-      to { visibility: visible; opacity: 0; transform: translateY(-4px) scale(.997); }
+      from { opacity: 1; }
+      to   { opacity: 0; transform: translateY(-3px); }
     }
     @keyframes overview-view-in {
-      from { visibility: visible; opacity: 0; transform: translateY(5px) scale(.996); }
-      to { visibility: visible; opacity: 1; transform: none; }
+      from { opacity: 0; transform: translateY(3px); }
+      to   { opacity: 1; transform: none; }
     }
     @keyframes editor-view-in {
-      from { visibility: visible; opacity: 0; transform: translateY(6px) scale(.995); }
-      to { visibility: visible; opacity: 1; transform: none; }
+      from { opacity: 0; transform: translateY(3px); }
+      to   { opacity: 1; transform: none; }
     }
     @keyframes editor-view-out {
-      from { visibility: visible; opacity: 1; transform: none; }
-      to { visibility: visible; opacity: 0; transform: translateY(5px) scale(.997); }
+      from { opacity: 1; }
+      to   { opacity: 0; transform: translateY(-3px); }
     }
 
     /* Monitoring view */
@@ -1272,7 +1235,6 @@
       height: 5px;
       border-radius: 50%;
       background: var(--ion);
-      box-shadow: 0 0 7px rgba(var(--ion-rgb),.45);
       animation: live-breathe 2.4s ease-in-out infinite;
     }
     .utility-status {
@@ -1484,11 +1446,15 @@
     .settings-scroll::-webkit-scrollbar-thumb {
       border: 1px solid transparent;
       border-radius: 999px;
-      background: rgba(var(--ion-rgb),.24);
+      background: rgba(255, 255, 255, 0.06);
       background-clip: padding-box;
-      transition: background var(--motion-micro) ease;
+      transition: background 160ms var(--ion-spring);
     }
-    .settings-scroll::-webkit-scrollbar-thumb:hover { background: rgba(var(--ion-rgb),.44); background-clip: padding-box; }
+    .settings-scroll:hover::-webkit-scrollbar-thumb,
+    .settings-scroll::-webkit-scrollbar-thumb:hover {
+      background: rgba(var(--ion-rgb), 0.32);
+      background-clip: padding-box;
+    }
     .settings-grid { display: grid; grid-template-columns: 1fr; gap: 8px; }
     .grid-wide,
     .grid-half { grid-column: auto; }
@@ -1615,29 +1581,14 @@
     button.primary { width: 100%; min-width: 0; min-height: 42px; border-radius: 9px; background: linear-gradient(180deg, #5fe974, #3dca53); box-shadow: inset 0 1px rgba(255,255,255,.3), 0 6px 16px rgba(38,176,59,.11); font-size: 10px; }
     button.primary:hover:not(:disabled) { background: linear-gradient(180deg, #72f285, #45d65c); box-shadow: inset 0 1px rgba(255,255,255,.34), 0 8px 20px rgba(38,190,61,.16); }
 
-    body[data-window-state="entering"] .utility-topbar,
-    body[data-window-state="entering"] .settings-hero {
-      animation: settings-reveal-head 300ms 35ms var(--ease-out) both;
+    /* Settings window entrance animates only the shell. The brief
+       explicitly forbids per-child stagger. */
+    body[data-window-state="entering"] .shell {
+      animation: shell-enter 320ms var(--ion-spring) both;
     }
-    body[data-window-state="entering"] .utility-status,
-    body[data-window-state="entering"] #settings-form {
-      animation: settings-reveal-content 330ms 65ms var(--ease-out) both;
-    }
-    body[data-window-state="entering"] .utility-nav,
-    body[data-window-state="entering"] .actions {
-      animation: settings-reveal-foot 300ms 105ms var(--ease-out) both;
-    }
-    @keyframes settings-reveal-head {
-      from { opacity: 0; transform: translateY(-3px); }
-      to { opacity: 1; transform: none; }
-    }
-    @keyframes settings-reveal-content {
-      from { opacity: 0; transform: translateY(4px); }
-      to { opacity: 1; transform: none; }
-    }
-    @keyframes settings-reveal-foot {
-      from { opacity: 0; transform: translateY(4px); }
-      to { opacity: 1; transform: none; }
+    @keyframes shell-enter {
+      from { opacity: 0; transform: translateY(4px) scale(0.99); }
+      to   { opacity: 1; transform: none; }
     }
     @keyframes status-confirm {
       0% { border-color: rgba(var(--ion-rgb),.08); box-shadow: none; }
@@ -1756,11 +1707,14 @@
       stroke-dasharray: 68 227;
       stroke-linecap: round;
     }
-    body[data-window-state="entering"] .utility-mark-orbit {
-      animation: utility-aperture-calibrate 760ms 120ms var(--ease-out) both;
+    /* Brief bans continuous 360deg rotation as ambient motion. The
+       monitoring orb is a single hairline ring with one slow breath. */
+    body[data-window-state="active"] .utility-mark::after {
+      animation: monitor-breathe 6s ease-in-out infinite;
     }
-    body[data-window-state="active"] .utility-orbit-signal {
-      animation: utility-aperture-idle 16s linear infinite;
+    @keyframes monitor-breathe {
+      0%, 100% { opacity: 0.18; }
+      50%      { opacity: 0.42; }
     }
     .utility-mark::before,
     .utility-mark::after { left: 35px; width: 32px; }
@@ -2034,49 +1988,20 @@
       border-color: rgba(255, 112, 112, .66);
       box-shadow: 0 0 0 3px rgba(255, 90, 90, .06);
     }
-    section.settings-card.is-state-changing::before {
-      animation: detector-state-confirm 460ms var(--ease-out) both;
+    /* Detector enable/disable is opacity only — no overshoot bounce, no
+       gradient wipe. */
+    section.settings-card[data-detector-state="disabled"] {
+      opacity: 0.55;
     }
-    section.settings-card.is-state-changing h2::before {
-      animation: detector-dot-confirm 420ms var(--ease-out) both;
-    }
-
-    @keyframes detector-state-confirm {
-      0% { opacity: 0; transform: scaleX(.72); transform-origin: left center; }
-      48% { opacity: .9; }
-      100% { opacity: 0; transform: scaleX(1); transform-origin: left center; }
-    }
-    @keyframes detector-dot-confirm {
-      0% { transform: scale(.72); }
-      55% { transform: scale(1.38); }
-      100% { transform: scale(1); }
+    section.settings-card[data-detector-state="disabled"] input,
+    section.settings-card[data-detector-state="disabled"] .hint,
+    section.settings-card[data-detector-state="disabled"] .credential-row {
+      pointer-events: none;
     }
 
-    @keyframes utility-aperture-calibrate {
-      from { opacity: 0; transform: rotate(-92deg) scale(.86); }
-      72% { opacity: 1; transform: rotate(-34deg) scale(1.025); }
-      to { opacity: 1; transform: rotate(-38deg) scale(1); }
-    }
-    @keyframes utility-aperture-idle {
-      to { stroke-dashoffset: -352; }
-    }
-
-    @keyframes overview-view-out {
-      from { visibility: visible; opacity: 1; transform: none; }
-      to { visibility: visible; opacity: 0; transform: translateX(-8px) scale(.995); }
-    }
-    @keyframes editor-view-in {
-      from { visibility: visible; opacity: 0; transform: translateX(10px) scale(.996); }
-      to { visibility: visible; opacity: 1; transform: none; }
-    }
-    @keyframes overview-view-in {
-      from { visibility: visible; opacity: 0; transform: translateX(-8px) scale(.996); }
-      to { visibility: visible; opacity: 1; transform: none; }
-    }
-    @keyframes editor-view-out {
-      from { visibility: visible; opacity: 1; transform: none; }
-      to { visibility: visible; opacity: 0; transform: translateX(10px) scale(.996); }
-    }
+    /* The second, translateX-based set of view keyframes was removed in
+       the recovery pass; the live rules above (overview-view-*, editor-view-*)
+       use the translateY crossfade set. */
     .shell[data-view="editor"][data-view-motion="transitioning"] .utility-overview { animation-duration: 260ms; }
     .shell[data-view="editor"][data-view-motion="transitioning"] .settings-hero,
     .shell[data-view="editor"][data-view-motion="transitioning"] #settings-form { animation-duration: 360ms; animation-delay: 30ms; }
@@ -2250,7 +2175,7 @@
         <output id="status" role="status" aria-live="polite" data-state="loading">Loading settings…</output>
         <button class="primary" type="submit" data-state="idle">
           <span class="button-label" data-label="idle">Save &amp; restart detectors</span>
-          <span class="button-label" data-label="saved" hidden>Saved</span>
+          <span class="button-label" data-label="saved">Saved</span>
           <span class="button-progress" aria-hidden="true"></span>
         </button>
       </div>
@@ -2276,7 +2201,6 @@
       let closing = false;
       let activeOpenGeneration = 0;
       let activeCloseGeneration = 0;
-      const detectorPulseTimers = new WeakMap();
 
       const previewSettings = {
         launch_at_login: false,
@@ -2459,10 +2383,7 @@
         form.setAttribute("aria-busy", String(busy));
       }
 
-      /* Brief §10: brief confirmation after a successful save. The save button
-         swaps to a check + "Saved" state for ~1.4s, then reverts. The status
-         row already communicates the long-form message, so the button just
-         acknowledges the click landed. */
+      /* Brief §10: 700ms swap to a small check + "SAVED", then revert. */
       let savedStateTimer = 0;
       function flashSavedPrimary() {
         const submit = form.querySelector("button.primary");
@@ -2471,22 +2392,13 @@
         submit.dataset.state = "saved";
         savedStateTimer = window.setTimeout(() => {
           submit.dataset.state = "idle";
-        }, 1400);
+        }, 700);
       }
 
-      function syncDetectorCard(control, { animate = false } = {}) {
+      function syncDetectorCard(control) {
         const card = control?.closest("section.settings-card");
         if (!card) return;
         card.dataset.detectorState = control.checked ? "enabled" : "disabled";
-        if (!animate || reducedMotion.matches) return;
-        window.clearTimeout(detectorPulseTimers.get(card));
-        card.classList.remove("is-state-changing");
-        void card.offsetWidth;
-        card.classList.add("is-state-changing");
-        detectorPulseTimers.set(card, window.setTimeout(() => {
-          card.classList.remove("is-state-changing");
-          detectorPulseTimers.delete(card);
-        }, 480));
       }
 
       function updateDetectorOverview(settings) {
@@ -2749,7 +2661,7 @@
 
       detectorControls.forEach(([id]) => {
         field(id).addEventListener("change", (event) => {
-          syncDetectorCard(event.currentTarget, { animate: true });
+          syncDetectorCard(event.currentTarget);
           updateDetectorOverviewFromControls();
         });
       });
