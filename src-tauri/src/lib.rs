@@ -21,8 +21,8 @@ use event::{IonSenseEventType, Severity};
 use serde::Serialize;
 use settings::AppSettings;
 use tauri::{
-    App, AppHandle, Emitter, Manager, PhysicalPosition, PhysicalSize, Position, Size, State,
-    WebviewWindow, WindowEvent,
+    App, AppHandle, Emitter, Manager, Monitor, PhysicalPosition, PhysicalSize, Position, Size,
+    State, WebviewWindow, WindowEvent,
     menu::{Menu, MenuItem, PredefinedMenuItem},
     tray::{MouseButton, MouseButtonState, TrayIconBuilder, TrayIconEvent},
     webview::PageLoadEvent,
@@ -852,8 +852,53 @@ async fn wait_for_hud(hud: &HudLifecycle) {
     }
 }
 
+/// Physical center point of the current foreground window, in screen
+/// coordinates. Used only at alert time, never polled.
+#[cfg(windows)]
+fn foreground_window_center() -> Option<(f64, f64)> {
+    use windows::Win32::Foundation::RECT;
+    use windows::Win32::UI::WindowsAndMessaging::{GetForegroundWindow, GetWindowRect};
+
+    let hwnd = unsafe { GetForegroundWindow() };
+    if hwnd.0.is_null() {
+        return None;
+    }
+    let mut rect = RECT::default();
+    if unsafe { GetWindowRect(hwnd, &mut rect) }.is_err() {
+        return None;
+    }
+    if rect.right <= rect.left || rect.bottom <= rect.top {
+        return None;
+    }
+    Some((
+        (rect.left + rect.right) as f64 / 2.0,
+        (rect.top + rect.bottom) as f64 / 2.0,
+    ))
+}
+
+#[cfg(not(windows))]
+fn foreground_window_center() -> Option<(f64, f64)> {
+    None
+}
+
+/// Picks the monitor an alert belongs on: the one holding the window the user
+/// is working in, then the cursor's monitor, then the primary display.
+fn resolve_hud_monitor(hud: &WebviewWindow) -> Option<Monitor> {
+    if let Some((x, y)) = foreground_window_center()
+        && let Some(monitor) = hud.monitor_from_point(x, y).ok().flatten()
+    {
+        return Some(monitor);
+    }
+    if let Ok(cursor) = hud.cursor_position()
+        && let Some(monitor) = hud.monitor_from_point(cursor.x, cursor.y).ok().flatten()
+    {
+        return Some(monitor);
+    }
+    hud.primary_monitor().ok().flatten()
+}
+
 fn position_hud(hud: &WebviewWindow) -> tauri::Result<()> {
-    let Some(monitor) = hud.primary_monitor()? else {
+    let Some(monitor) = resolve_hud_monitor(hud) else {
         return Ok(());
     };
     // The HUD belongs above applications, not above the Windows shell. A
