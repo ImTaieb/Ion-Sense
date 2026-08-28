@@ -72,10 +72,61 @@ fn run(
         .watch(&downloads_dir, RecursiveMode::NonRecursive)
         .with_context(|| format!("watch {}", downloads_dir.display()))?;
 
+    // Stability sampling can sleep for seconds while a file is still growing.
+    // It runs on its own worker so bursts of watcher events never queue behind
+    // one large download; settled paths flow back through `settled`.
+    let (job_sender, job_receiver) = mpsc::channel::<PathBuf>();
+    let (settled_sender, settled_receiver) = mpsc::channel::<(PathBuf, bool)>();
+    let sampler = thread::Builder::new()
+        .name("ion-downloads-sampler".into())
+        .spawn({
+            let stop = stop.clone();
+            move || {
+                while let Ok(path) = job_receiver.recv() {
+                    if stop.load(Ordering::Acquire) {
+                        break;
+                    }
+                    let stable = is_stable_file(&path, &stop);
+                    if settled_sender.send((path, stable)).is_err() {
+                        break;
+                    }
+                }
+            }
+        })
+        .context("create downloads stability sampler")?;
+
     let mut temp_files = HashMap::<PathBuf, Instant>::new();
     let mut emitted = HashMap::<PathBuf, Instant>::new();
+    let mut sampling = std::collections::HashSet::<PathBuf>::new();
 
     while !stop.load(Ordering::Acquire) {
+        // Deliver settled downloads before waiting on the watcher so finished
+        // samples are not delayed by the one-second receive timeout.
+        while let Ok((path, stable)) = settled_receiver.try_recv() {
+            sampling.remove(&path);
+            if !stable || emitted.contains_key(&path) {
+                continue;
+            }
+            let event = IonSenseEvent::new(
+                IonSenseEventType::DownloadFinished,
+                "All downloads completed successfully.",
+                Severity::Info,
+            );
+            if let Err(error) = dispatcher.try_dispatch(event) {
+                match error {
+                    tokio::sync::mpsc::error::TrySendError::Closed(_) => {
+                        drop(job_sender);
+                        let _ = sampler.join();
+                        return Ok(());
+                    }
+                    tokio::sync::mpsc::error::TrySendError::Full(_) => eprintln!(
+                        "Ion Sense dropped a download alert because the event queue is full"
+                    ),
+                }
+            }
+            emitted.insert(path, Instant::now());
+        }
+
         let event = match raw_receiver.recv_timeout(Duration::from_secs(1)) {
             Ok(Ok(event)) => event,
             Ok(Err(error)) => {
@@ -92,27 +143,20 @@ fn run(
 
         let candidates = completion_candidates(&event, &mut temp_files);
         for candidate in candidates {
-            if emitted.contains_key(&candidate) || !is_stable_file(&candidate, &stop) {
+            // `sampling` keeps a growing file from being re-queued on every
+            // modify event while its first stability check is still running.
+            if emitted.contains_key(&candidate) || sampling.contains(&candidate) {
                 continue;
             }
-
-            let event = IonSenseEvent::new(
-                IonSenseEventType::DownloadFinished,
-                "All downloads completed successfully.",
-                Severity::Info,
-            );
-            if let Err(error) = dispatcher.try_dispatch(event) {
-                match error {
-                    tokio::sync::mpsc::error::TrySendError::Closed(_) => return Ok(()),
-                    tokio::sync::mpsc::error::TrySendError::Full(_) => eprintln!(
-                        "Ion Sense dropped a download alert because the event queue is full"
-                    ),
-                }
+            sampling.insert(candidate.clone());
+            if job_sender.send(candidate).is_err() {
+                break;
             }
-            emitted.insert(candidate, Instant::now());
         }
     }
 
+    drop(job_sender);
+    let _ = sampler.join();
     Ok(())
 }
 

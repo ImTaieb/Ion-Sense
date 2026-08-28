@@ -3,6 +3,7 @@ use std::sync::{
     atomic::{AtomicBool, Ordering},
 };
 use std::thread::{self, JoinHandle};
+use std::time::{Duration, Instant};
 
 #[cfg(windows)]
 use std::os::windows::process::CommandExt;
@@ -38,6 +39,8 @@ fn run(settings: TemperatureSettings, dispatcher: EventDispatcher, stop: Arc<Ato
     let mut latched = false;
     let mut consecutive_hot_samples = 0_u8;
     let mut warned_unavailable = false;
+    #[cfg(windows)]
+    let mut nvidia = NvidiaAvailability::default();
 
     while !stop.load(Ordering::Acquire) {
         components.refresh(true);
@@ -53,7 +56,7 @@ fn run(settings: TemperatureSettings, dispatcher: EventDispatcher, stop: Arc<Ato
         #[cfg(windows)]
         let hottest = hottest
             .into_iter()
-            .chain(nvidia_temperature())
+            .chain(nvidia.sample())
             .max_by(|left, right| left.1.total_cmp(&right.1));
 
         match hottest {
@@ -128,6 +131,46 @@ fn nvidia_temperature() -> Option<(String, f32)> {
         .max_by(|left, right| left.1.total_cmp(&right.1))
 }
 
+/// How long a failed nvidia-smi probe is remembered before trying again.
+/// Systems without the NVIDIA driver must not pay a process spawn every poll.
+#[cfg(windows)]
+const NVIDIA_RETRY_INTERVAL: Duration = Duration::from_secs(5 * 60);
+
+/// Remembers whether `nvidia-smi` produced a usable reading so that machines
+/// without it pay for a failed process launch only once per retry interval.
+#[cfg(windows)]
+#[derive(Debug, Default)]
+struct NvidiaAvailability {
+    usable: Option<bool>,
+    last_failed: Option<Instant>,
+}
+
+#[cfg(windows)]
+impl NvidiaAvailability {
+    fn sample(&mut self) -> Option<(String, f32)> {
+        if !self.should_probe(Instant::now()) {
+            return None;
+        }
+        let reading = nvidia_temperature();
+        self.record(reading.is_some(), Instant::now());
+        reading
+    }
+
+    fn should_probe(&self, now: Instant) -> bool {
+        match self.usable {
+            Some(true) | None => true,
+            Some(false) => self
+                .last_failed
+                .is_some_and(|at| now.duration_since(at) >= NVIDIA_RETRY_INTERVAL),
+        }
+    }
+
+    fn record(&mut self, usable: bool, now: Instant) {
+        self.usable = Some(usable);
+        self.last_failed = (!usable).then_some(now);
+    }
+}
+
 #[cfg(windows)]
 fn parse_nvidia_sample(line: &str) -> Option<(String, f32)> {
     let (name, temperature) = line.rsplit_once(',')?;
@@ -157,5 +200,29 @@ mod tests {
             Some(("NVIDIA GeForce RTX 3060".into(), 49.0))
         );
         assert_eq!(parse_nvidia_sample("malformed"), None);
+    }
+
+    #[test]
+    fn probes_first_then_backs_off_until_the_retry_interval_elapses() {
+        let now = Instant::now();
+        let mut availability = NvidiaAvailability::default();
+        assert!(availability.should_probe(now));
+
+        availability.record(false, now);
+        assert!(!availability.should_probe(now + Duration::from_secs(1)));
+        assert!(!availability.should_probe(now + NVIDIA_RETRY_INTERVAL - Duration::from_secs(1)));
+        assert!(availability.should_probe(now + NVIDIA_RETRY_INTERVAL));
+
+        availability.record(true, now);
+        assert!(availability.should_probe(now + Duration::from_secs(1)));
+    }
+
+    #[test]
+    fn a_successful_probe_is_never_cached_as_a_failure() {
+        let now = Instant::now();
+        let mut availability = NvidiaAvailability::default();
+        availability.record(true, now);
+        assert!(availability.usable == Some(true));
+        assert!(availability.last_failed.is_none());
     }
 }

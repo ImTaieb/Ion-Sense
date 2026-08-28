@@ -97,21 +97,12 @@ impl Default for EmailSettings {
     }
 }
 
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Default, Serialize, Deserialize)]
 #[serde(default)]
 pub struct DiscordSettings {
     pub enabled: bool,
     #[serde(default, deserialize_with = "deserialize_channel_ids")]
     pub allowed_channel_ids: Vec<String>,
-}
-
-impl Default for DiscordSettings {
-    fn default() -> Self {
-        Self {
-            enabled: false,
-            allowed_channel_ids: Vec::new(),
-        }
-    }
 }
 
 impl Default for TemperatureSettings {

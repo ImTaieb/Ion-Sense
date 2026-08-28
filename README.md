@@ -77,6 +77,9 @@ written atomically with backup recovery.
 - Discord: the official bot API can receive DMs sent to the bot and messages in
   channels the bot can access. It cannot monitor a normal user's private friend
   DMs; self-bot/user-token automation is intentionally unsupported.
+- Downloads: completion is recognized when a browser's in-progress file
+  (`.crdownload`, `.part`, `.partial`, or `.download`) is renamed or removed,
+  or when a new file in the watched folder finishes growing.
 - IMAP: password/app-password login and IMAP IDLE are implemented. Providers
   that require OAuth-only authentication need a future XOAUTH2 flow.
 - `package_delivered` stays in the shared event contract and dev harness but has
