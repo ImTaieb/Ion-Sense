@@ -11,75 +11,40 @@
     }
   </script>
   <style>
-    /* ====================================================================
-       Final ION Sense design tokens. This is the LAST design pass for
-       this product. Future work consumes these tokens; do not introduce
-       new values, weights, radii, easings, or colors without updating
-       the system and MASTER.md.
-
-       Type scale: 10 / 11 / 12 / 13 / 15 / 17 / 22 / 28
-       Font weight: 400 body, 500 medium, 600 semibold, 700 bold
-       Letter spacing: -0.01em display, 0 body, 0.06em label, 0.18em eyebrow
-       Spacing: 4 / 8 / 12 / 16 / 20 / 24 / 32 / 40 / 48
-       Radius: 6 (small controls) / 10 (inputs/cards) / 16 (panels) / 999 (pills)
-       Motion: 140 / 200 / 280 / 360 / 5000 ms, 3 curves (see below)
-       ==================================================================== */
+    /* Authoritative design tokens. Reverted to c922804 composition; no
+       per-element entrance choreography; no overshoot easings. */
     :root {
-      /* surfaces */
       --ion-bg:            #030605;
       --ion-surface:       rgba(8, 14, 10, 0.86);
       --ion-surface-raised: rgba(11, 19, 14, 0.92);
       --ion-border:        rgba(207, 244, 216, 0.09);
-      --ion-border-active: rgba(69, 238, 134, 0.32);
+      --ion-border-active: rgba(67, 242, 138, 0.32);
 
-      /* accent */
       --ion-green:         #45EE86;
       --ion-green-bright:  #65F59B;
       --ion:               var(--ion-green);
       --ion-bright:        var(--ion-green-bright);
       --ion-rgb:           69, 238, 134;
 
-      /* text */
-      --ion-text:           #ECF4EE;
+      --ion-text:          #ECF4EE;
       --ion-text-secondary: rgba(220, 232, 224, 0.66);
       --ion-text-tertiary:  rgba(190, 205, 196, 0.42);
+      --text:              var(--ion-text);
+      --muted:             var(--ion-text-secondary);
 
-      /* radius */
-      --ion-radius-sm:  6px;
-      --ion-radius-md:  10px;
-      --ion-radius-lg:  16px;
-      --ion-radius-pill: 999px;
+      --ion-radius-sm: 8px;
+      --ion-radius-md: 14px;
+      --ion-radius-lg: 22px;
 
-      /* spacing (the 9 values used across both surfaces; never reach for a 13px or 17px) */
-      --ion-sp-1: 4px;
-      --ion-sp-2: 8px;
-      --ion-sp-3: 12px;
-      --ion-sp-4: 16px;
-      --ion-sp-5: 20px;
-      --ion-sp-6: 24px;
-      --ion-sp-7: 32px;
-      --ion-sp-8: 40px;
-      --ion-sp-9: 48px;
-
-      /* motion */
-      --ion-motion-micro:  140ms;
-      --ion-motion-ctrl:   200ms;
-      --ion-motion-panel:  280ms;
-      --ion-motion-spatial: 360ms;
-      --ion-motion-dwell:  5000ms;
+      --ion-motion-fast:   160ms;
+      --ion-motion-normal: 220ms;
       --ion-spring:        cubic-bezier(.2, .7, .2, 1);
-      --ion-spatial:       cubic-bezier(.25, .8, .25, 1);
 
-      /* HUD layout */
       --panel:        var(--ion-surface);
-      --toast-width:  min(1180px, calc(100vw - 96px));
+      --toast-width:  min(820px, calc(100vw - 96px));
       --badge-size:   220px;
-      --enter-ms:     var(--ion-motion-spatial);
-      --exit-ms:      var(--ion-motion-ctrl);
-
-      /* legacy aliases retained for older rules that still reference them */
-      --text:    var(--ion-text);
-      --muted:   var(--ion-text-secondary);
+      --enter-ms:     360ms;
+      --exit-ms:      200ms;
     }
 
     * {
@@ -189,7 +154,7 @@
       left: clamp(22px, 4vw, 64px);
       top: clamp(24px, 7vh, 72px);
       color: rgba(179, 202, 187, 0.27);
-      letter-spacing: 0.18em;
+      letter-spacing: 0.27em;
       text-transform: uppercase;
       font: 600 10px/1.65 ui-monospace, "SFMono-Regular", Consolas, monospace;
     }
@@ -199,7 +164,7 @@
       margin-bottom: 5px;
       color: rgba(var(--ion-rgb), 0.34);
       font-size: 11px;
-      font-weight: 600;
+      font-weight: 650;
     }
 
     .ambient-index {
@@ -278,13 +243,18 @@
       position: relative;
       min-height: 224px;
       overflow: hidden;
-      border: 1px solid var(--ion-border-active);
-      border-radius: 138px 62px 62px 138px;
-      background: var(--ion-surface);
+      border: 1px solid rgba(var(--ion-rgb), 0.74);
+      border-radius: 30px;
+      background:
+        linear-gradient(104deg, rgba(1, 5, 3, 0.965), rgba(4, 13, 8, 0.925) 61%, rgba(4, 20, 9, 0.91)),
+        var(--panel);
       box-shadow:
-        inset 0 1px 0 rgba(255, 255, 255, 0.05),
-        0 18px 36px rgba(0, 0, 0, 0.28);
-      backdrop-filter: blur(14px) saturate(112%);
+        inset 0 1px 0 rgba(255, 255, 255, 0.035),
+        inset 0 -1px 0 rgba(var(--ion-rgb), 0.08);
+      filter:
+        drop-shadow(0 0 4px rgba(var(--ion-rgb), 0.21))
+        drop-shadow(0 0 18px rgba(var(--ion-rgb), 0.13));
+      backdrop-filter: blur(18px) saturate(115%);
     }
 
     .panel-shell::before {
@@ -300,77 +270,77 @@
     .panel-shell::after {
       content: "";
       position: absolute;
-      top: 24px;
-      right: 32px;
-      width: 80px;
-      height: 40px;
-      opacity: 0.12;
+      top: 72px;
+      right: 22px;
+      width: 104px;
+      height: 68px;
+      opacity: 0.18;
       pointer-events: none;
       background-image: radial-gradient(circle, rgba(var(--ion-rgb), 0.62) 0 1px, transparent 1.3px);
       background-size: 8px 8px;
+      mask-image: linear-gradient(90deg, transparent, #000 38%, #000);
     }
 
     .panel-content {
       position: relative;
       z-index: 2;
       display: grid;
-      grid-template-rows: 64px 1fr 80px;
-      min-height: calc(var(--badge-size) + 16px);
-      padding-left: 0;
+      grid-template-rows: 48px 1fr 62px;
+      min-height: 222px;
+      padding-left: 144px;
     }
 
     .hud-header {
       display: flex;
       align-items: center;
-      gap: 12px;
       min-width: 0;
-      padding: 6px 16px 0 18px;
+      padding: 7px 13px 0 18px;
     }
 
     .brand-name {
       flex: 0 0 auto;
-      color: var(--ion-green-bright);
-      letter-spacing: 0.18em;
+      color: var(--ion);
+      letter-spacing: 0.29em;
       text-transform: uppercase;
-      text-shadow: none;
-      font-family: "Inter", "Segoe UI Variable Text", "Segoe UI", sans-serif;
-      font-size: 11px;
-      font-weight: 500;
+      text-shadow: 0 0 10px rgba(var(--ion-rgb), 0.38);
+      font-family: "Arial Narrow", "Segoe UI", sans-serif;
+      font-size: 12px;
+      font-weight: 750;
     }
 
     .header-rule {
       height: 1px;
       min-width: 24px;
-      margin: 0 12px;
+      margin: 1px 14px 0 16px;
       flex: 1;
-      background: linear-gradient(90deg, var(--ion-border-active), transparent);
-      box-shadow: none;
+      background: linear-gradient(90deg, rgba(var(--ion-rgb), 0.82), rgba(var(--ion-rgb), 0.07));
+      box-shadow: 0 0 8px rgba(var(--ion-rgb), 0.25);
     }
 
     .close-button {
       position: relative;
-      width: 28px;
-      height: 28px;
-      flex: 0 0 28px;
+      width: 34px;
+      height: 34px;
+      flex: 0 0 34px;
       border: 0;
       border-radius: 50%;
-      color: var(--ion-text-secondary);
+      color: var(--ion);
       background: transparent;
       cursor: pointer;
-      transition: color var(--ion-motion-ctrl) var(--ion-spring), background var(--ion-motion-ctrl) var(--ion-spring);
+      transition: background 140ms ease, transform 140ms ease, box-shadow 140ms ease;
     }
 
     .close-button::before,
     .close-button::after {
       content: "";
       position: absolute;
-      left: 8px;
-      top: 13px;
-      width: 12px;
-      height: 1px;
+      left: 9px;
+      top: 16px;
+      width: 16px;
+      height: 1.5px;
       border-radius: 999px;
       background: currentColor;
-      box-shadow: none;
+      box-shadow: 0 0 7px rgba(var(--ion-rgb), 0.55);
     }
 
     .close-button::before {
@@ -382,50 +352,54 @@
     }
 
     .close-button:hover {
-      background: rgba(var(--ion-rgb), 0.06);
-    }
-
-    .close-button:active {
-      transform: none;
+      background: rgba(var(--ion-rgb), 0.08);
+      box-shadow: inset 0 0 0 1px rgba(var(--ion-rgb), 0.2);
+      transform: rotate(4deg);
     }
 
     .close-button:focus-visible {
-      outline: 1px solid var(--ion-border-active);
-      outline-offset: 3px;
-      background: rgba(var(--ion-rgb), 0.06);
+      outline: 1px solid var(--ion);
+      outline-offset: 2px;
+      background: rgba(var(--ion-rgb), 0.1);
     }
 
     .hud-body {
       display: grid;
-      grid-template-columns: 48px minmax(0, 1fr);
+      grid-template-columns: 64px minmax(0, 1fr);
       align-items: center;
-      gap: var(--ion-sp-5);
+      gap: 18px;
       min-width: 0;
-      padding: 4px var(--ion-sp-7) 12px 22px;
+      padding: 2px 28px 12px 20px;
     }
 
     .event-icon-shell {
       display: grid;
       place-items: center;
-      width: 48px;
-      height: 48px;
-      border: 1px solid var(--ion-border-active);
+      width: 64px;
+      height: 64px;
+      border: 1px solid rgba(var(--ion-rgb), 0.5);
       border-radius: 50%;
-      color: var(--ion-green);
-      background: rgba(0, 0, 0, 0.18);
-      box-shadow: none;
+      color: var(--ion);
+      background:
+        radial-gradient(circle, rgba(var(--ion-rgb), 0.1), transparent 68%),
+        rgba(0, 0, 0, 0.28);
+      box-shadow:
+        inset 0 0 0 7px rgba(var(--ion-rgb), 0.025),
+        0 0 16px rgba(var(--ion-rgb), 0.09);
     }
 
     .event-icon-shell svg {
-      width: 24px;
-      height: 24px;
+      width: 33px;
+      height: 33px;
       overflow: visible;
       fill: none;
       stroke: currentColor;
-      stroke-width: 1.5;
+      stroke-width: 1.8;
       stroke-linecap: round;
       stroke-linejoin: round;
-      filter: none;
+      filter:
+        drop-shadow(0 0 2px rgba(var(--ion-rgb), 0.58))
+        drop-shadow(0 0 8px rgba(var(--ion-rgb), 0.22));
     }
 
     .event-copy {
@@ -434,16 +408,16 @@
 
     .event-title {
       overflow: hidden;
-      margin: 0 0 8px 0;
-      color: var(--ion-text);
-      letter-spacing: -0.01em;
+      margin: 0 0 7px;
+      color: var(--text);
+      letter-spacing: 0.055em;
       text-overflow: ellipsis;
-      text-transform: none;
+      text-transform: uppercase;
       white-space: nowrap;
-      text-shadow: none;
-      font-family: "Inter", "Segoe UI Variable Text", "Segoe UI", sans-serif;
-      font-size: 22px;
-      font-weight: 600;
+      text-shadow: 0 1px 0 #000, 0 0 16px rgba(255, 255, 255, 0.04);
+      font-family: "Arial Narrow", "Segoe UI", sans-serif;
+      font-size: clamp(20px, 2.6vw, 29px);
+      font-weight: 730;
       line-height: 1.05;
     }
 
@@ -451,36 +425,38 @@
       display: -webkit-box;
       overflow: hidden;
       margin: 0;
-      color: var(--ion-text-secondary);
-      letter-spacing: 0;
+      color: var(--muted);
+      letter-spacing: 0.01em;
       -webkit-box-orient: vertical;
       -webkit-line-clamp: 2;
-      font-size: 13px;
-      font-weight: 400;
-      line-height: 1.5;
+      font-size: 14px;
+      font-weight: 430;
+      line-height: 1.45;
     }
 
     .hud-footer {
       display: grid;
       grid-template-columns: 28px minmax(90px, 1fr) auto;
       align-items: center;
-      gap: var(--ion-sp-4);
+      gap: 16px;
       min-width: 0;
-      padding: 0 var(--ion-sp-7) 0 22px;
-      border-top: 1px solid var(--ion-border);
-      background: transparent;
+      padding: 0 25px 1px 21px;
+      border-top: 1px solid rgba(var(--ion-rgb), 0.23);
+      background: linear-gradient(90deg, rgba(var(--ion-rgb), 0.035), transparent 44%);
     }
 
     .speaker-icon {
-      width: 18px;
-      height: 18px;
-      color: var(--ion-text-secondary);
+      width: 25px;
+      height: 25px;
+      color: var(--ion);
       fill: none;
       stroke: currentColor;
-      stroke-width: 1.4;
+      stroke-width: 1.7;
       stroke-linecap: round;
       stroke-linejoin: round;
-      filter: none;
+      filter:
+        drop-shadow(0 0 2px rgba(var(--ion-rgb), 0.52))
+        drop-shadow(0 0 7px rgba(var(--ion-rgb), 0.2));
     }
 
     .waveform {
@@ -488,12 +464,14 @@
       display: flex;
       align-items: center;
       justify-content: space-between;
-      gap: 1.5px;
-      height: 28px;
+      gap: 0;
+      height: 35px;
       min-width: 0;
       overflow: hidden;
-      color: var(--ion-green);
-      filter: none;
+      color: var(--ion);
+      filter:
+        drop-shadow(0 0 2px rgba(var(--ion-rgb), 0.4))
+        drop-shadow(0 0 7px rgba(var(--ion-rgb), 0.14));
     }
 
     .waveform::after {
@@ -501,25 +479,24 @@
     }
 
     .wave-bar {
-      width: 1.5px;
+      width: 2px;
       height: var(--bar-height);
       min-height: 2px;
-      flex: 0 0 1.5px;
+      flex: 0 0 2px;
       border-radius: 999px;
-      opacity: 0.18;
+      opacity: 0.2;
       transform: scaleY(0.24);
       transform-origin: center;
       background: currentColor;
-      filter: none;
     }
 
     .wave-bar.is-dot {
-      width: 2px;
-      height: 2px;
-      min-height: 2px;
-      flex-basis: 2px;
+      width: 3px;
+      height: 3px;
+      min-height: 3px;
+      flex-basis: 3px;
       border-radius: 50%;
-      transform: scale(1);
+      transform: scale(0.7);
     }
 
     .wave-bar.is-dotted {
@@ -533,14 +510,14 @@
 
     .spoken-line {
       margin: 0;
-      color: var(--ion-text);
-      letter-spacing: 0.06em;
+      color: var(--ion);
+      letter-spacing: 0.12em;
       text-transform: uppercase;
       white-space: nowrap;
-      text-shadow: none;
-      font-family: "Inter", "Segoe UI Variable Text", "Segoe UI", sans-serif;
-      font-size: 12px;
-      font-weight: 600;
+      text-shadow: 0 0 10px rgba(var(--ion-rgb), 0.3);
+      font-family: ui-monospace, "SFMono-Regular", Consolas, monospace;
+      font-size: 14px;
+      font-weight: 650;
     }
 
     .brand-badge {
@@ -556,7 +533,9 @@
         radial-gradient(circle at 45% 40%, rgba(var(--ion-rgb), 0.09), transparent 45%),
         radial-gradient(circle, #07100a 0%, #020503 70%, #000 100%);
       box-shadow: 12px 0 28px rgba(0, 0, 0, 0.54);
-      filter: none;
+      filter:
+        drop-shadow(0 0 5px rgba(var(--ion-rgb), 0.2))
+        drop-shadow(0 0 18px rgba(var(--ion-rgb), 0.15));
       pointer-events: none;
     }
 
@@ -565,8 +544,7 @@
       position: absolute;
       inset: 16%;
       border-radius: 50%;
-      opacity: 0.5;
-      background: radial-gradient(circle, transparent 64%, rgba(var(--ion-rgb), 0.04) 65%, transparent 70%);
+      background: radial-gradient(circle, transparent 57%, rgba(var(--ion-rgb), 0.03) 58%, transparent 62%);
     }
 
     .badge-svg {
@@ -579,20 +557,27 @@
     .badge-outer,
     .badge-arc,
     .badge-mark,
+    .badge-bracket,
     .badge-dot-bright {
-      stroke: var(--ion-green-bright);
-      filter: none;
+      stroke: var(--ion);
+      filter:
+        drop-shadow(0 0 2px rgba(var(--ion-rgb), 0.75))
+        drop-shadow(0 0 8px rgba(var(--ion-rgb), 0.32));
+    }
+
+    .badge-arc,
+    .badge-mark {
+      stroke: var(--ion-bright);
     }
 
     .badge-arc {
       transform-box: fill-box;
       transform-origin: center;
-      animation: badge-arc-rotate 5s var(--ion-spatial) infinite;
     }
 
-    .is-entering .badge-arc,
-    .is-visible .badge-arc {
-      animation: badge-arc-rotate 5s var(--ion-spatial) infinite;
+    .is-entering .badge-arc.arc-secondary,
+    .is-visible .badge-arc.arc-secondary {
+      animation-delay: 155ms;
     }
 
     .dev-harness {
@@ -603,10 +588,10 @@
       width: min(1020px, calc(100vw - 28px));
       transform: translateX(-50%);
       color: #c7d2cb;
-      border: 1px solid var(--ion-border);
-      border-radius: var(--ion-radius-md);
+      border: 1px solid rgba(187, 210, 195, 0.14);
+      border-radius: 14px;
       background: rgba(2, 7, 4, 0.86);
-      box-shadow: 0 16px 36px rgba(0, 0, 0, 0.28);
+      box-shadow: 0 16px 44px rgba(0, 0, 0, 0.42);
       backdrop-filter: blur(14px);
     }
 
@@ -614,7 +599,7 @@
       display: flex;
       align-items: center;
       gap: 8px;
-      padding: 8px 10px;
+      padding: 9px 10px;
     }
 
     .dev-label {
@@ -622,76 +607,72 @@
       align-items: center;
       gap: 7px;
       padding: 0 6px 0 2px;
-      color: var(--ion-text-tertiary);
-      letter-spacing: 0.18em;
+      color: rgba(var(--ion-rgb), 0.76);
+      letter-spacing: 0.16em;
       text-transform: uppercase;
       white-space: nowrap;
-      font-size: 10px;
-      font-weight: 700;
-      line-height: 1;
-      font-family: "Inter", "Segoe UI Variable Text", "Segoe UI", sans-serif;
+      font: 700 9px/1 ui-monospace, "SFMono-Regular", Consolas, monospace;
     }
 
     .dev-live-dot {
-      width: 5px;
-      height: 5px;
+      width: 6px;
+      height: 6px;
       border-radius: 50%;
-      background: var(--ion-green);
+      background: var(--ion);
+      box-shadow: 0 0 8px rgba(var(--ion-rgb), 0.8);
     }
 
     .dev-buttons {
       display: flex;
       flex: 1;
-      gap: var(--ion-sp-2);
+      gap: 6px;
       min-width: 0;
     }
 
     .dev-button {
       min-width: 0;
       flex: 1 1 auto;
-      padding: 8px var(--ion-sp-3);
+      padding: 8px 10px;
       overflow: hidden;
-      color: var(--ion-text-secondary);
-      border: 1px solid var(--ion-border);
-      border-radius: var(--ion-radius-sm);
+      color: #aab6ae;
+      border: 1px solid rgba(176, 199, 184, 0.12);
+      border-radius: 8px;
       background: rgba(255, 255, 255, 0.025);
       cursor: pointer;
-      letter-spacing: 0.06em;
+      letter-spacing: 0.035em;
       text-overflow: ellipsis;
       white-space: nowrap;
       font-size: 10px;
-      font-weight: 500;
-      transition: color var(--ion-motion-micro) var(--ion-spring), border-color var(--ion-motion-micro) var(--ion-spring), background var(--ion-motion-micro) var(--ion-spring);
+      font-weight: 650;
+      transition: color 130ms ease, border-color 130ms ease, background 130ms ease, transform 130ms ease;
     }
 
     .dev-button:hover {
-      color: var(--ion-green);
-      border-color: var(--ion-border-active);
+      color: var(--ion);
+      border-color: rgba(var(--ion-rgb), 0.4);
       background: rgba(var(--ion-rgb), 0.075);
+      transform: translateY(-1px);
     }
 
     .dev-button:active {
-      transform: none;
+      transform: translateY(0);
     }
 
     .dev-button:focus-visible {
-      outline: 1px solid var(--ion-border-active);
+      outline: 1px solid var(--ion);
       outline-offset: 2px;
     }
 
     .dev-status {
       min-width: 68px;
-      padding-left: var(--ion-sp-3);
-      color: var(--ion-text-tertiary);
-      border-left: 1px solid var(--ion-border);
-      letter-spacing: 0.18em;
+      padding-left: 8px;
+      color: rgba(187, 206, 193, 0.48);
+      border-left: 1px solid rgba(190, 210, 197, 0.1);
+      letter-spacing: 0.08em;
       text-align: center;
       text-transform: uppercase;
       white-space: nowrap;
-      font-size: 10px;
-      font-weight: 500;
-      line-height: 1.2;
-      font-family: "Inter", "Segoe UI Variable Text", "Segoe UI", sans-serif;
+      font: 650 8px/1.2 ui-monospace, "SFMono-Regular", Consolas, monospace;
     }
 
     @media (max-width: 920px) {
@@ -706,7 +687,7 @@
 
       .panel-shell {
         min-height: 216px;
-        border-radius: var(--ion-radius-lg);
+        border-radius: 26px;
       }
 
       .panel-content {
@@ -762,7 +743,7 @@
 
       .panel-shell {
         min-height: 236px;
-        border-radius: var(--ion-radius-lg);
+        border-radius: 22px;
       }
 
       .panel-content {
@@ -812,7 +793,7 @@
         text-overflow: clip;
         -webkit-box-orient: vertical;
         -webkit-line-clamp: 2;
-        font-size: clamp(15px, 4.4vw, 17px);
+        font-size: clamp(15px, 4.4vw, 20px);
       }
 
       .event-message {
@@ -851,7 +832,7 @@
 
       .dev-button {
         padding: 7px 5px;
-        font-size: 10px;
+        font-size: 8px;
       }
 
       .dev-status {
@@ -875,17 +856,14 @@
       *::before,
       *::after {
         scroll-behavior: auto !important;
-        animation-duration: 1ms !important;
-        animation-delay: 0ms !important;
-        transition-duration: 140ms !important;
       }
 
       .hud-toast.is-entering {
-        animation: hud-fade-in var(--ion-motion-micro) linear both;
+        animation: hud-fade-in 130ms ease-out both;
       }
 
       .hud-toast.is-exiting {
-        animation: hud-fade-out var(--ion-motion-micro) linear both;
+        animation: hud-fade-out 100ms ease-in both;
       }
 
       .is-entering .badge-arc,
@@ -901,10 +879,6 @@
       .wave-bar {
         opacity: 0.56;
         transform: scaleY(0.8);
-      }
-
-      .hud-toast {
-        --severity-border: 0.32;
       }
 
       @keyframes hud-fade-in {
@@ -934,8 +908,8 @@
       --muted: #a7b0aa;
       --text-tertiary: #7f8c84;
       --line-soft: rgba(207, 244, 216, .09);
-      --enter-ms: var(--ion-motion-spatial);
-      --exit-ms: var(--ion-motion-spatial);
+      --enter-ms: 1200ms;
+      --exit-ms: 800ms;
     }
 
     .screen-overlay {
@@ -944,7 +918,11 @@
       overflow: hidden;
       opacity: 0;
       pointer-events: none;
-      background: transparent;
+      background:
+        radial-gradient(ellipse at 50% 48%, rgba(0, 2, 1, .12) 8%, rgba(0, 4, 2, .24) 60%, rgba(14, 40, 8, .22) 100%),
+        rgba(0, 3, 1, .30);
+      -webkit-mask-image: linear-gradient(to bottom, #000 0, #000 calc(100% - 20px), transparent 100%);
+      mask-image: linear-gradient(to bottom, #000 0, #000 calc(100% - 20px), transparent 100%);
       will-change: opacity;
     }
 
@@ -956,8 +934,14 @@
       content: "";
       position: absolute;
       inset: 1px;
-      border: 1px solid rgba(var(--ion-rgb), 0.06);
+      border: 1px solid rgba(var(--ion-rgb), .18);
       border-bottom: 0;
+      box-shadow:
+        inset 0 0 12px rgba(var(--ion-rgb), .09),
+        inset 0 0 64px rgba(var(--ion-rgb), .045),
+        inset 0 0 150px rgba(var(--ion-rgb), .025),
+        0 0 8px rgba(var(--ion-rgb), .10);
+      filter: drop-shadow(0 0 3px rgba(var(--ion-rgb), .14)) drop-shadow(0 0 12px rgba(var(--ion-rgb), .055));
     }
 
     .screen-overlay::after {
@@ -973,7 +957,7 @@
     }
 
     .hud-layer.is-entering .screen-overlay {
-      animation: screen-warn-in var(--enter-ms) var(--ion-spatial) both;
+      animation: screen-warn-in var(--enter-ms) cubic-bezier(.16, 1, .3, 1) both;
     }
 
     .hud-layer.is-preparing .screen-overlay {
@@ -985,7 +969,7 @@
     }
 
     .hud-layer.is-exiting .screen-overlay {
-      animation: screen-warn-out var(--exit-ms) var(--ion-spring) both;
+      animation: screen-warn-out var(--exit-ms) ease-in both;
     }
 
     .hud-layer.is-bridging .screen-overlay,
@@ -1047,13 +1031,23 @@
 
     .panel-shell {
       min-height: var(--panel-height);
-      border: 1px solid var(--ion-border-active);
+      border: 1px solid rgba(var(--ion-rgb), .58);
       border-radius: 138px 62px 62px 138px;
-      background: var(--ion-surface);
+      background:
+        radial-gradient(circle at 13% 50%, rgba(var(--ion-rgb), .060), transparent 28%),
+        radial-gradient(circle at 88% 0%, rgba(123, 255, 150, .052), transparent 35%),
+        linear-gradient(112deg, rgba(1, 7, 4, .92), rgba(2, 10, 6, .88) 58%, rgba(2, 12, 7, .84)),
+        var(--panel);
       box-shadow:
-        inset 0 1px 0 rgba(255, 255, 255, 0.05),
-        0 18px 36px rgba(0, 0, 0, 0.28);
-      backdrop-filter: blur(14px) saturate(112%);
+        inset 0 1px 0 rgba(230, 255, 235, .068),
+        inset 0 -1px 0 rgba(var(--ion-rgb), .085),
+        inset 0 0 42px rgba(var(--ion-rgb), .014),
+        0 0 5px rgba(var(--ion-rgb), .16),
+        0 0 22px rgba(var(--ion-rgb), .075),
+        0 18px 56px rgba(0, 0, 0, .34);
+      filter: none;
+      -webkit-backdrop-filter: none;
+      backdrop-filter: none;
     }
 
     .panel-shell::before {
@@ -1063,109 +1057,97 @@
         linear-gradient(104deg, transparent 28%, rgba(226,255,233,.018) 48%, transparent 65%);
     }
 
-    .panel-shell::after {
-      top: 24px;
-      right: 32px;
-      width: 80px;
-      height: 40px;
-      opacity: 0.12;
-      background-size: 8px 8px;
-    }
-    .panel-content {
-      grid-template-rows: 64px 1fr 80px;
-      min-height: calc(var(--badge-size) + 16px);
-      padding-left: 0;
-    }
-    .hud-header { padding: 6px 16px 0 18px; gap: 12px; }
-    .brand-name { color: var(--ion-green-bright); font-family: "Inter", "Segoe UI Variable Text", "Segoe UI", sans-serif; font-size: 11px; font-weight: 500; letter-spacing: 0.18em; }
+    .panel-shell::after { top: 80px; right: 34px; width: 118px; height: 82px; opacity: .032; background-size: 10px 10px; }
+    .panel-content { grid-template-rows: 70px 1fr 92px; min-height: calc(var(--panel-height) - 2px); padding-left: 0; }
+    .hud-header { padding: 10px 56px 0 371px; transform: translateY(18px); }
+    .brand-name { color: var(--ion-bright); font-family: "Segoe UI Variable Text", "Segoe UI", sans-serif; font-size: 18px; font-weight: 650; letter-spacing: .27em; }
     .header-rule {
       position: relative;
       overflow: hidden;
-      margin: 0 12px;
-      background: linear-gradient(90deg, var(--ion-border-active), transparent);
-      box-shadow: none;
+      margin-right: 14px;
+      background: linear-gradient(90deg, rgba(var(--ion-rgb), .78), rgba(var(--ion-rgb), .055));
     }
-    .header-rule::after { content: none; }
-    .close-button {
-      width: 28px;
-      height: 28px;
-      flex-basis: 28px;
-      color: var(--ion-text-secondary);
-      background: transparent;
-      border-radius: 50%;
-      transition: color var(--ion-motion-ctrl) var(--ion-spring), background var(--ion-motion-ctrl) var(--ion-spring);
+    .header-rule::after {
+      content: "";
+      position: absolute;
+      inset: 0 auto 0 -12%;
+      width: 13%;
+      background: linear-gradient(90deg, transparent, rgba(172,255,190,.72), transparent);
+      opacity: 0;
+      transform: translateX(0);
+      pointer-events: none;
     }
-    .close-button:hover { color: var(--ion-text); background: rgba(var(--ion-rgb), 0.06); }
-    .close-button:active { transform: none; }
-    .close-button:focus-visible { outline: 1px solid var(--ion-border-active); outline-offset: 3px; background: rgba(var(--ion-rgb), 0.06); }
-    .close-button::before, .close-button::after { left: 8px; top: 13px; width: 12px; height: 1px; }
-    .hud-body { grid-template-columns: 48px minmax(0, 1fr); gap: var(--ion-sp-5); padding: 4px var(--ion-sp-7) 12px 22px; }
-    .hud-body::before { content: none; }
+    .close-button { width: 44px; height: 44px; flex-basis: 44px; border-radius: 50%; transition: color 180ms ease, background 180ms ease, box-shadow 180ms ease, transform 180ms cubic-bezier(.16,1,.3,1); }
+    .close-button:hover { color: var(--ion-bright); background: rgba(var(--ion-rgb),.065); box-shadow: inset 0 0 0 1px rgba(var(--ion-rgb),.14), 0 0 16px rgba(var(--ion-rgb),.06); transform: scale(1.04); }
+    .close-button:active { transform: scale(.94); }
+    .close-button:focus-visible { outline: 2px solid rgba(var(--ion-rgb), .82); outline-offset: 3px; }
+    .close-button::before, .close-button::after { left: 11px; top: 21px; width: 22px; height: 1.5px; }
+    .hud-body { grid-template-columns: 98px 1px minmax(0, 1fr); gap: 31px; padding: 0 42px 12px 396px; transform: translateY(4px); }
+    .hud-body::before {
+      content: "";
+      grid-column: 2;
+      width: 1px;
+      height: 100px;
+      align-self: center;
+      background: linear-gradient(180deg, transparent, rgba(var(--ion-rgb), .54) 18%, rgba(var(--ion-rgb), .30) 82%, transparent);
+      box-shadow: 0 0 8px rgba(var(--ion-rgb), .20);
+    }
     .event-icon-shell {
       position: relative;
       grid-column: 1;
       grid-row: 1;
-      width: 48px;
-      height: 48px;
-      border: 1px solid var(--ion-border-active);
-      background: rgba(0, 0, 0, 0.18);
-      box-shadow: none;
+      width: 98px;
+      height: 98px;
+      border-width: 1px;
+      border-color: rgba(var(--ion-rgb), .40);
+      background:
+        radial-gradient(circle at 50% 45%, rgba(var(--ion-rgb), .075), transparent 55%),
+        rgba(0, 4, 2, .26);
+      box-shadow: inset 0 0 0 8px rgba(var(--ion-rgb), .008), inset 0 1px rgba(255,255,255,.035), 0 0 12px rgba(var(--ion-rgb), .06);
     }
-    .event-icon-shell::after { content: none; }
-    .event-icon-shell svg { width: 24px; height: 24px; stroke-width: 1.5; filter: none; }
-    .event-copy { grid-column: 2; grid-row: 1; min-width: 0; }
-    .event-title {
-      margin: 0 0 8px 0;
-      color: var(--ion-text);
-      font-family: "Inter", "Segoe UI Variable Text", "Segoe UI", sans-serif;
-      font-stretch: normal;
-      font-size: 22px;
-      font-weight: 600;
-      letter-spacing: -0.01em;
-      line-height: 1.05;
-      text-shadow: none;
-      transform: none;
-    }
-    .event-message { max-width: 640px; color: var(--ion-text-secondary); font-size: 13px; font-weight: 400; line-height: 1.5; letter-spacing: 0; }
-    .hud-footer {
-      position: relative;
-      grid-template-columns: 28px minmax(90px, 1fr) auto;
-      gap: var(--ion-sp-4);
-      padding: 0 var(--ion-sp-7) 0 22px;
-      border-top: 1px solid var(--ion-border);
-      background: transparent;
-    }
-    .hud-footer::before {
+    .event-icon-shell::after {
       content: "";
       position: absolute;
-      top: -1px;
-      right: 0;
-      left: 22px;
-      height: 1px;
-      background: linear-gradient(90deg, var(--ion-border-active), transparent);
+      inset: -7px;
+      border: 1px solid rgba(var(--ion-rgb), .10);
+      border-radius: 50%;
+      opacity: .68;
+      pointer-events: none;
     }
-    .speaker-icon { width: 18px; height: 18px; color: var(--ion-text-secondary); stroke-width: 1.4; filter: none; }
-    .waveform { height: 28px; margin-left: 0; justify-content: space-between; gap: 1.5px; color: var(--ion-green); filter: none; }
-    .wave-bar { width: 1.5px; flex-basis: 1.5px; filter: none; }
-    .wave-bar.is-dot { width: 2px; height: 2px; min-height: 2px; flex-basis: 2px; }
-    .spoken-line { margin-left: 0; color: var(--ion-text); font-family: "Inter", "Segoe UI Variable Text", "Segoe UI", sans-serif; font-size: 12px; font-weight: 600; letter-spacing: 0.06em; text-shadow: none; }
+    .event-icon-shell svg { width: 84px; height: 84px; stroke-width: 1.8; }
+    .event-copy { grid-column: 3; grid-row: 1; min-width: 0; transform: translate(3px, 5px); }
+    .event-title { margin-bottom: 11px; color: var(--text); font-family: "Segoe UI Variable Display", Bahnschrift, "Segoe UI", sans-serif; font-stretch: normal; font-size: 40px; font-weight: 610; letter-spacing: -.016em; line-height: 1.04; text-shadow: 0 1px 18px rgba(219,255,227,.035); transform: none; }
+    .event-message { max-width: 640px; color: #abb5ae; font-size: 22px; line-height: 1.42; }
+    .hud-footer {
+      position: relative;
+      grid-template-columns: 34px minmax(180px, 1fr) auto;
+      gap: 0;
+      padding: 0 49px 0 355px;
+      border-top: 0;
+      background: linear-gradient(90deg, rgba(var(--ion-rgb), .025), transparent 42%), rgba(0, 0, 0, .07);
+    }
+    .hud-footer::before { content: ""; position: absolute; top: -1px; right: 0; left: 339px; height: 1px; background: linear-gradient(90deg, rgba(var(--ion-rgb), .28), rgba(var(--ion-rgb), .11) 72%, transparent); }
+    .speaker-icon { width: 34px; height: 34px; stroke-width: 1.55; }
+    .waveform { height: 40px; margin-left: 46px; justify-content: space-between; gap: 0; }
+    .wave-bar { width: 1.5px; flex-basis: 1.5px; }
+    .wave-bar.is-dot { width: 3px; height: 3px; min-height: 3px; flex-basis: 3px; }
+    .spoken-line { margin-left: 58px; font-family: "Segoe UI Variable Text", "Segoe UI", sans-serif; font-size: 21px; font-weight: 590; letter-spacing: .075em; }
     .brand-badge {
-      top: 50%;
-      left: calc(var(--badge-size) * -0.48);
+      top: calc(50% + 4px);
+      left: 35px;
       width: var(--badge-size);
       height: var(--badge-size);
       transform: translateY(-50%);
-      background:
-        radial-gradient(circle at 45% 40%, rgba(var(--ion-rgb), 0.09), transparent 45%),
-        radial-gradient(circle, #07100a 0%, #020503 70%, #000 100%);
-      box-shadow: 12px 0 28px rgba(0, 0, 0, 0.54);
-      filter: none;
+      background: radial-gradient(circle, rgba(5, 13, 7, .70), rgba(1, 5, 3, .44) 66%, transparent 73%);
+      box-shadow: none;
+      filter: drop-shadow(0 0 3px rgba(var(--ion-rgb), .14)) drop-shadow(0 0 13px rgba(var(--ion-rgb), .055));
     }
-    .badge-outer { stroke-width: 1px; opacity: 0.5; transform-box: fill-box; transform-origin: center; filter: none; }
-    .badge-orbit { stroke-dasharray: none; }
-    .badge-arc { stroke-width: 1.5px; opacity: 1; filter: none; }
-    .badge-mark { stroke-width: 2.5px; filter: none; }
-    .badge-dot-bright { opacity: 1; }
+    .badge-outer { stroke-width: 1.05; opacity: .46; transform-box: fill-box; transform-origin: center; }
+    .badge-outer { stroke-dasharray: .15 .025 .04 .025 .62 .14; }
+    .badge-orbit { stroke-dasharray: .72 .03 .08 .04 .08 .05; }
+    .badge-arc { opacity: .7; filter: drop-shadow(0 0 2px rgba(var(--ion-rgb), .28)) drop-shadow(0 0 6px rgba(var(--ion-rgb), .09)); }
+    .badge-mark { opacity: .82; filter: drop-shadow(0 0 2px rgba(var(--ion-rgb), .30)) drop-shadow(0 0 6px rgba(var(--ion-rgb), .10)); }
+    .badge-dot-bright { opacity: .52; }
     .brand-badge .badge-svg { width: 100%; height: 100%; margin: 0; }
 
     /* Subtle will-change hints for the elements that actually animate. */
@@ -1174,11 +1156,35 @@
       will-change: transform, opacity;
     }
 
-    .brand-badge::before { content: none; }
+    .brand-badge::before {
+      content: "";
+      position: absolute;
+      inset: 6%;
+      border-radius: 50%;
+      opacity: 0;
+      background: repeating-conic-gradient(from -7deg, rgba(var(--ion-rgb), .72) 0 1deg, transparent 1deg 9deg);
+      -webkit-mask: radial-gradient(circle, transparent 0 72%, #000 72.5% 74%, transparent 74.5%);
+      mask: radial-gradient(circle, transparent 0 72%, #000 72.5% 74%, transparent 74.5%);
+      pointer-events: none;
+    }
+
+    .badge-orbit {
+      transform-box: fill-box;
+      transform-origin: center;
+    }
 
     .badge-outer {
       transform-box: fill-box;
       transform-origin: center;
+    }
+
+    .badge-particles {
+      transform-box: view-box;
+      transform-origin: center;
+    }
+
+    .hud-toast.is-entering .brand-badge::after {
+      animation: badge-energy-pulse 620ms 300ms ease-out both;
     }
 
     .hud-toast.is-exiting .brand-badge::after {
@@ -1188,13 +1194,13 @@
     /* Title and message fade in as a single block; no per-character reveal. */
     .hud-toast.is-entering .event-title,
     .hud-toast.is-entering .event-message {
-      animation: hud-fade-in var(--ion-motion-panel) var(--ion-spring) both;
+      animation: hud-fade-in var(--ion-motion-normal) var(--ion-spring) both;
     }
     .hud-toast.is-entering .event-message { animation-delay: 40ms; }
 
     .hud-toast.is-exiting .event-title,
     .hud-toast.is-exiting .event-message {
-      animation: hud-fade-out var(--ion-motion-ctrl) var(--ion-spring) both;
+      animation: hud-fade-out var(--ion-motion-fast) var(--ion-spring) both;
     }
 
     @keyframes hud-fade-in {
@@ -1205,16 +1211,18 @@
       from { opacity: 1; }
       to   { opacity: 0; }
     }
-    @keyframes badge-arc-rotate {
-      0%   { transform: rotate(-10deg); }
-      50%  { transform: rotate(10deg); }
-      100% { transform: rotate(-10deg); }
+    @keyframes badge-energy-pulse {
+      0% { opacity: 0; }
+      42% { opacity: 0.85; }
+      100% { opacity: 1; }
     }
+
+    .hud-toast.is-visible .badge-arc { animation: none; }
 
     @media (max-width: 1180px), (max-height: 660px) {
       :root { --toast-width: min(960px, calc(100vw - 15vw)); --badge-size: 214px; --panel-height: 272px; --panel-radius: 48px; }
       .hud-toast { top: 50%; left: 50%; }
-      .panel-shell { border-radius: 62px var(--ion-radius-md) var(--ion-radius-md) 62px; }
+      .panel-shell { border-radius: 104px 48px 48px 104px; }
       .panel-content { grid-template-rows: 62px 1fr 70px; }
       .brand-badge { left: 27px; }
       .hud-header { padding-left: 240px; padding-right: 28px; transform: translateY(8px); }
@@ -1222,8 +1230,8 @@
       .hud-body::before { height: 72px; }
       .event-icon-shell { width: 78px; height: 78px; }
       .event-icon-shell svg { width: 66px; height: 66px; }
-      .event-title { font-size: clamp(22px, 3vw, 28px); }
-      .event-message { font-size: 15px; }
+      .event-title { font-size: clamp(23px, 3vw, 30px); }
+      .event-message { font-size: 16px; }
       .hud-footer { padding-left: 190px; padding-right: 36px; }
       .hud-footer::before { left: 174px; }
       .waveform { margin-left: 24px; }
@@ -1236,18 +1244,18 @@
       .panel-content { grid-template-rows: 52px 1fr 62px; }
       .hud-header, .hud-body { padding-left: 166px; }
       .hud-header { padding-right: 14px; transform: translateY(3px); }
-      .brand-name { font-size: 13px; letter-spacing: 0.18em; }
+      .brand-name { font-size: 13px; letter-spacing: .22em; }
       .hud-body { grid-template-columns: 56px minmax(0, 1fr); gap: 14px; padding-right: 18px; }
       .hud-body::before { display: none; }
       .event-icon-shell { width: 56px; height: 56px; }
       .event-copy { grid-column: 2; }
       .event-icon-shell svg { width: 30px; height: 30px; }
-      .event-title { font-size: clamp(17px, 4vw, 22px); }
+      .event-title { font-size: clamp(16px, 4vw, 23px); }
       .event-message { font-size: 13px; }
       .hud-footer { gap: 10px; padding-left: 22px; padding-right: 20px; }
       .hud-footer::before { left: 0; }
       .waveform, .spoken-line { margin-left: 0; }
-      .panel-shell { border-radius: var(--ion-radius-lg) var(--ion-radius-md) var(--ion-radius-md) var(--ion-radius-lg); }
+      .panel-shell { border-radius: 62px 34px 34px 62px; }
     }
 
     @media (max-width: 480px) {
@@ -1262,16 +1270,17 @@
     }
 
     @media (prefers-reduced-motion: reduce) {
-      :root { --enter-ms: var(--ion-motion-micro); --exit-ms: var(--ion-motion-micro); }
-      .hud-toast { --severity-border: 0.32; }
-      .hud-toast.is-entering { animation: hud-center-fade-in var(--ion-motion-micro) linear both; }
+      :root { --enter-ms: 180ms; --exit-ms: 160ms; }
+      .hud-toast.is-entering { animation: hud-center-fade-in var(--enter-ms) ease-out both; }
       .hud-toast.is-visible { transform: translate3d(-50%, -50%, 0); }
-      .hud-toast.is-exiting { animation: hud-center-fade-out var(--ion-motion-micro) linear both; }
-      .hud-layer.is-entering .screen-overlay { animation: screen-fade-in var(--ion-motion-micro) linear both; }
+      .hud-toast.is-exiting { animation: hud-center-fade-out var(--exit-ms) ease-in both; }
+      .hud-layer.is-entering .screen-overlay { animation: screen-fade-in var(--enter-ms) ease-out both; }
       .hud-layer.is-visible .screen-overlay { opacity: 1; }
-      .hud-layer.is-exiting .screen-overlay { animation: screen-fade-out var(--ion-motion-micro) linear both; }
+      .hud-layer.is-exiting .screen-overlay { animation: screen-fade-out var(--exit-ms) ease-in both; }
       .screen-blur { display: none; }
       .hud-toast.is-entering .panel-shell,
+      .hud-toast.is-entering .panel-trace,
+      .hud-toast.is-entering .panel-trace path,
       .hud-toast.is-entering .brand-badge,
       .hud-toast.is-entering .badge-outer,
       .hud-toast.is-entering .badge-orbit,
@@ -1286,11 +1295,15 @@
       .hud-toast.is-entering .event-icon-shell,
       .hud-toast.is-entering .hud-body::before,
       .hud-toast.is-entering .event-icon-shell svg > *,
+      .hud-toast.is-entering .text-char,
       .hud-toast.is-entering .hud-footer::before,
       .hud-toast.is-entering .speaker-icon,
       .hud-toast.is-entering .wave-bar,
       .hud-toast.is-entering .spoken-line,
+      .hud-toast.is-entering .energy-sweep,
       .hud-toast.is-exiting .panel-shell,
+      .hud-toast.is-exiting .panel-trace,
+      .hud-toast.is-exiting .panel-trace path,
       .hud-toast.is-exiting .brand-badge,
       .hud-toast.is-exiting .badge-outer,
       .hud-toast.is-exiting .badge-orbit,
@@ -1301,10 +1314,12 @@
       .hud-toast.is-exiting .header-rule,
       .hud-toast.is-exiting .brand-name,
       .hud-toast.is-exiting .close-button,
+      .hud-toast.is-exiting .text-char,
       .hud-toast.is-exiting .hud-footer::before,
       .hud-toast.is-exiting .speaker-icon,
       .hud-toast.is-exiting .wave-bar,
-      .hud-toast.is-exiting .spoken-line { animation: none !important; }
+      .hud-toast.is-exiting .spoken-line,
+      .hud-toast.is-exiting .energy-sweep { animation: none !important; }
       .panel-shell,
       .brand-badge,
       .brand-name,
@@ -1313,10 +1328,13 @@
       .event-icon-shell,
       .hud-body::before,
       .event-icon-shell svg > *,
+      .text-char,
       .hud-footer::before,
       .speaker-icon,
       .spoken-line { opacity: 1 !important; transform: none; }
       .brand-badge { transform: translateY(-50%); }
+      .panel-trace,
+      .energy-sweep { display: none; }
       .wave-bar { opacity: .64 !important; transform: scaleY(.82) !important; }
       .wave-bar.is-dot { transform: scale(.9) !important; }
       @keyframes hud-center-fade-in {
@@ -1395,20 +1413,20 @@
     .hud-toast .waveform[data-visualizer-state="entering"] {
       --wave-baseline-opacity: .24;
       --wave-baseline-scale: 1;
-      animation: visualizer-container-in 510ms 610ms var(--ion-spatial) both;
+      animation: visualizer-container-in 510ms 610ms cubic-bezier(.16, 1, .3, 1) both;
     }
 
     .hud-toast .waveform[data-visualizer-state="entering"]::before {
-      animation: visualizer-baseline-in 430ms 630ms var(--ion-spatial) both;
+      animation: visualizer-baseline-in 430ms 630ms cubic-bezier(.16, 1, .3, 1) both;
     }
 
     .hud-toast .waveform[data-visualizer-state="entering"]::after {
       content: "";
-      animation: visualizer-energy-pass 330ms 920ms var(--ion-spring) both;
+      animation: visualizer-energy-pass 330ms 920ms cubic-bezier(.2, .68, .3, 1) both;
     }
 
     .hud-toast .waveform[data-visualizer-state="entering"] .wave-bar {
-      animation: visualizer-bar-in 330ms var(--wave-enter-delay) var(--ion-spatial) both !important;
+      animation: visualizer-bar-in 330ms var(--wave-enter-delay) cubic-bezier(.16, 1, .3, 1) both !important;
     }
 
     .hud-toast .waveform[data-visualizer-state="entering"] .wave-bar.is-dot {
@@ -1445,15 +1463,15 @@
     .hud-toast .waveform[data-visualizer-state="exiting"] {
       --wave-baseline-opacity: 0;
       --wave-baseline-scale: 0;
-      animation: visualizer-container-out 390ms var(--ion-spring) both;
+      animation: visualizer-container-out 390ms cubic-bezier(.55, 0, .85, .35) both;
     }
 
     .hud-toast .waveform[data-visualizer-state="exiting"]::before {
-      animation: visualizer-baseline-out 260ms 90ms var(--ion-spring) both;
+      animation: visualizer-baseline-out 260ms 90ms cubic-bezier(.55, 0, .85, .35) both;
     }
 
     .hud-toast .waveform[data-visualizer-state="exiting"] .wave-bar {
-      animation: visualizer-bar-out 245ms var(--wave-exit-delay) var(--ion-spring) both !important;
+      animation: visualizer-bar-out 245ms var(--wave-exit-delay) cubic-bezier(.55, 0, .85, .35) both !important;
     }
 
     .hud-toast .waveform[data-visualizer-state="exiting"] .wave-bar.is-dot {
@@ -1501,33 +1519,59 @@
       to { opacity: 0; transform: scale(0); }
     }
 
-    /* Severity-aware signal layer. The palette stays Ion green; only the border
-       opacity flickers with the event contract. */
+    /* Severity-aware signal layer. The palette stays Ion green; only energy,
+       cadence, and supporting telemetry change with the event contract. */
     .hud-toast {
-      --severity-border: 0.32;
-      --progress-opacity: 0.45;
+      --severity-border: .56;
+      --severity-energy: .62;
+      --severity-cycle: 30s;
+      --particle-cycle: 22s;
+      --progress-opacity: .45;
+      --dot-glow: .2;
     }
-    .hud-toast[data-severity="info"] { --severity-border: 0.18; }
-    .hud-toast[data-severity="warning"] { --severity-border: 0.32; }
-    .hud-toast[data-severity="critical"] { --severity-border: 0.55; }
+    .hud-toast[data-severity="info"] {
+      --severity-border: .51;
+      --severity-energy: .48;
+      --severity-cycle: 36s;
+      --particle-cycle: 26s;
+      --progress-opacity: .41;
+      --dot-glow: .15;
+    }
+    .hud-toast[data-severity="warning"] {
+      --severity-border: .61;
+      --severity-energy: .68;
+      --severity-cycle: 27s;
+      --particle-cycle: 20s;
+      --progress-opacity: .47;
+      --dot-glow: .22;
+    }
+    .hud-toast[data-severity="critical"] {
+      --severity-border: .72;
+      --severity-energy: .92;
+      --severity-cycle: 18s;
+      --particle-cycle: 13s;
+      --progress-opacity: .52;
+      --dot-glow: .3;
+    }
     .hud-toast[data-severity] .panel-shell {
       border-color: rgba(var(--ion-rgb), var(--severity-border));
     }
-    .hud-layer[data-severity="info"] .screen-overlay::before { opacity: 0.5; }
-    .hud-layer[data-severity="warning"] .screen-overlay::before { opacity: 0.7; }
+    .hud-layer[data-severity="info"] .screen-overlay::before { opacity: .72; }
+    .hud-layer[data-severity="warning"] .screen-overlay::before { opacity: .86; }
     .hud-layer[data-severity="critical"] .screen-overlay::before { opacity: 1; }
+    .hud-layer[data-severity="critical"] .screen-overlay::after { opacity: .24; }
 
     .event-meta {
       display: flex;
       align-items: center;
-      gap: 10px;
+      gap: 9px;
       max-width: 650px;
-      margin-top: 14px;
-      color: var(--ion-text-tertiary);
-      font-family: "Inter", "Segoe UI Variable Text", "Segoe UI", sans-serif;
+      margin-top: 13px;
+      color: var(--text-tertiary);
+      font-family: "Segoe UI Variable Text", "Segoe UI", sans-serif;
       font-size: 10px;
-      font-weight: 500;
-      letter-spacing: 0.18em;
+      font-weight: 620;
+      letter-spacing: .13em;
       line-height: 1;
       text-transform: uppercase;
       white-space: nowrap;
@@ -1536,38 +1580,38 @@
       display: inline-flex;
       align-items: center;
       gap: 7px;
-      padding: 4px 9px;
-      border: 1px solid var(--ion-border);
-      border-radius: var(--ion-radius-pill);
-      color: var(--ion-text-secondary);
-      font-size: 10px;
-      font-weight: 500;
-      letter-spacing: 0.06em;
-      background: rgba(var(--ion-rgb), 0.04);
+      padding: 5px 8px;
+      border: 1px solid rgba(var(--ion-rgb), .11);
+      border-radius: 999px;
+      color: rgba(200, 230, 208, .78);
+      background: linear-gradient(180deg, rgba(var(--ion-rgb), .035), rgba(var(--ion-rgb), .012));
     }
     .signal-readout i {
-      width: 5px;
-      height: 5px;
-      flex: 0 0 5px;
-      border: 1px solid var(--ion-border-active);
+      width: 6px;
+      height: 6px;
+      flex: 0 0 6px;
+      border: 1px solid rgba(var(--ion-rgb), .74);
       border-radius: 50%;
-      background: var(--ion-green);
-      box-shadow: none;
+      background: rgba(var(--ion-rgb), .58);
+      box-shadow: 0 0 7px rgba(var(--ion-rgb), var(--dot-glow));
     }
     .meta-divider {
       width: 1px;
       height: 10px;
       background: rgba(var(--ion-rgb), .18);
     }
-    .event-source { color: var(--ion-text-tertiary); }
+    .event-source { color: #818d85; }
     .event-time {
       margin-left: auto;
-      color: var(--ion-text-tertiary);
+      color: rgba(173, 194, 180, .58);
       font-variant-numeric: tabular-nums;
-      letter-spacing: 0.18em;
+      letter-spacing: .09em;
     }
-    .hud-toast[data-severity="critical"] .signal-readout { color: var(--ion-text); }
-    .hud-toast[data-severity="critical"] .signal-readout i { background: var(--ion-bright); }
+    .hud-toast[data-severity="critical"] .signal-readout { color: rgba(210, 239, 216, .84); }
+    .hud-toast[data-severity="critical"] .signal-readout i {
+      background: var(--ion-bright);
+      box-shadow: 0 0 4px rgba(var(--ion-rgb), .72), 0 0 12px rgba(var(--ion-rgb), .28);
+    }
 
     .alert-progress {
       position: absolute;
@@ -1578,7 +1622,7 @@
       height: 1px;
       overflow: hidden;
       opacity: 0;
-      background: var(--ion-border);
+      background: rgba(var(--ion-rgb), .055);
       pointer-events: none;
     }
     .alert-progress::after {
@@ -1588,12 +1632,12 @@
       background: linear-gradient(90deg, transparent, rgba(var(--ion-rgb), .72) 8%, rgba(var(--ion-rgb), .44) 78%, transparent);
       transform: scaleX(1);
       transform-origin: left center;
-      box-shadow: none;
+      box-shadow: 0 0 7px rgba(var(--ion-rgb), .2);
     }
     .hud-toast.is-visible .alert-progress { opacity: var(--progress-opacity); }
     .hud-toast.is-visible .alert-progress::after { animation: alert-dwell 5s linear both; }
     .hud-toast.is-entering .event-meta { animation: meta-readout-in 280ms 810ms var(--ion-spring) both; }
-    .hud-toast.is-exiting .event-meta { animation: meta-readout-out 150ms 20ms var(--ion-spring) both; }
+    .hud-toast.is-exiting .event-meta { animation: meta-readout-out 150ms 20ms cubic-bezier(.55, 0, .85, .35) both; }
     /* Idle motion is restricted to one 6s opacity breath on the panel inner
        highlight. The brief explicitly bans continuous 360deg rotation. */
     .hud-toast.is-visible .panel-shell::before { animation: panel-ambient-breathe 6s ease-in-out infinite; }
@@ -1621,7 +1665,7 @@
     }
 
     @media (max-width: 1180px), (max-height: 660px) {
-      .event-meta { gap: 7px; margin-top: 8px; font-size: 10px; letter-spacing: 0.06em; }
+      .event-meta { gap: 7px; margin-top: 8px; font-size: 10px; letter-spacing: .08em; }
       .alert-progress { right: 36px; left: 174px; }
     }
     @media (max-width: 720px) {
@@ -1637,7 +1681,7 @@
       .hud-toast .waveform[data-visualizer-state] {
         animation: none !important;
         transform: none !important;
-        transition: opacity var(--ion-motion-micro) linear;
+        transition: opacity 140ms ease-out;
       }
       .hud-toast .waveform[data-visualizer-state="hidden"],
       .hud-toast .waveform[data-visualizer-state="exiting"] { opacity: 0 !important; }
@@ -1654,8 +1698,12 @@
       .hud-toast .waveform[data-visualizer-state] .wave-bar.is-dot {
         transform: scale(.9) !important;
       }
-      .hud-toast.is-visible .badge-arc,
+      .hud-toast.is-visible .badge-orbit,
+      .hud-toast.is-visible .badge-particles,
       .hud-toast.is-visible .panel-shell::before,
+      .hud-toast.is-visible .event-icon-shell,
+      .hud-toast.is-visible .header-rule::after,
+      .hud-toast.is-visible .signal-readout i,
       .hud-toast.is-visible .alert-progress::after,
       .hud-toast.is-entering .event-meta,
       .hud-toast.is-exiting .event-meta {
@@ -1728,11 +1776,17 @@
       <div class="brand-badge" aria-hidden="true">
         <svg class="badge-svg" viewBox="0 0 240 240" role="img" aria-label="Ion Sense brand mark">
           <circle cx="120" cy="120" r="114" fill="none" class="badge-outer" pathLength="1"></circle>
-          <path class="badge-arc" pathLength="1" d="M79 48 A84 84 0 0 1 204 115" fill="none" stroke-linecap="round"></path>
-          <circle cx="120" cy="18" r="2" class="badge-dot-bright"></circle>
-          <circle cx="215" cy="120" r="2" class="badge-dot-bright"></circle>
-          <circle cx="26" cy="120" r="2" class="badge-dot-bright"></circle>
-          <g class="badge-mark" fill="none" stroke-linecap="round">
+          <circle cx="120" cy="120" r="101" fill="none" class="badge-orbit" pathLength="1" stroke="rgba(126,158,134,.21)" stroke-width="1.35"></circle>
+          <path class="badge-arc arc-primary" pathLength="1" d="M79 48 A84 84 0 0 1 204 115" fill="none" stroke-width="8.5" stroke-linecap="round"></path>
+          <path class="badge-arc arc-secondary" pathLength="1" d="M169 187 A84 84 0 0 1 37 126" fill="none" stroke-width="8.5" stroke-linecap="round"></path>
+          <g class="badge-particles" fill="var(--ion)">
+            <circle cx="120" cy="18" r="2.1" opacity=".68"></circle>
+            <circle cx="198" cy="52" r="2" opacity=".58"></circle>
+            <circle cx="215" cy="120" r="2.8" opacity=".66"></circle>
+            <circle cx="120" cy="220" r="2.2" opacity=".60"></circle>
+            <circle cx="26" cy="120" r="2.2" opacity=".56"></circle>
+          </g>
+          <g class="badge-mark" fill="none" stroke-width="9" stroke-linecap="round">
             <path pathLength="1" d="M103 77H137"></path>
             <path pathLength="1" d="M120 92V148"></path>
             <path pathLength="1" d="M103 163H137"></path>
