@@ -100,3 +100,17 @@ ION Sense is a quiet desktop awareness utility: premium system software first, f
 - The settings utility uses a narrow portrait window and an internal scroll region; cards stack in one column.
 - The HUD is centered, preserves its integrated badge silhouette, and scales at the existing 1180px, 720px, and 480px breakpoints.
 - Test common Windows logical viewports representing 100%, 125%, and 150% display scaling. Avoid sub-pixel-dependent borders and geometry.
+
+## HUD 2.0: the ION Sense Core (monitoring view)
+
+- The monitoring centerpiece is an organic energy field, not a gauge: a soft-edged core whose silhouette wobbles ±2% on a 14s cycle, two small radial light fields drifting on 19s/27s cycles inside it, breathing halos, and one orbit arc travelling a full 64s circle.
+- No spinning, no radar, no constant mechanical rotation, no giant orb. The I glyph stays steady inside the core as the brand anchor.
+- Core states are causal, not decorative: `data-core-state="focus"` follows a real detector restart (save); `"alert"` echoes a fired test event. Energy rises through opacity/edge only, holds briefly, then collapses smoothly back to idle (`frontend/settings.html` `setCoreState`).
+- All core animation is gated behind `data-window-state="entering"/"active"` — nothing animates while the window is hidden. Reduced motion freezes the core to a static composition with 140ms state fades.
+
+## HUD 2.0: severity-connected alert core
+
+- The alert badge shares the event's energy: arc, glyph, and orbit luminance derive from `--severity-energy` through opacity only (`.hud-toast[data-severity]`), so the left core reads as part of the event state.
+- Resolve choreography: on exit the core's energy contracts a step ahead of the surface — the alert resolves rather than vanishes.
+- Motion vocabulary everywhere: hover = scale (≤1.02) + color/border/luminance response (no Y-lifts, no rotation); press = scale(.97–.985); toggles = `--ease-out` translateX, no overshoot bezier; one spring family (`--ease-out` cubic-bezier(.16,1,.3,1)) across all controls.
+- Micro-label floor is enforced at 8.5px in the winning CSS layers.
