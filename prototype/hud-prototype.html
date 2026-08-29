@@ -246,10 +246,12 @@
       border: 1px solid rgba(var(--ion-rgb), 0.74);
       border-radius: 30px;
       background:
-        linear-gradient(104deg, rgba(1, 5, 3, 0.965), rgba(4, 13, 8, 0.925) 61%, rgba(4, 20, 9, 0.91)),
+        radial-gradient(ellipse at 50% 0%, rgba(6, 16, 10, .55), transparent 62%),
+        linear-gradient(104deg, rgba(1, 5, 3, 0.955), rgba(4, 13, 8, 0.915) 61%, rgba(4, 20, 9, 0.9)),
         var(--panel);
       box-shadow:
         inset 0 1px 0 rgba(255, 255, 255, 0.035),
+        inset 0 -14px 34px rgba(0, 2, 1, 0.38),
         inset 0 -1px 0 rgba(var(--ion-rgb), 0.08);
       filter:
         drop-shadow(0 0 3px rgba(var(--ion-rgb), 0.17))
@@ -872,7 +874,8 @@
       .is-visible .wave-bar,
       .is-entering .waveform::after,
       .is-visible .waveform::after,
-      .is-entering .glitch-slice {
+      .is-entering .glitch-slice,
+      .is-entering .hud-body::before {
         animation: none;
       }
 
@@ -1091,6 +1094,20 @@
       align-self: center;
       background: linear-gradient(180deg, transparent, rgba(var(--ion-rgb), .54) 18%, rgba(var(--ion-rgb), .30) 82%, transparent);
       box-shadow: 0 0 8px rgba(var(--ion-rgb), .20);
+    }
+    /* Energy propagation: when the alert materializes, a soft light travels
+       down the conduit from the core toward the content — the left anchor and
+       the event read as one system. The travelling pulse is a gradient shift
+       inside the same 1px line, not a new element. */
+    .hud-toast.is-entering .hud-body::before {
+      background:
+        linear-gradient(180deg, transparent, rgba(var(--ion-rgb), .54) 18%, rgba(var(--ion-rgb), .30) 82%, transparent);
+      animation: conduit-flare 700ms 240ms var(--ion-spring) both;
+    }
+    @keyframes conduit-flare {
+      0% { box-shadow: 0 0 8px rgba(var(--ion-rgb), .2); }
+      38% { box-shadow: 0 0 16px rgba(var(--ion-rgb), .55), 0 0 4px rgba(var(--ion-rgb), .5); }
+      100% { box-shadow: 0 0 8px rgba(var(--ion-rgb), .2); }
     }
     .event-icon-shell {
       position: relative;
@@ -1571,6 +1588,25 @@
     .hud-layer[data-severity="warning"] .screen-overlay::before { opacity: .86; }
     .hud-layer[data-severity="critical"] .screen-overlay::before { opacity: 1; }
     .hud-layer[data-severity="critical"] .screen-overlay::after { opacity: .24; }
+    /* Ambient field: the screen itself reacts with the event. A soft
+       atmospheric falloff concentrates toward the alert's center-line; it
+       grows with severity through the same overlay surface, so no new
+       element and no full-screen neon. */
+    .hud-layer[data-severity] .screen-overlay::before {
+      background:
+        radial-gradient(ellipse 62% 38% at 50% 46%, rgba(var(--ion-rgb), .05), transparent 70%),
+        linear-gradient(180deg, rgba(var(--ion-rgb), .035), transparent 26%, rgba(var(--ion-rgb), .02) 88%);
+    }
+    .hud-layer[data-severity="warning"] .screen-overlay::before {
+      background:
+        radial-gradient(ellipse 70% 44% at 50% 46%, rgba(var(--ion-rgb), .07), transparent 70%),
+        linear-gradient(180deg, rgba(var(--ion-rgb), .05), transparent 26%, rgba(var(--ion-rgb), .03) 88%);
+    }
+    .hud-layer[data-severity="critical"] .screen-overlay::before {
+      background:
+        radial-gradient(ellipse 82% 52% at 50% 46%, rgba(var(--ion-rgb), .09), transparent 70%),
+        linear-gradient(180deg, rgba(var(--ion-rgb), .065), transparent 24%, rgba(var(--ion-rgb), .04) 86%);
+    }
 
     .event-meta {
       display: flex;
