@@ -226,7 +226,9 @@
 
     .hud-toast.is-exiting {
       pointer-events: none;
-      animation: hud-out var(--exit-ms) var(--ion-spring) both;
+      /* Dismissal has different motion needs than arrival: decisive, quick
+         contraction instead of the entrance spring's soft landing. */
+      animation: hud-out var(--exit-ms) cubic-bezier(.45, .05, .6, .95) both;
     }
 
     @keyframes hud-in {

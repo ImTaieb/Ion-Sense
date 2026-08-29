@@ -964,6 +964,13 @@
       --ease-out: cubic-bezier(.16, 1, .3, 1);
       --ease-in: cubic-bezier(.55, .06, .68, .19);
       --ease-standard: cubic-bezier(.2, .7, .2, 1);
+      /* Per-interaction curves (brief §10-11): distinct needs, distinct feel.
+         press: quick rise, no settle overshoot. glow: soft luminance bloom.
+         settle: long soft landing for state transitions that must feel
+         physical rather than snappy. */
+      --ease-press: cubic-bezier(.3, .9, .4, 1);
+      --ease-glow: cubic-bezier(.23, .8, .3, 1);
+      --ease-settle: cubic-bezier(.19, 1, .22, 1);
       --surface-0: #010403;
       --surface-1: #040a06;
       --surface-2: #07100a;
@@ -1540,7 +1547,7 @@
     input::placeholder { color: #526057; opacity: .9; }
     .switch { gap: 7px; padding-right: 18px; color: #98a49c; font-size: 9px; letter-spacing: .075em; }
     .track { width: 37px; height: 20px; border-color: rgba(181,203,188,.17); background: #010403; box-shadow: inset 0 1px 3px rgba(0,0,0,.5); transition: background var(--motion-control) ease, border-color var(--motion-control) ease, box-shadow var(--motion-control) ease; }
-    .track::after { top: 2px; left: 2px; width: 14px; height: 14px; background: #69746c; transition: transform var(--motion-control) var(--ease-out), background var(--motion-control) ease, box-shadow var(--motion-control) ease; }
+    .track::after { top: 2px; left: 2px; width: 14px; height: 14px; background: #69746c; transition: transform 190ms var(--ease-settle), background var(--motion-control) ease, box-shadow var(--motion-control) ease; }
     .switch input:checked + .track { border-color: rgba(var(--ion-rgb),.45); background: rgba(var(--ion-rgb),.085); }
     .switch input:checked + .track::after { left: 2px; transform: translateX(17px); background: #55ef69; box-shadow: 0 0 7px rgba(var(--ion-rgb),.3); }
     .switch input:focus-visible + .track { outline: 2px solid rgba(var(--ion-rgb),.78); outline-offset: 3px; }
@@ -1554,7 +1561,7 @@
       background: linear-gradient(180deg, rgba(15,25,18,.92), rgba(4,11,7,.94));
       box-shadow: inset 0 1px rgba(255,255,255,.018);
       font-size: 9px;
-      transition: transform var(--motion-micro) var(--ease-out), color var(--motion-micro) ease, border-color var(--motion-micro) ease, background var(--motion-micro) ease, box-shadow var(--motion-micro) ease;
+      transition: transform 130ms var(--ease-press), color var(--motion-micro) ease, border-color var(--motion-micro) ease, background var(--motion-micro) ease, box-shadow var(--motion-micro) var(--ease-glow);
     }
     button:hover:not(:disabled) { transform: scale(1.01); color: var(--ion); border-color: rgba(var(--ion-rgb),.33); background: rgba(var(--ion-rgb),.045); box-shadow: 0 7px 16px rgba(0,0,0,.15); }
     button:active:not(:disabled) { transform: scale(.975); }
@@ -1779,13 +1786,13 @@
       inset: 7px;
       border: 1px solid rgba(213, 255, 222, .055);
       background: linear-gradient(160deg, rgba(255, 255, 255, .022), transparent 42%, rgba(var(--ion-rgb), .02) 88%);
-      transition: opacity var(--motion-panel) ease, border-color var(--motion-panel) ease;
+      transition: opacity var(--motion-panel) var(--ease-settle), border-color var(--motion-panel) var(--ease-settle);
     }
     .utility-mark .core-perimeter {
       inset: 0;
       border: 1px solid rgba(var(--ion-rgb), .24);
       opacity: .55;
-      transition: opacity var(--motion-panel) ease, border-color var(--motion-panel) ease;
+      transition: opacity var(--motion-panel) var(--ease-settle), border-color var(--motion-panel) var(--ease-settle);
     }
     .utility-mark .core-glyph {
       inset: 20px;
@@ -2162,11 +2169,11 @@
       font-size: 10.5px;
       letter-spacing: .065em;
       transition:
-        background var(--motion-control) ease,
+        background var(--motion-control) var(--ease-glow),
         border-color var(--motion-control) ease,
         color var(--motion-control) ease,
-        box-shadow var(--motion-control) ease,
-        transform var(--motion-micro) var(--ease-out);
+        box-shadow var(--motion-control) var(--ease-glow),
+        transform 120ms var(--ease-press);
     }
     button.primary:hover:not(:disabled) {
       border-color: rgba(var(--ion-rgb), .44);
