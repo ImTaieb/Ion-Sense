@@ -488,7 +488,10 @@ fn get_runtime_info(
 ) -> Result<RuntimeInfo, String> {
     require_window(&window, "settings")?;
     Ok(RuntimeInfo {
-        dev: tauri::is_dev(),
+        // Test events are compiled behind debug_assertions, so the dev card must
+        // reflect that — not tauri::is_dev(), which this crate reports as true in
+        // every build because it never declares the custom-protocol feature.
+        dev: cfg!(debug_assertions) && tauri::is_dev(),
         platform: std::env::consts::OS,
         settings_path: state.settings_path.display().to_string(),
     })
