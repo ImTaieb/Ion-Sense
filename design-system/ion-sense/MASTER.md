@@ -114,3 +114,11 @@ ION Sense is a quiet desktop awareness utility: premium system software first, f
 - Resolve choreography: on exit the core's energy contracts a step ahead of the surface — the alert resolves rather than vanishes.
 - Motion vocabulary everywhere: hover = scale (≤1.02) + color/border/luminance response (no Y-lifts, no rotation); press = scale(.97–.985); toggles = `--ease-out` translateX, no overshoot bezier; one spring family (`--ease-out` cubic-bezier(.16,1,.3,1)) across all controls.
 - Micro-label floor is enforced at 8.5px in the winning CSS layers.
+
+## HUD 2.1: layered material and per-interaction motion
+
+- The Sense Core gains a third membrane (hairline + diagonal sheen), a bottom shadow pool and top light pool for spherical volume, and a blurred elliptical caustic light drifting beneath the membrane (31s). Depth is layered translucency, never glow stacking.
+- Core alert state escalates with real event severity via `data-core-severity` (warning tightens glows; critical compresses, sharpens the membrane, double-pulses). Test events map their true severities.
+- The alert conduit (core-to-content line) flares once as the alert materializes; the panel shell carries the same light-pool/shadow-pool material as the Core; the ambient screen field is severity-graded on the existing overlay surface.
+- Settings uses one continuous grouped surface with hairline rows (macOS System Settings structure); inputs are recessed neutral material that turns ION only on focus; save is a ghost hairline action that strengthens when dirty.
+- Motion is per-interaction: `--ease-press` (120-130ms press), `--ease-glow` (luminance), `--ease-settle` (state landings, core, 190ms toggle), entrance spring for arrival, near-linear decisive contraction for dismissal.
