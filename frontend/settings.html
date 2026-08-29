@@ -1360,7 +1360,7 @@
         0 0 16px rgba(var(--ion-rgb),.045),
         inset 0 0 0 1px rgba(var(--ion-rgb),.035),
         inset 0 1px rgba(255,255,255,.035);
-      transform: scale(1.025) rotate(3deg);
+      transform: scale(1.02);
     }
     .utility-settings-button:active:not(:disabled) {
       transform: scale(.965) rotate(0deg);
@@ -1664,14 +1664,10 @@
     .utility-mark {
       width: 102px;
       height: 102px;
-      border-color: rgba(var(--ion-rgb), .34);
-      background:
-        radial-gradient(circle at 50% 42%, rgba(var(--ion-rgb), .09), transparent 45%),
-        linear-gradient(180deg, rgba(2,9,5,.96), rgba(0,3,2,.98));
-      box-shadow:
-        inset 0 0 0 8px rgba(var(--ion-rgb),.01),
-        inset 0 1px rgba(255,255,255,.04),
-        0 0 28px rgba(var(--ion-rgb),.045);
+      border: 0;
+      background: transparent;
+      box-shadow: none;
+      transition: transform var(--motion-panel) var(--ease-out);
     }
     .utility-mark-orbit {
       position: absolute;
@@ -1689,38 +1685,171 @@
       transform-origin: center;
     }
     .utility-orbit-track {
-      stroke: rgba(var(--ion-rgb), .09);
+      stroke: rgba(var(--ion-rgb), .085);
       stroke-width: 1;
       stroke-dasharray: 1 8;
       stroke-linecap: round;
     }
     .utility-orbit-signal {
-      stroke: rgba(var(--ion-rgb), .54);
+      stroke: rgba(var(--ion-rgb), .5);
       stroke-width: 1.25;
       stroke-dasharray: 22 330;
       stroke-linecap: round;
-      filter: drop-shadow(0 0 3px rgba(var(--ion-rgb), .28));
+      opacity: .85;
+      transition: opacity var(--motion-panel) ease;
     }
-    .utility-orbit-inner {
-      stroke: rgba(213, 255, 222, .075);
-      stroke-width: 1;
-      stroke-dasharray: 68 227;
-      stroke-linecap: round;
+
+    /* ION Sense Core — an organic, Siri-like energy field in the ION palette.
+       The edge wobbles at ±2%, two soft light fields drift slowly inside, and
+       the orbit arc travels its full circle on a 64s cycle. All idle motion
+       stops unless the window is visible. */
+    .utility-mark .core-halo,
+    .utility-mark .core-body,
+    .utility-mark .core-body-veil,
+    .utility-mark .core-body-glow,
+    .utility-mark .core-perimeter,
+    .utility-mark .core-glyph {
+      position: absolute;
+      display: block;
+      width: auto;
+      height: auto;
+      border: 0;
+      border-radius: 50%;
+      background: transparent;
+      box-shadow: none;
+      pointer-events: none;
     }
-    /* Brief bans continuous 360deg rotation as ambient motion. The
-       monitoring orb is a single hairline ring with one slow breath. */
-    body[data-window-state="active"] .utility-mark::after {
-      animation: monitor-breathe 6s ease-in-out infinite;
+    .utility-mark .core-halo { inset: -16px; opacity: .8; transition: opacity var(--motion-panel) ease; }
+    .utility-mark .core-halo-inner { inset: -6px; opacity: .9; }
+    .utility-mark .core-halo-outer {
+      background: radial-gradient(circle, rgba(var(--ion-rgb), .05), transparent 64%);
     }
-    @keyframes monitor-breathe {
-      0%, 100% { opacity: 0.18; }
-      50%      { opacity: 0.42; }
+    .utility-mark .core-halo-inner {
+      background: radial-gradient(circle, rgba(var(--ion-rgb), .075), transparent 66%);
+    }
+    .utility-mark .core-body {
+      inset: 20px;
+      overflow: hidden;
+      background: linear-gradient(180deg, rgba(3, 10, 6, .97), rgba(0, 4, 2, .99));
+      box-shadow:
+        inset 0 1px rgba(255, 255, 255, .045),
+        inset 0 0 0 1px rgba(var(--ion-rgb), .14),
+        0 0 26px rgba(var(--ion-rgb), .05);
+    }
+    .utility-mark .core-body-veil {
+      inset: 0;
+      background: radial-gradient(circle at 50% 36%, rgba(var(--ion-rgb), .1), transparent 58%);
+    }
+    .utility-mark .core-body-glow {
+      top: 50%;
+      left: 50%;
+      will-change: transform;
+      transition: opacity var(--motion-panel) ease;
+    }
+    .utility-mark .core-glow-a {
+      width: 34px;
+      height: 34px;
+      margin: -17px 0 0 -17px;
+      opacity: .85;
+      background: radial-gradient(circle, rgba(var(--ion-rgb), .32), transparent 66%);
+    }
+    .utility-mark .core-glow-b {
+      width: 26px;
+      height: 26px;
+      margin: -13px 0 0 -13px;
+      opacity: .8;
+      background: radial-gradient(circle, rgba(var(--ion-rgb), .2), transparent 62%);
+    }
+    .utility-mark .core-perimeter {
+      inset: 0;
+      border: 1px solid rgba(var(--ion-rgb), .24);
+      opacity: .55;
+      transition: opacity var(--motion-panel) ease, border-color var(--motion-panel) ease;
+    }
+    .utility-mark .core-glyph {
+      inset: 20px;
+      display: grid;
+      place-items: center;
+    }
+    .utility-mark .core-glyph span {
+      width: 5px;
+      height: 34px;
+      border-radius: 999px;
+      background: linear-gradient(180deg, var(--ion-bright), var(--ion));
+      box-shadow: 0 0 9px rgba(var(--ion-rgb), .38);
+    }
+
+    body[data-window-state="entering"] .core-body,
+    body[data-window-state="active"] .core-body,
+    body[data-window-state="entering"] .core-perimeter,
+    body[data-window-state="active"] .core-perimeter {
+      animation: core-morph 14s ease-in-out infinite;
+    }
+    body[data-window-state="entering"] .core-glow-a,
+    body[data-window-state="active"] .core-glow-a { animation: core-drift-a 19s ease-in-out infinite alternate; }
+    body[data-window-state="entering"] .core-glow-b,
+    body[data-window-state="active"] .core-glow-b { animation: core-drift-b 27s ease-in-out infinite alternate; }
+    body[data-window-state="entering"] .core-halo,
+    body[data-window-state="active"] .core-halo { animation: core-halo-breathe 9s ease-in-out infinite; }
+    body[data-window-state="entering"] .core-halo-inner,
+    body[data-window-state="active"] .core-halo-inner { animation-delay: -4.5s; }
+    body[data-window-state="entering"] .utility-orbit-signal,
+    body[data-window-state="active"] .utility-orbit-signal { animation: orbit-signal-drift 64s linear infinite; }
+
+    @keyframes core-morph {
+      0%, 100% { border-radius: 50% 50% 50% 50% / 50% 50% 50% 50%; }
+      25%      { border-radius: 52% 48% 49% 51% / 48% 52% 51% 49%; }
+      50%      { border-radius: 49% 51% 52% 48% / 51% 48% 49% 52%; }
+      75%      { border-radius: 48% 52% 50% 50% / 52% 49% 48% 51%; }
+    }
+    @keyframes core-drift-a {
+      from { transform: translate(-7px, -4px) scale(.92); }
+      to   { transform: translate(7px, 5px) scale(1.14); }
+    }
+    @keyframes core-drift-b {
+      from { transform: translate(6px, 5px) scale(1.05); }
+      to   { transform: translate(-6px, -5px) scale(.9); }
+    }
+    @keyframes core-halo-breathe {
+      0%, 100% { opacity: .55; }
+      50%      { opacity: 1; }
+    }
+    @keyframes orbit-signal-drift {
+      from { stroke-dashoffset: 0; }
+      to   { stroke-dashoffset: -352; }
+    }
+    @keyframes core-alert-pulse {
+      0%   { transform: scale(1); }
+      35%  { transform: scale(1.028); }
+      100% { transform: scale(1); }
+    }
+
+    /* Core states. Focus = detectors restarting; alert = a test event fired.
+       Energy rises, holds briefly, then collapses smoothly back to idle. */
+    body[data-core-state="focus"] .utility-mark .core-halo { opacity: 1; }
+    body[data-core-state="focus"] .utility-mark .core-glow-a,
+    body[data-core-state="focus"] .utility-mark .core-glow-b { opacity: 1; }
+    body[data-core-state="focus"] .utility-mark .core-perimeter { opacity: 1; border-color: rgba(var(--ion-rgb), .4); }
+    body[data-core-state="focus"] .utility-mark .core-body {
+      box-shadow:
+        inset 0 1px rgba(255, 255, 255, .055),
+        inset 0 0 0 1px rgba(var(--ion-rgb), .26),
+        0 0 34px rgba(var(--ion-rgb), .095);
+    }
+    body[data-core-state="focus"] .utility-orbit-signal { opacity: 1; }
+    body[data-core-state="alert"] .utility-mark .core-halo { opacity: 1; }
+    body[data-core-state="alert"] .utility-mark .core-glow-a,
+    body[data-core-state="alert"] .utility-mark .core-glow-b { opacity: 1; }
+    body[data-core-state="alert"] .utility-mark .core-perimeter { opacity: 1; border-color: rgba(var(--ion-rgb), .5); }
+    body[data-core-state="alert"] .utility-orbit-signal { opacity: 1; }
+    body[data-core-state="alert"][data-window-state="active"] .utility-mark,
+    body[data-core-state="alert"][data-window-state="entering"] .utility-mark {
+      animation: core-alert-pulse 900ms var(--ease-out);
     }
     .utility-mark::before,
-    .utility-mark::after { left: 35px; width: 32px; }
+    .utility-mark::after { left: 35px; width: 32px; height: 5px; border-radius: 999px; background: var(--ion); box-shadow: 0 0 8px rgba(var(--ion-rgb), .32); }
     .utility-mark::before { top: 27px; }
     .utility-mark::after { bottom: 27px; }
-    .utility-mark span { height: 36px; }
     .utility-status h2 {
       font-family: var(--font-display);
       font-size: 28px;
@@ -1734,14 +1863,20 @@
       font-size: 13px;
       line-height: 1.58;
     }
-    .utility-stats { gap: 8px; }
+    .utility-stats { display: flex; justify-content: center; gap: 8px; flex-wrap: wrap; }
     .utility-stat {
-      padding: 7px 11px;
-      color: #9ba69f;
-      border-color: rgba(var(--ion-rgb), .13);
-      background: rgba(var(--ion-rgb), .022);
+      padding: 6px 11px;
+      color: #8c9790;
+      border: 0;
+      border-radius: 999px;
+      background: rgba(255, 255, 255, .03);
       font-size: 9px;
+      font-weight: 640;
+      letter-spacing: .1em;
+      text-transform: uppercase;
+      transition: color var(--motion-control) ease, background var(--motion-control) ease;
     }
+    .utility-stat strong { color: var(--ion); }
     .utility-detectors {
       display: flex;
       max-width: 318px;
@@ -1755,22 +1890,23 @@
       display: inline-flex;
       align-items: center;
       gap: 5px;
-      padding: 4px 7px;
-      color: #7f8b83;
-      border: 1px solid rgba(var(--ion-rgb), .07);
+      padding: 4px 8px;
+      color: #919d95;
+      border: 0;
       border-radius: 999px;
-      background: linear-gradient(180deg, rgba(255,255,255,.018), rgba(var(--ion-rgb),.008));
+      background: rgba(255, 255, 255, .035);
       font-size: 8.5px;
       font-weight: 600;
-      letter-spacing: .025em;
+      letter-spacing: .03em;
+      transition: color var(--motion-control) ease, background var(--motion-control) ease;
     }
     .utility-detector::before {
       content: "";
       width: 4px;
       height: 4px;
       border-radius: 50%;
-      background: rgba(var(--ion-rgb),.72);
-      box-shadow: 0 0 6px rgba(var(--ion-rgb),.28);
+      background: rgba(var(--ion-rgb),.7);
+      box-shadow: 0 0 6px rgba(var(--ion-rgb),.26);
     }
     .utility-nav {
       grid-template-columns: 1fr 66px;
@@ -1819,7 +1955,7 @@
       box-shadow: 0 8px 22px rgba(0,0,0,.2), inset 0 1px rgba(255,255,255,.05);
       transform: translateY(-1px) scale(1.015);
     }
-    .utility-settings-button:hover:not(:disabled) svg { transform: rotate(18deg); }
+    .utility-settings-button:hover:not(:disabled) svg { transform: scale(1.06); }
     .utility-settings-button:active:not(:disabled) { transform: translateY(0) scale(.97); }
 
     .settings-hero {
@@ -2031,6 +2167,11 @@
       }
       .utility-settings-button:hover:not(:disabled) { transform: none; }
       body[data-window-state="active"] .utility-orbit-signal { animation: none; }
+      /* Reduced motion keeps elegant fades for the Sense Core states. */
+      .utility-mark .core-halo,
+      .utility-mark .core-body-glow,
+      .utility-mark .core-perimeter,
+      .utility-mark .core-body { transition-duration: 140ms !important; }
     }
   </style>
 </head>
@@ -2045,12 +2186,21 @@
       <div class="utility-status">
         <div class="eyebrow">System status</div>
         <div class="utility-mark" aria-hidden="true">
+          <span class="core-halo core-halo-outer"></span>
+          <span class="core-halo core-halo-inner"></span>
           <svg class="utility-mark-orbit" viewBox="0 0 128 128">
             <circle class="utility-orbit-track" cx="64" cy="64" r="56"></circle>
             <circle class="utility-orbit-signal" cx="64" cy="64" r="56"></circle>
-            <circle class="utility-orbit-inner" cx="64" cy="64" r="47"></circle>
           </svg>
-          <span></span>
+          <span class="core-body">
+            <span class="core-body-veil"></span>
+            <span class="core-body-glow core-glow-a"></span>
+            <span class="core-body-glow core-glow-b"></span>
+            <span class="core-perimeter"></span>
+            <span class="core-glyph">
+              <span></span>
+            </span>
+          </span>
         </div>
         <h2>Monitoring</h2>
         <p>Quietly monitoring the signals that matter. Ion Sense will surface an alert when something needs you.</p>
@@ -2198,9 +2348,23 @@
       let currentSettings = null;
       let windowMotionTimer = 0;
       let viewMotionTimer = 0;
+      let coreStateTimer = 0;
       let closing = false;
       let activeOpenGeneration = 0;
       let activeCloseGeneration = 0;
+
+      /* Sense Core states. idle is the resting breath; focus follows real
+         detector activity (save + restart); alert echoes a fired test event.
+         Energy rises, holds briefly, then collapses smoothly back to idle. */
+      function setCoreState(state, holdMs) {
+        document.body.dataset.coreState = state;
+        window.clearTimeout(coreStateTimer);
+        if (Number.isFinite(holdMs)) {
+          coreStateTimer = window.setTimeout(() => {
+            document.body.dataset.coreState = "idle";
+          }, holdMs);
+        }
+      }
 
       const previewSettings = {
         launch_at_login: false,
@@ -2600,6 +2764,7 @@
           const discordToken = field("discord-token").value;
           setBusy(true);
           setStatus("Saving and restarting detectors…", false, "loading");
+          setCoreState("focus", 3200);
           currentSettings = await invoke("save_settings", {
             settings: next,
             imapPassword: emailPassword || null,
@@ -2612,8 +2777,10 @@
           form.dataset.dirty = "false";
           setStatus("Saved. Detectors are restarting in the background.", false, "success");
           flashSavedPrimary();
+          setCoreState("focus", 2400);
         } catch (error) {
           setStatus(String(error), true);
+          setCoreState("idle");
         } finally {
           setBusy(false);
         }
@@ -2649,9 +2816,13 @@
         const button = event.target.closest("[data-test-event]");
         if (!button) return;
         try {
+          setCoreState("alert", 2200);
           await invoke("fire_test_event", { eventType: button.dataset.testEvent });
           setStatus(`Triggered ${button.textContent.trim()}.`, false, "success");
-        } catch (error) { setStatus(String(error), true); }
+        } catch (error) {
+          setCoreState("idle");
+          setStatus(String(error), true);
+        }
       });
 
       field("discord-channels").addEventListener("input", (event) => {
