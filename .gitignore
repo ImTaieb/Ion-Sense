@@ -24,3 +24,9 @@ Thumbs.db
 .idea/
 .vscode/
 .tmp/
+
+# User-installed design skills (impeccable, motion, 21st-*, ui-ux-pro-max,
+# frontend-design). These are tool installations for the local agent
+# harness, not part of the product.
+.agents/
+skills/
