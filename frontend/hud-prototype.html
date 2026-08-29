@@ -252,8 +252,8 @@
         inset 0 1px 0 rgba(255, 255, 255, 0.035),
         inset 0 -1px 0 rgba(var(--ion-rgb), 0.08);
       filter:
-        drop-shadow(0 0 4px rgba(var(--ion-rgb), 0.21))
-        drop-shadow(0 0 18px rgba(var(--ion-rgb), 0.13));
+        drop-shadow(0 0 3px rgba(var(--ion-rgb), 0.17))
+        drop-shadow(0 0 20px rgba(var(--ion-rgb), 0.11));
       backdrop-filter: blur(18px) saturate(115%);
     }
 
@@ -274,7 +274,7 @@
       right: 22px;
       width: 104px;
       height: 68px;
-      opacity: 0.18;
+      opacity: 0.12;
       pointer-events: none;
       background-image: radial-gradient(circle, rgba(var(--ion-rgb), 0.62) 0 1px, transparent 1.3px);
       background-size: 8px 8px;
@@ -1556,6 +1556,17 @@
     .hud-toast[data-severity] .panel-shell {
       border-color: rgba(var(--ion-rgb), var(--severity-border));
     }
+    /* The left core shares the event's energy: arc and glyph luminance follow
+       severity through opacity only — one palette, changing intensity. */
+    .hud-toast[data-severity] .badge-arc {
+      opacity: calc(.55 + var(--severity-energy) * .4);
+    }
+    .hud-toast[data-severity] .badge-mark {
+      opacity: calc(.72 + var(--severity-energy) * .14);
+    }
+    .hud-toast[data-severity] .badge-orbit {
+      opacity: calc(.5 + var(--severity-energy) * .35);
+    }
     .hud-layer[data-severity="info"] .screen-overlay::before { opacity: .72; }
     .hud-layer[data-severity="warning"] .screen-overlay::before { opacity: .86; }
     .hud-layer[data-severity="critical"] .screen-overlay::before { opacity: 1; }
@@ -1638,6 +1649,12 @@
     .hud-toast.is-visible .alert-progress::after { animation: alert-dwell 5s linear both; }
     .hud-toast.is-entering .event-meta { animation: meta-readout-in 280ms 810ms var(--ion-spring) both; }
     .hud-toast.is-exiting .event-meta { animation: meta-readout-out 150ms 20ms cubic-bezier(.55, 0, .85, .35) both; }
+    /* Resolve choreography: on exit the left core's energy contracts a step
+       ahead of the surface so the alert reads as resolving, not just
+       disappearing. Opacity only — no rotation, no scale-from-zero. */
+    .hud-toast.is-exiting .badge-arc { opacity: calc(var(--severity-energy, .62) * .3); }
+    .hud-toast.is-exiting .badge-orbit { opacity: .22; }
+    .hud-toast.is-exiting .badge-particles { opacity: .3; }
     /* Idle motion is restricted to one 6s opacity breath on the panel inner
        highlight. The brief explicitly bans continuous 360deg rotation. */
     .hud-toast.is-visible .panel-shell::before { animation: panel-ambient-breathe 6s ease-in-out infinite; }
