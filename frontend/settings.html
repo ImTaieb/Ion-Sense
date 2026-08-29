@@ -1699,14 +1699,17 @@
       transition: opacity var(--motion-panel) ease;
     }
 
-    /* ION Sense Core — an organic, Siri-like energy field in the ION palette.
-       The edge wobbles at ±2%, two soft light fields drift slowly inside, and
-       the orbit arc travels its full circle on a 64s cycle. All idle motion
-       stops unless the window is visible. */
+    /* ION Sense Core — a layered translucent energy body in the ION palette.
+       Three membranes (halo, body, inner membrane) create real depth; three
+       soft light fields drift inside at low frequency — the central pair is
+       the "energy", the third is a faint caustic that slides beneath the
+       membrane. The edge wobbles ±2%; the orbit arc travels a full 64s circle.
+       All idle motion stops unless the window is visible. */
     .utility-mark .core-halo,
     .utility-mark .core-body,
     .utility-mark .core-body-veil,
     .utility-mark .core-body-glow,
+    .utility-mark .core-membrane,
     .utility-mark .core-perimeter,
     .utility-mark .core-glyph {
       position: absolute;
@@ -1730,10 +1733,13 @@
     .utility-mark .core-body {
       inset: 20px;
       overflow: hidden;
-      background: linear-gradient(180deg, rgba(3, 10, 6, .97), rgba(0, 4, 2, .99));
+      background:
+        radial-gradient(circle at 50% 30%, rgba(6, 16, 10, .55), transparent 72%),
+        linear-gradient(180deg, rgba(3, 10, 6, .97), rgba(0, 4, 2, .99));
       box-shadow:
-        inset 0 1px rgba(255, 255, 255, .045),
-        inset 0 0 0 1px rgba(var(--ion-rgb), .14),
+        inset 0 1px rgba(255, 255, 255, .05),
+        inset 0 -6px 18px rgba(0, 2, 1, .6),
+        inset 0 0 0 1px rgba(var(--ion-rgb), .13),
         0 0 26px rgba(var(--ion-rgb), .05);
     }
     .utility-mark .core-body-veil {
@@ -1760,6 +1766,20 @@
       opacity: .8;
       background: radial-gradient(circle, rgba(var(--ion-rgb), .2), transparent 62%);
     }
+    .utility-mark .core-glow-c {
+      width: 46px;
+      height: 30px;
+      margin: -18px 0 0 -23px;
+      opacity: .5;
+      filter: blur(3px);
+      background: radial-gradient(ellipse, rgba(var(--ion-rgb), .14), transparent 70%);
+    }
+    .utility-mark .core-membrane {
+      inset: 7px;
+      border: 1px solid rgba(213, 255, 222, .055);
+      background: linear-gradient(160deg, rgba(255, 255, 255, .022), transparent 42%, rgba(var(--ion-rgb), .02) 88%);
+      transition: opacity var(--motion-panel) ease, border-color var(--motion-panel) ease;
+    }
     .utility-mark .core-perimeter {
       inset: 0;
       border: 1px solid rgba(var(--ion-rgb), .24);
@@ -1785,10 +1805,16 @@
     body[data-window-state="active"] .core-perimeter {
       animation: core-morph 14s ease-in-out infinite;
     }
+    body[data-window-state="entering"] .core-membrane,
+    body[data-window-state="active"] .core-membrane {
+      animation: core-morph 14s ease-in-out infinite reverse;
+    }
     body[data-window-state="entering"] .core-glow-a,
     body[data-window-state="active"] .core-glow-a { animation: core-drift-a 19s ease-in-out infinite alternate; }
     body[data-window-state="entering"] .core-glow-b,
     body[data-window-state="active"] .core-glow-b { animation: core-drift-b 27s ease-in-out infinite alternate; }
+    body[data-window-state="entering"] .core-glow-c,
+    body[data-window-state="active"] .core-glow-c { animation: core-caustic 31s ease-in-out infinite alternate; }
     body[data-window-state="entering"] .core-halo,
     body[data-window-state="active"] .core-halo { animation: core-halo-breathe 9s ease-in-out infinite; }
     body[data-window-state="entering"] .core-halo-inner,
@@ -1809,6 +1835,10 @@
     @keyframes core-drift-b {
       from { transform: translate(6px, 5px) scale(1.05); }
       to   { transform: translate(-6px, -5px) scale(.9); }
+    }
+    @keyframes core-caustic {
+      from { transform: translate(-14px, 7px) rotate(-8deg) scale(.96); }
+      to   { transform: translate(13px, -6px) rotate(9deg) scale(1.08); }
     }
     @keyframes core-halo-breathe {
       0%, 100% { opacity: .55; }
@@ -1846,6 +1876,28 @@
     body[data-core-state="alert"][data-window-state="entering"] .utility-mark {
       animation: core-alert-pulse 900ms var(--ease-out);
     }
+    /* Severity escalates the alert response — same palette, more energy.
+       Internal compression: the central glows tighten and brighten; the
+       perimeter sharpens; critical adds a restrained double pulse. */
+    body[data-core-state="alert"][data-core-severity="warning"] .utility-mark .core-membrane { border-color: rgba(var(--ion-rgb), .16); }
+    body[data-core-state="alert"][data-core-severity="warning"] .utility-mark .core-glow-a {
+      transform: translate(-2px, -1px) scale(1.06);
+    }
+    body[data-core-state="alert"][data-core-severity="critical"] .utility-mark .core-membrane { border-color: rgba(var(--ion-rgb), .22); }
+    body[data-core-state="alert"][data-core-severity="critical"] .utility-mark .core-glow-a,
+    body[data-core-state="alert"][data-core-severity="critical"] .utility-mark .core-glow-b { transform: none; }
+    body[data-core-state="alert"][data-core-severity="critical"] .utility-mark .core-body {
+      box-shadow:
+        inset 0 1px rgba(255, 255, 255, .06),
+        inset 0 -6px 18px rgba(0, 2, 1, .6),
+        inset 0 0 0 1px rgba(var(--ion-rgb), .34),
+        0 0 40px rgba(var(--ion-rgb), .12);
+    }
+    body[data-core-state="alert"][data-core-severity="critical"][data-window-state="active"] .utility-mark {
+      animation: core-alert-pulse 760ms var(--ease-out) 2;
+    }
+    body[data-core-state="focus"] .utility-mark .core-glow-c { opacity: .85; }
+    body[data-core-state="alert"] .utility-mark .core-glow-c { opacity: .95; }
     .utility-mark::before,
     .utility-mark::after { left: 35px; width: 32px; height: 5px; border-radius: 999px; background: var(--ion); box-shadow: 0 0 8px rgba(var(--ion-rgb), .32); }
     .utility-mark::before { top: 27px; }
@@ -2196,6 +2248,8 @@
             <span class="core-body-veil"></span>
             <span class="core-body-glow core-glow-a"></span>
             <span class="core-body-glow core-glow-b"></span>
+            <span class="core-body-glow core-glow-c"></span>
+            <span class="core-membrane"></span>
             <span class="core-perimeter"></span>
             <span class="core-glyph">
               <span></span>
@@ -2354,14 +2408,25 @@
       let activeCloseGeneration = 0;
 
       /* Sense Core states. idle is the resting breath; focus follows real
-         detector activity (save + restart); alert echoes a fired test event.
-         Energy rises, holds briefly, then collapses smoothly back to idle. */
-      function setCoreState(state, holdMs) {
+         detector activity (save + restart); alert echoes a fired test event,
+         escalating with the event's severity. Energy rises, holds briefly,
+         then collapses smoothly back to idle. */
+      const CORE_TEST_SEVERITY = {
+        battery_low: "warning",
+        overheating: "critical"
+      };
+      function setCoreState(state, holdMs, severity) {
         document.body.dataset.coreState = state;
+        if (state === "alert" && severity) {
+          document.body.dataset.coreSeverity = severity;
+        } else {
+          delete document.body.dataset.coreSeverity;
+        }
         window.clearTimeout(coreStateTimer);
         if (Number.isFinite(holdMs)) {
           coreStateTimer = window.setTimeout(() => {
             document.body.dataset.coreState = "idle";
+            delete document.body.dataset.coreSeverity;
           }, holdMs);
         }
       }
@@ -2816,7 +2881,7 @@
         const button = event.target.closest("[data-test-event]");
         if (!button) return;
         try {
-          setCoreState("alert", 2200);
+          setCoreState("alert", 2200, CORE_TEST_SEVERITY[button.dataset.testEvent]);
           await invoke("fire_test_event", { eventType: button.dataset.testEvent });
           setStatus(`Triggered ${button.textContent.trim()}.`, false, "success");
         } catch (error) {
