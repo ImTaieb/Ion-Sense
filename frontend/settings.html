@@ -648,8 +648,9 @@
     form[aria-busy="true"] button.primary .button-progress { opacity: 1; animation: status-spin 620ms linear infinite; }
     /* 700ms saved-state swap (brief §10). No radial flash, no bounce. */
     button.primary[data-state="saved"] {
-      background: #2fbf5a;
-      border-color: rgba(101, 245, 155, 0.7);
+      background: rgba(var(--ion-rgb), .18);
+      border-color: rgba(var(--ion-rgb), .62);
+      color: #eafff0;
     }
     button.primary[data-state="saved"] .button-label[data-label="idle"] { display: none; }
     button.primary[data-state="saved"] .button-label[data-label="saved"] { display: inline-flex; }
@@ -657,8 +658,8 @@
       content: "";
       width: 7px;
       height: 3px;
-      border-left: 1.5px solid #041008;
-      border-bottom: 1.5px solid #041008;
+      border-left: 1.5px solid var(--ion-bright);
+      border-bottom: 1.5px solid var(--ion-bright);
       transform: rotate(-45deg) translate(1px, -1px);
     }
     button.primary .button-label[data-label="saved"] { display: none; }
@@ -2044,40 +2045,46 @@
     }
     .editor-back:hover:not(:disabled) { transform: translateX(-1px); }
     .settings-scroll { padding: 11px 8px 12px 11px; }
-    .settings-grid { gap: 9px; }
-    section.settings-card {
-      padding: 15px 14px 16px;
+    .settings-grid {
+      gap: 0;
+      padding: 0 2px;
+      border: 1px solid rgba(255, 255, 255, .06);
+      border-radius: 16px;
+      background: rgba(3, 9, 6, .72);
+      box-shadow: inset 0 1px rgba(255, 255, 255, .022), 0 10px 26px rgba(0, 0, 0, .22);
       overflow: clip;
-      border-color: rgba(185,216,194,.085);
-      border-radius: var(--radius-card);
-      background:
-        linear-gradient(180deg, rgba(255,255,255,.015), transparent 32%),
-        rgba(3,9,6,.9);
-      box-shadow: inset 0 1px rgba(255,255,255,.02), 0 6px 18px rgba(0,0,0,.06);
+    }
+    /* macOS-style grouped surface: one continuous material with hairline
+       separators between rows instead of individually boxed cards. Structure
+       reads through grouping and type, not outlines. */
+    section.settings-card {
+      padding: 16px 15px 17px;
+      overflow: clip;
+      border: 0;
+      border-radius: 0;
+      background: transparent;
+      box-shadow: none;
       transition:
         opacity 250ms var(--ease-out),
         transform 250ms var(--ease-out),
-        border-color var(--motion-control) ease,
-        background var(--motion-control) ease,
-        box-shadow var(--motion-control) ease;
+        background var(--motion-control) ease;
     }
-    section.settings-card::before {
-      opacity: 0;
-      background:
-        radial-gradient(circle at 8% 0%, rgba(var(--ion-rgb),.05), transparent 42%),
-        linear-gradient(90deg, rgba(var(--ion-rgb),.014), transparent 62%);
-      transition: opacity var(--motion-control) ease;
+    section.settings-card + section.settings-card {
+      border-top: 1px solid rgba(255, 255, 255, .055);
     }
+    section.settings-card:first-child {
+      border-radius: 14px 14px 0 0;
+      background: linear-gradient(180deg, rgba(255, 255, 255, .012), transparent 30%);
+    }
+    section.settings-card:last-child { border-radius: 0 0 14px 14px; }
+    section.settings-card:only-of-type { border-radius: 14px; }
+    section.settings-card::before { display: none; }
     section.settings-card:hover {
       transform: none;
-      border-color: rgba(var(--ion-rgb),.18);
-      background-color: rgba(4,11,7,.92);
-      box-shadow: inset 0 1px rgba(255,255,255,.028), 0 8px 20px rgba(0,0,0,.1);
+      background: rgba(255, 255, 255, .012);
     }
-    section.settings-card:hover::before { opacity: .5; }
     section.settings-card:focus-within {
-      border-color: rgba(var(--ion-rgb),.3);
-      box-shadow: 0 0 0 3px rgba(var(--ion-rgb),.03), inset 0 1px rgba(255,255,255,.025), 0 8px 20px rgba(0,0,0,.1);
+      background: rgba(var(--ion-rgb), .022);
     }
     section.settings-card[data-detector-state="enabled"] h2::before {
       border-color: rgba(var(--ion-rgb),.72);
@@ -2096,13 +2103,22 @@
     input[type="number"] {
       min-height: 44px;
       padding: 10px 12px;
-      border-color: rgba(190,216,198,.13);
+      border-color: rgba(255, 255, 255, .09);
       border-radius: var(--radius-control);
-      background: linear-gradient(180deg, rgba(0,4,2,.9), rgba(2,8,5,.86));
+      background: rgba(0, 4, 2, .58);
+      box-shadow: inset 0 1px rgba(255, 255, 255, .022);
       font-size: 12.5px;
+      transition:
+        border-color var(--motion-control) ease,
+        background var(--motion-control) ease,
+        box-shadow var(--motion-control) ease;
     }
-    input:hover:not(:disabled) { border-color: rgba(var(--ion-rgb),.27); background: rgba(2,10,6,.97); }
-    input:focus { border-color: rgba(var(--ion-rgb),.62); box-shadow: 0 0 0 3px rgba(var(--ion-rgb),.065), inset 0 1px rgba(255,255,255,.025); }
+    input:hover:not(:disabled) { border-color: rgba(255, 255, 255, .16); background: rgba(2, 8, 5, .72); }
+    input:focus {
+      border-color: rgba(var(--ion-rgb), .55);
+      background: rgba(2, 8, 5, .78);
+      box-shadow: 0 0 0 3px rgba(var(--ion-rgb), .05), inset 0 1px rgba(255, 255, 255, .03);
+    }
     input::placeholder { color: #66736b; }
     .switch {
       min-height: 30px;
@@ -2137,18 +2153,25 @@
     }
     button.primary {
       width: auto;
-      min-height: 40px;
-      border: 1px solid rgba(153,255,174,.42);
+      min-height: 38px;
+      border: 1px solid rgba(var(--ion-rgb), .3);
       border-radius: 10px;
-      color: #041006;
-      background: linear-gradient(180deg, #62e57c, #40bd58);
-      box-shadow: inset 0 1px rgba(255,255,255,.3), 0 5px 14px rgba(28,164,53,.1);
+      color: #dff5e4;
+      background: rgba(var(--ion-rgb), .07);
+      box-shadow: inset 0 1px rgba(255, 255, 255, .05);
       font-size: 10.5px;
       letter-spacing: .065em;
+      transition:
+        background var(--motion-control) ease,
+        border-color var(--motion-control) ease,
+        color var(--motion-control) ease,
+        box-shadow var(--motion-control) ease,
+        transform var(--motion-micro) var(--ease-out);
     }
     button.primary:hover:not(:disabled) {
-      background: linear-gradient(180deg, #6fe989, #47c860);
-      box-shadow: inset 0 1px rgba(255,255,255,.3), 0 6px 16px rgba(35,185,62,.12);
+      border-color: rgba(var(--ion-rgb), .44);
+      background: rgba(var(--ion-rgb), .11);
+      box-shadow: inset 0 1px rgba(255, 255, 255, .06), 0 0 14px rgba(var(--ion-rgb), .05);
     }
     button.primary:active:not(:disabled) {
       transform: scale(.985);
@@ -2165,12 +2188,14 @@
       box-shadow: 0 0 8px rgba(var(--ion-rgb), .16);
     }
     form[data-dirty="true"] button.primary:not(:disabled) {
-      border-color: rgba(173,255,188,.6);
-      box-shadow: inset 0 1px rgba(255,255,255,.3), 0 6px 14px rgba(33,168,54,.13);
+      border-color: rgba(var(--ion-rgb), .52);
+      background: rgba(var(--ion-rgb), .13);
+      box-shadow: inset 0 1px rgba(255, 255, 255, .06);
     }
     section.settings-card[data-validation="error"] {
-      border-color: rgba(255, 112, 112, .42);
-      box-shadow: inset 0 1px rgba(255,255,255,.025), 0 0 0 3px rgba(255, 90, 90, .035);
+      border-color: transparent;
+      background: rgba(255, 90, 90, .03);
+      box-shadow: inset 0 0 0 1px rgba(255, 112, 112, .3), inset 3px 0 rgba(255, 112, 112, .32);
     }
     input[aria-invalid="true"] {
       border-color: rgba(255, 112, 112, .66);
