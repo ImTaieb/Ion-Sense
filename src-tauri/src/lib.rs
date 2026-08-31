@@ -516,6 +516,152 @@ fn get_credential_status(
     })
 }
 
+/// Live system readouts for the monitoring screen. Read-only sampling that
+/// mirrors the same crate APIs the detectors use; never blocks longer than
+/// the CPU sampling pause.
+#[derive(serde::Serialize)]
+#[serde(rename_all = "camelCase")]
+struct SystemMetrics {
+    battery: BatteryMetric,
+    temperature: TemperatureMetric,
+    cpu: CpuMetric,
+    downloads: DownloadsMetric,
+}
+
+#[derive(serde::Serialize)]
+#[serde(rename_all = "camelCase")]
+struct BatteryMetric {
+    present: bool,
+    percent: f32,
+    charging: bool,
+}
+
+#[derive(serde::Serialize)]
+#[serde(rename_all = "camelCase")]
+struct TemperatureMetric {
+    present: bool,
+    celsius: f32,
+}
+
+#[derive(serde::Serialize)]
+#[serde(rename_all = "camelCase")]
+struct CpuMetric {
+    usage: f32,
+}
+
+#[derive(serde::Serialize)]
+#[serde(rename_all = "camelCase")]
+struct DownloadsMetric {
+    bytes_last_24h: u64,
+}
+
+fn collect_system_metrics() -> SystemMetrics {
+    let mut battery = BatteryMetric {
+        present: false,
+        percent: 0.0,
+        charging: false,
+    };
+    let pack = battery::Manager::new()
+        .ok()
+        .and_then(|manager| manager.batteries().ok())
+        .and_then(|mut batteries| batteries.next())
+        .and_then(|pack| pack.ok());
+    if let Some(pack) = pack {
+        battery.present = true;
+        battery.percent = pack
+            .state_of_charge()
+            .get::<battery::units::ratio::percent>();
+        battery.charging = matches!(
+            pack.state(),
+            battery::State::Charging | battery::State::Full
+        );
+    }
+
+    let mut temperature = TemperatureMetric {
+        present: false,
+        celsius: 0.0,
+    };
+    let components = sysinfo::Components::new_with_refreshed_list();
+    if let Some(hottest) = components
+        .iter()
+        .filter_map(|component| component.temperature().filter(|value| value.is_finite()))
+        .max_by(|a, b| a.partial_cmp(b).unwrap_or(std::cmp::Ordering::Equal))
+    {
+        temperature.present = true;
+        temperature.celsius = hottest;
+    }
+
+    let mut system = sysinfo::System::new();
+    system.refresh_cpu_usage();
+    std::thread::sleep(std::time::Duration::from_millis(250));
+    system.refresh_cpu_usage();
+    let cpu = CpuMetric {
+        usage: system.global_cpu_usage(),
+    };
+
+    let downloads = DownloadsMetric {
+        bytes_last_24h: downloads_bytes_last_24h(),
+    };
+
+    SystemMetrics {
+        battery,
+        temperature,
+        cpu,
+        downloads,
+    }
+}
+
+fn downloads_bytes_last_24h() -> u64 {
+    let Some(root) = dirs::download_dir() else {
+        return 0;
+    };
+    let Some(cutoff) =
+        std::time::SystemTime::now().checked_sub(std::time::Duration::from_secs(24 * 60 * 60))
+    else {
+        return 0;
+    };
+    let mut total = 0u64;
+    let mut stack = vec![root];
+    let mut visited = 0usize;
+    while let Some(dir) = stack.pop() {
+        if visited > 64 {
+            break;
+        }
+        visited += 1;
+        let Ok(entries) = std::fs::read_dir(&dir) else {
+            continue;
+        };
+        for entry in entries.flatten() {
+            let Ok(file_type) = entry.file_type() else {
+                continue;
+            };
+            let path = entry.path();
+            if file_type.is_dir() {
+                if stack.len() < 32 {
+                    stack.push(path);
+                }
+                continue;
+            }
+            let Ok(metadata) = entry.metadata() else {
+                continue;
+            };
+            let Ok(modified) = metadata.modified() else {
+                continue;
+            };
+            if modified >= cutoff {
+                total = total.saturating_add(metadata.len());
+            }
+        }
+    }
+    total
+}
+
+#[tauri::command]
+fn get_system_metrics(window: WebviewWindow) -> Result<SystemMetrics, String> {
+    require_window(&window, "settings")?;
+    Ok(collect_system_metrics())
+}
+
 #[tauri::command]
 async fn clear_imap_password(
     window: WebviewWindow,
@@ -1435,6 +1581,7 @@ pub fn run() {
         get_credential_status,
         clear_imap_password,
         clear_discord_token,
+        get_system_metrics,
         hud_ready,
         hud_present,
         hud_has_followup,
@@ -1453,6 +1600,7 @@ pub fn run() {
         get_credential_status,
         clear_imap_password,
         clear_discord_token,
+        get_system_metrics,
         hud_ready,
         hud_present,
         hud_has_followup,
@@ -1471,6 +1619,27 @@ pub fn run() {
             app_handle.exit(1);
         }
     });
+}
+
+#[cfg(test)]
+mod system_metrics_tests {
+    use super::*;
+
+    // Smoke test against real hardware: CPU usage must be a finite, non-negative
+    // percentage and the downloads cursor a plain non-negative byte count.
+    // Battery/temperature legitimately read as absent on desktops without them.
+    #[test]
+    fn collect_system_metrics_returns_sane_values() {
+        let metrics = collect_system_metrics();
+        assert!(metrics.cpu.usage.is_finite());
+        assert!(metrics.cpu.usage >= 0.0);
+        if metrics.battery.present {
+            assert!((0.0..=100.0).contains(&metrics.battery.percent));
+        }
+        if metrics.temperature.present {
+            assert!(metrics.temperature.celsius.is_finite());
+        }
+    }
 }
 
 #[cfg(test)]

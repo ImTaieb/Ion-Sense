@@ -1,0 +1,55 @@
+/* ION Sense — shared design tokens.
+   Single source of truth consumed by settings.html and hud-prototype.html.
+   Apple-designed surface: graphite blacks, one restrained green (#34C759),
+   system-native type, soft motion springs. Green marks state and action
+   only — never decoration. */
+
+:root {
+  /* Surfaces */
+  --ion-bg: #080A09;
+  --ion-bg-raised: #0B0D0C;
+  --ion-bg-panel: #101211;
+  --ion-surface-1: #111312;
+  --ion-surface-2: #151716;
+  --ion-surface-3: #191B1A;
+
+  /* Text hierarchy */
+  --ion-text: #F5F5F7;
+  --ion-text-secondary: rgba(245, 245, 247, 0.6);
+  --ion-text-muted: rgba(245, 245, 247, 0.4);
+
+  /* Lines */
+  --ion-hairline: rgba(255, 255, 255, 0.07);
+  --ion-hairline-strong: rgba(255, 255, 255, 0.12);
+
+  /* Accent — the only green. State, selection, health, action feedback. */
+  --ion-accent: #34C759;
+  --ion-accent-rgb: 52, 199, 89;
+  --ion-accent-hover: #3DD968;
+  --ion-on-accent: #06210F;
+
+  /* Type — system stack, no futuristic faces */
+  --ion-font: -apple-system, BlinkMacSystemFont, "Segoe UI Variable Text",
+    "Segoe UI", Inter, system-ui, sans-serif;
+  --ion-font-display: -apple-system, BlinkMacSystemFont,
+    "Segoe UI Variable Display", "Segoe UI", Inter, system-ui, sans-serif;
+
+  /* Radii */
+  --ion-radius-control: 10px;
+  --ion-radius-card: 16px;
+  --ion-radius-group: 18px;
+  --ion-radius-modal: 26px;
+
+  /* Motion — springs, never linear */
+  --ion-ease-out: cubic-bezier(0.22, 1, 0.36, 1);
+  --ion-ease-spring: cubic-bezier(0.34, 1.3, 0.42, 1);
+  --ion-ease-press: cubic-bezier(0.3, 0.9, 0.4, 1);
+  --ion-t-micro: 150ms;
+  --ion-t-control: 220ms;
+  --ion-t-card: 320ms;
+  --ion-t-modal: 420ms;
+
+  /* Shadows — separation, not glow */
+  --ion-shadow-card: 0 8px 24px rgba(0, 0, 0, 0.35);
+  --ion-shadow-modal: 0 24px 64px rgba(0, 0, 0, 0.5);
+}
