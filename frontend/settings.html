@@ -5,7 +5,8 @@
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <meta name="color-scheme" content="dark">
   <title>Ion Sense Settings</title>
-  <style>
+    <link rel="stylesheet" href="ion-tokens.css">
+<style>
     /* Authoritative design tokens. The pre-existing :root (line ~900) is
        the consolidated layer; the legacy aliases below keep older rules
        resolving. */
@@ -18,7 +19,7 @@
       --muted: rgba(220, 232, 224, 0.66);
       color: var(--text);
       background: #030605;
-      font-family: "Inter", "Segoe UI Variable Text", "Segoe UI", system-ui, -apple-system, sans-serif;
+      font-family: var(--ion-font);
     }
     * { box-sizing: border-box; }
     body { min-height: 100vh; margin: 0; }
@@ -135,33 +136,33 @@
       position: relative;
       display: grid;
       place-items: center;
-      width: 72px;
-      height: 72px;
-      border: 1px solid rgba(var(--ion-rgb),.7);
-      border-radius: 50%;
-      background: radial-gradient(circle, rgba(var(--ion-rgb),.1), #010402 68%);
-      box-shadow: inset 0 0 0 8px rgba(var(--ion-rgb),.025), 0 0 16px rgba(var(--ion-rgb),.16);
+      width: 56px;
+      height: 56px;
+      border: 1px solid rgba(255, 255, 255, .12);
+      border-radius: 14px;
+      background: radial-gradient(circle at 45% 36%, rgba(var(--ion-rgb), .06), transparent 60%), var(--ion-surface-1, #111312);
+      box-shadow: inset 0 1px rgba(255, 255, 255, .04);
     }
     .settings-brand::before, .settings-brand::after {
       content: "";
       position: absolute;
-      left: 24px;
-      width: 24px;
-      height: 5px;
-      border-radius: 5px;
+      left: 18px;
+      width: 20px;
+      height: 4px;
+      border-radius: 999px;
       background: var(--ion);
-      box-shadow: 0 0 8px rgba(var(--ion-rgb),.55);
+      box-shadow: none;
     }
-    .settings-brand::before { top: 17px; }
-    .settings-brand::after { bottom: 17px; }
+    .settings-brand::before { top: 14px; }
+    .settings-brand::after { bottom: 14px; }
     .settings-brand span {
-      width: 5px;
-      height: 25px;
+      width: 4px;
+      height: 21px;
       overflow: hidden;
       color: transparent;
-      border-radius: 5px;
+      border-radius: 999px;
       background: var(--ion);
-      box-shadow: 0 0 8px rgba(var(--ion-rgb),.55);
+      box-shadow: none;
     }
     .hero-copy { min-width: 0; }
     .eyebrow { color: var(--ion); font-size: 9px; letter-spacing: .26em; }
@@ -358,12 +359,12 @@
       animation: control-enter 420ms cubic-bezier(.16,1,.3,1) both;
     }
     .settings-hero::after { right: 20px; bottom: 12px; width: 96px; height: 40px; opacity: .08; }
-    .settings-brand { width: 58px; height: 58px; border-color: rgba(var(--ion-rgb),.52); box-shadow: inset 0 0 0 7px rgba(var(--ion-rgb),.018), 0 0 14px rgba(var(--ion-rgb),.10); }
+    .settings-brand { width: 56px; height: 56px; }
     .settings-brand::before,
-    .settings-brand::after { left: 20px; width: 18px; height: 4px; box-shadow: 0 0 6px rgba(var(--ion-rgb),.38); }
+    .settings-brand::after { left: 18px; width: 20px; height: 4px; box-shadow: none; }
     .settings-brand::before { top: 14px; }
     .settings-brand::after { bottom: 14px; }
-    .settings-brand span { width: 4px; height: 22px; box-shadow: 0 0 6px rgba(var(--ion-rgb),.38); }
+    .settings-brand span { width: 4px; height: 21px; box-shadow: none; }
     .eyebrow { font-size: 10px; letter-spacing: .22em; }
     h1 { margin: 4px 0 3px; font-size: 23px; font-weight: 670; }
     .intro { max-width: 500px; color: #98a59c; font-size: 11px; line-height: 1.35; }
@@ -393,43 +394,22 @@
       display: grid;
       place-items: center;
       align-content: center;
-      gap: 18px;
-      padding: 28px 24px;
+      gap: 14px;
+      padding: 22px 24px 18px;
       text-align: center;
       background:
-        radial-gradient(circle at 50% 40%, rgba(var(--ion-rgb), .08), transparent 42%),
-        #010302;
+        radial-gradient(circle at 50% 36%, rgba(var(--ion-rgb), .035), transparent 46%),
+        linear-gradient(180deg, #0B0D0C, #080A09 72%);
     }
     .utility-mark {
       position: relative;
       display: grid;
       place-items: center;
-      width: 104px;
-      height: 104px;
-      border: 1px solid rgba(var(--ion-rgb), .42);
-      border-radius: 50%;
-      background: radial-gradient(circle, rgba(var(--ion-rgb), .09), rgba(0, 3, 2, .92) 68%);
-      box-shadow: inset 0 0 0 9px rgba(var(--ion-rgb), .018), 0 0 22px rgba(var(--ion-rgb), .08);
-    }
-    .utility-mark::before,
-    .utility-mark::after {
-      content: "";
-      position: absolute;
-      left: 35px;
-      width: 34px;
-      height: 6px;
-      border-radius: 999px;
-      background: var(--ion);
-      box-shadow: 0 0 9px rgba(var(--ion-rgb), .35);
-    }
-    .utility-mark::before { top: 27px; }
-    .utility-mark::after { bottom: 27px; }
-    .utility-mark span {
-      width: 6px;
-      height: 39px;
-      border-radius: 999px;
-      background: var(--ion);
-      box-shadow: 0 0 9px rgba(var(--ion-rgb), .35);
+      width: 96px;
+      height: 96px;
+      border: 0;
+      background: transparent;
+      box-shadow: none;
     }
     .utility-status h2 { margin: 0; font-size: 26px; font-weight: 580; letter-spacing: -.025em; text-transform: none; }
     .utility-status h2::before { display: none; }
@@ -791,13 +771,12 @@
     .settings-brand {
       width: 48px;
       height: 48px;
-      border-color: rgba(var(--ion-rgb),.45);
-      box-shadow: inset 0 0 0 6px rgba(var(--ion-rgb),.018), 0 0 13px rgba(var(--ion-rgb),.08);
+      border-radius: 12px;
     }
     .settings-brand::before,
-    .settings-brand::after { left: 16px; width: 16px; }
-    .settings-brand::before { top: 11px; }
-    .settings-brand::after { bottom: 11px; }
+    .settings-brand::after { left: 15px; width: 18px; }
+    .settings-brand::before { top: 12px; }
+    .settings-brand::after { bottom: 12px; }
     .settings-brand span { height: 18px; }
     .eyebrow { color: rgba(var(--ion-rgb), .78); font-size: 9.5px; letter-spacing: .17em; }
     h1 { margin: 3px 0 2px; font-size: 19px; font-weight: 650; letter-spacing: -.015em; }
@@ -894,12 +873,15 @@
       place-items: center;
       width: 28px;
       height: 28px;
-      color: var(--ion);
-      border: 1px solid rgba(var(--ion-rgb),.35);
+      color: var(--ion, #34C759);
+      border: 1px solid rgba(255, 255, 255, .1);
       border-radius: 8px;
-      background: rgba(var(--ion-rgb),.045);
-      font: 750 14px/1 ui-monospace, monospace;
-      box-shadow: inset 0 1px rgba(255,255,255,.035), 0 0 12px rgba(var(--ion-rgb),.045);
+      background: var(--ion-surface-1, #111312);
+      font-family: var(--font-ui);
+      font-size: 14px;
+      font-weight: 700;
+      line-height: 1;
+      box-shadow: inset 0 1px rgba(255, 255, 255, .04);
     }
     .utility-app-name { color: #edf3ef; font-size: 11px; font-weight: 680; letter-spacing: .08em; }
     .utility-app-name small { display: block; margin-top: 1px; color: #6f7b73; font-size: 8px; font-weight: 550; letter-spacing: .05em; }
@@ -907,19 +889,21 @@
       display: inline-flex;
       align-items: center;
       gap: 6px;
-      color: #9eaaa2;
-      font: 650 8.5px/1 ui-monospace, monospace;
-      letter-spacing: .12em;
+      color: rgba(245, 245, 247, .5);
+      font-family: var(--font-ui);
+      font-size: 10px;
+      font-weight: 590;
+      letter-spacing: .06em;
       text-transform: uppercase;
     }
     .utility-live::before {
       content: "";
-      width: 6px;
-      height: 6px;
+      width: 5px;
+      height: 5px;
       border-radius: 50%;
-      background: var(--ion);
-      box-shadow: 0 0 8px rgba(var(--ion-rgb),.55);
-      animation: live-breathe 2.2s ease-in-out infinite;
+      background: var(--ion, #34C759);
+      box-shadow: 0 0 5px rgba(var(--ion-rgb), .35);
+      animation: live-breathe 2.4s ease-in-out infinite;
     }
     .utility-status {
       gap: 16px;
@@ -929,20 +913,9 @@
         linear-gradient(180deg, rgba(255,255,255,.008), transparent 32%);
     }
     .utility-status > .eyebrow { margin-bottom: -6px; color: #76827a; font-size: 8.5px; letter-spacing: .2em; }
-    .utility-mark {
-      width: 98px;
-      height: 98px;
-      border-color: rgba(var(--ion-rgb), .38);
-      background: radial-gradient(circle, rgba(var(--ion-rgb), .08), rgba(0,3,2,.94) 69%);
-      box-shadow: inset 0 0 0 8px rgba(var(--ion-rgb),.016), 0 0 24px rgba(var(--ion-rgb),.075);
-    }
-    .utility-mark::before,
-    .utility-mark::after { left: 34px; width: 30px; height: 5px; }
-    .utility-mark::before { top: 26px; }
-    .utility-mark::after { bottom: 26px; }
-    .utility-mark span { width: 5px; height: 36px; }
+    .utility-mark { width: 96px; height: 96px; }
     .utility-status h2 { font-size: 25px; font-weight: 590; letter-spacing: -.025em; }
-    .utility-status p { max-width: 286px; margin: -7px 0 0; color: #9aa59e; font-size: 12.5px; line-height: 1.5; }
+    .utility-status p { max-width: 300px; margin: 0; color: rgba(220, 232, 224, .55); font-size: 12px; line-height: 1.5; }
     .utility-stat { padding: 7px 11px; color: #87938b; font-size: 9px; background: rgba(var(--ion-rgb),.02); }
     .utility-nav {
       grid-template-columns: 1fr 62px;
@@ -977,11 +950,11 @@
        shadow, pseudo-grid, or nested frame is allowed to reach the native
        window edge. */
     :root {
-      --ion: #5cf47a;
-      --ion-bright: #86ff9e;
-      --ion-mid: #42da62;
-      --ion-deep: #168c3b;
-      --ion-rgb: 92, 244, 122;
+      --ion: #34C759;
+      --ion-bright: #3DD968;
+      --ion-mid: #2FA64D;
+      --ion-deep: #1B7A38;
+      --ion-rgb: 52, 199, 89;
       --motion-micro: 150ms;
       --motion-control: 210ms;
       --motion-panel: 420ms;
@@ -1009,8 +982,8 @@
       --radius-window: 16px;
       --radius-card: 14px;
       --radius-control: 10px;
-      --font-ui: "Segoe UI Variable Text", "Segoe UI", Inter, sans-serif;
-      --font-display: "Segoe UI Variable Display", "Segoe UI", Inter, sans-serif;
+      --font-ui: var(--ion-font);
+      --font-display: var(--ion-font-display);
     }
 
     html,
@@ -1285,18 +1258,7 @@
         radial-gradient(circle at 50% 42%, rgba(var(--ion-rgb), .065), transparent 34%),
         linear-gradient(180deg, rgba(255,255,255,.006), transparent 30%);
     }
-    .utility-status::after {
-      content: "";
-      position: absolute;
-      left: 50%;
-      bottom: 12%;
-      width: 210px;
-      height: 1px;
-      opacity: .4;
-      background: linear-gradient(90deg, transparent, rgba(var(--ion-rgb),.24), transparent);
-      transform: translateX(-50%);
-      pointer-events: none;
-    }
+    .utility-status::after { content: none; }
     .utility-status > .eyebrow {
       margin: 0 0 -1px;
       color: rgba(190, 205, 196, .48);
@@ -1318,15 +1280,10 @@
       transition: border-color var(--motion-control) ease, box-shadow var(--motion-control) ease, transform var(--motion-control) var(--ease-out);
     }
     .utility-mark::before,
-    .utility-mark::after {
-      left: 32px;
-      width: 30px;
-      height: 5px;
-      box-shadow: 0 0 7px rgba(var(--ion-rgb),.3);
-    }
-    .utility-mark::before { top: 25px; }
-    .utility-mark::after { bottom: 25px; }
-    .utility-mark span { width: 5px; height: 34px; box-shadow: 0 0 7px rgba(var(--ion-rgb),.3); }
+    .utility-mark::after { left: 32px; width: 32px; height: 5px; box-shadow: none; }
+    .utility-mark::before { top: 26px; }
+    .utility-mark::after { bottom: 26px; }
+    .utility-mark span { width: 5px; height: 34px; box-shadow: none; }
     .utility-status h2 {
       margin: 1px 0 0;
       color: #f0f4f1;
@@ -1650,10 +1607,10 @@
     .utility-app-icon {
       width: 30px;
       height: 30px;
-      border-color: rgba(var(--ion-rgb),.32);
+      border-color: rgba(255, 255, 255, .1);
       border-radius: 9px;
-      background: linear-gradient(180deg, rgba(var(--ion-rgb),.065), rgba(var(--ion-rgb),.018));
-      box-shadow: inset 0 1px rgba(255,255,255,.055), 0 0 14px rgba(var(--ion-rgb),.035);
+      background: var(--ion-surface-1, #111312);
+      box-shadow: inset 0 1px rgba(255, 255, 255, .045);
       font-size: 15px;
     }
     .utility-app-name {
@@ -1672,158 +1629,76 @@
     .utility-live::before { width: 6px; height: 6px; }
     .utility-status {
       gap: 12px;
-      padding: 24px 25px 22px;
+      padding: 20px 25px 18px;
       background:
-        radial-gradient(circle at 50% 39%, rgba(var(--ion-rgb), .08), transparent 31%),
-        radial-gradient(circle at 50% 70%, rgba(var(--ion-rgb), .024), transparent 35%),
-        linear-gradient(180deg, rgba(255,255,255,.006), transparent 31%);
+        radial-gradient(circle at 50% 38%, rgba(var(--ion-rgb), .028), transparent 44%),
+        linear-gradient(180deg, rgba(255, 255, 255, .006), transparent 30%);
     }
-    .utility-status::before {
-      content: "";
-      position: absolute;
-      top: 50%;
-      left: 50%;
-      width: 190px;
-      height: 190px;
-      border: 1px solid rgba(var(--ion-rgb),.035);
-      border-radius: 50%;
-      transform: translate(-50%, -60%);
-      pointer-events: none;
-    }
-    .utility-status::after { bottom: 8%; width: 230px; opacity: .34; }
+    .utility-status::before { content: none; }
     .utility-status > .eyebrow {
       margin-bottom: 0;
-      color: #8d9991;
+      color: rgba(245, 245, 247, .38);
       font-size: 9px;
-      letter-spacing: .20em;
+      font-weight: 600;
+      letter-spacing: .18em;
     }
+    /* The monitoring mark: a quiet circular logo. One thin neutral ring,
+       almost-invisible concentric lines, a restrained green progress arc,
+       and the clean capital I. States (focus/alert) raise energy only. */
     .utility-mark {
-      width: 102px;
-      height: 102px;
+      position: relative;
+      display: grid;
+      place-items: center;
+      width: 96px;
+      height: 96px;
       border: 0;
       background: transparent;
       box-shadow: none;
       transition: transform var(--motion-panel) var(--ease-out);
     }
-    .utility-mark-orbit {
+    .utility-mark .core-ring {
       position: absolute;
-      inset: -15px;
-      width: calc(100% + 30px);
-      height: calc(100% + 30px);
-      overflow: visible;
-      fill: none;
-      pointer-events: none;
-      transform: rotate(-38deg);
-      transform-origin: center;
-    }
-    .utility-mark-orbit circle {
-      vector-effect: non-scaling-stroke;
-      transform-origin: center;
-    }
-    .utility-orbit-track {
-      stroke: rgba(var(--ion-rgb), .085);
-      stroke-width: 1;
-      stroke-dasharray: 1 8;
-      stroke-linecap: round;
-    }
-    .utility-orbit-signal {
-      stroke: rgba(var(--ion-rgb), .5);
-      stroke-width: 1.25;
-      stroke-dasharray: 22 330;
-      stroke-linecap: round;
-      opacity: .85;
-      transition: opacity var(--motion-panel) ease;
-    }
-
-    /* ION Sense Core — a layered translucent energy body in the ION palette.
-       Three membranes (halo, body, inner membrane) create real depth; three
-       soft light fields drift inside at low frequency — the central pair is
-       the "energy", the third is a faint caustic that slides beneath the
-       membrane. The edge wobbles ±2%; the orbit arc travels a full 64s circle.
-       All idle motion stops unless the window is visible. */
-    .utility-mark .core-halo,
-    .utility-mark .core-body,
-    .utility-mark .core-body-veil,
-    .utility-mark .core-body-glow,
-    .utility-mark .core-membrane,
-    .utility-mark .core-perimeter,
-    .utility-mark .core-glyph {
-      position: absolute;
-      display: block;
-      width: auto;
-      height: auto;
-      border: 0;
+      inset: 0;
+      border: 1px solid rgba(255, 255, 255, .12);
       border-radius: 50%;
-      background: transparent;
-      box-shadow: none;
-      pointer-events: none;
+      background: radial-gradient(circle at 46% 36%, rgba(var(--ion-rgb), .05), transparent 58%), #0B0D0C;
+      box-shadow: inset 0 1px rgba(255, 255, 255, .035);
+      transition: border-color var(--motion-control) ease;
     }
-    .utility-mark .core-halo { inset: -16px; opacity: .8; transition: opacity var(--motion-panel) ease; }
-    .utility-mark .core-halo-inner { inset: -6px; opacity: .9; }
-    .utility-mark .core-halo-outer {
-      background: radial-gradient(circle, rgba(var(--ion-rgb), .05), transparent 64%);
-    }
-    .utility-mark .core-halo-inner {
-      background: radial-gradient(circle, rgba(var(--ion-rgb), .075), transparent 66%);
-    }
-    .utility-mark .core-body {
-      inset: 20px;
-      overflow: hidden;
+    .utility-mark .core-concentric {
+      position: absolute;
+      inset: 14px;
+      border-radius: 50%;
       background:
-        radial-gradient(circle at 50% 30%, rgba(6, 16, 10, .55), transparent 72%),
-        linear-gradient(180deg, rgba(3, 10, 6, .97), rgba(0, 4, 2, .99));
-      box-shadow:
-        inset 0 1px rgba(255, 255, 255, .05),
-        inset 0 -6px 18px rgba(0, 2, 1, .6),
-        inset 0 0 0 1px rgba(var(--ion-rgb), .13),
-        0 0 26px rgba(var(--ion-rgb), .05);
+        radial-gradient(circle, transparent 0 99.2%, rgba(255, 255, 255, .05) 100%),
+        transparent;
     }
-    .utility-mark .core-body-veil {
-      inset: 0;
-      background: radial-gradient(circle at 50% 36%, rgba(var(--ion-rgb), .1), transparent 58%);
+    .utility-mark .core-concentric::before {
+      content: "";
+      position: absolute;
+      inset: 10px;
+      border-radius: 50%;
+      background: radial-gradient(circle, transparent 0 99.2%, rgba(255, 255, 255, .04) 100%);
     }
-    .utility-mark .core-body-glow {
-      top: 50%;
-      left: 50%;
-      will-change: transform;
-      transition: opacity var(--motion-panel) ease;
+    .utility-mark .core-progress {
+      position: absolute;
+      inset: 3px;
+      overflow: visible;
+      pointer-events: none;
+      transform: rotate(-90deg);
     }
-    .utility-mark .core-glow-a {
-      width: 34px;
-      height: 34px;
-      margin: -17px 0 0 -17px;
-      opacity: .85;
-      background: radial-gradient(circle, rgba(var(--ion-rgb), .32), transparent 66%);
-    }
-    .utility-mark .core-glow-b {
-      width: 26px;
-      height: 26px;
-      margin: -13px 0 0 -13px;
-      opacity: .8;
-      background: radial-gradient(circle, rgba(var(--ion-rgb), .2), transparent 62%);
-    }
-    .utility-mark .core-glow-c {
-      width: 46px;
-      height: 30px;
-      margin: -18px 0 0 -23px;
-      opacity: .5;
-      filter: blur(3px);
-      background: radial-gradient(ellipse, rgba(var(--ion-rgb), .14), transparent 70%);
-    }
-    .utility-mark .core-membrane {
-      inset: 7px;
-      border: 1px solid rgba(213, 255, 222, .055);
-      background: linear-gradient(160deg, rgba(255, 255, 255, .022), transparent 42%, rgba(var(--ion-rgb), .02) 88%);
-      transition: opacity var(--motion-panel) var(--ease-settle), border-color var(--motion-panel) var(--ease-settle);
-    }
-    .utility-mark .core-perimeter {
-      inset: 0;
-      border: 1px solid rgba(var(--ion-rgb), .24);
-      opacity: .55;
-      transition: opacity var(--motion-panel) var(--ease-settle), border-color var(--motion-panel) var(--ease-settle);
+    .utility-mark .core-progress-arc {
+      fill: none;
+      stroke: var(--ion);
+      stroke-width: 2;
+      stroke-linecap: round;
+      stroke-dasharray: .22 .78;
+      opacity: .6;
+      transition: opacity var(--motion-panel) ease, stroke-dasharray var(--motion-panel) var(--ease-settle);
     }
     .utility-mark .core-glyph {
-      inset: 20px;
+      position: absolute;
+      inset: 26px;
       display: grid;
       place-items: center;
     }
@@ -1831,113 +1706,48 @@
       width: 5px;
       height: 34px;
       border-radius: 999px;
-      background: linear-gradient(180deg, var(--ion-bright), var(--ion));
-      box-shadow: 0 0 9px rgba(var(--ion-rgb), .38);
+      background: var(--ion);
+      box-shadow: 0 0 6px rgba(var(--ion-rgb), .22);
+      transition: background var(--motion-control) ease, box-shadow var(--motion-control) ease;
     }
+    .utility-mark::before,
+    .utility-mark::after {
+      content: "";
+      position: absolute;
+      left: 32px;
+      width: 32px;
+      height: 5px;
+      border-radius: 999px;
+      background: var(--ion);
+      transition: background var(--motion-control) ease, box-shadow var(--motion-control) ease;
+    }
+    .utility-mark::before { top: 26px; }
+    .utility-mark::after { bottom: 26px; }
 
-    body[data-window-state="entering"] .core-body,
-    body[data-window-state="active"] .core-body,
-    body[data-window-state="entering"] .core-perimeter,
-    body[data-window-state="active"] .core-perimeter {
-      animation: core-morph 14s ease-in-out infinite;
+    /* Core states: focus = detectors restarting, alert = a test event fired.
+       Energy rises through the arc and the glyph, then settles back. */
+    body[data-core-state="focus"] .utility-mark .core-ring,
+    body[data-core-state="alert"] .utility-mark .core-ring { border-color: rgba(var(--ion-rgb), .26); }
+    body[data-core-state="focus"] .utility-mark .core-progress-arc,
+    body[data-core-state="alert"] .utility-mark .core-progress-arc { opacity: .95; stroke-dasharray: .34 .66; }
+    body[data-core-state="alert"] .utility-mark::before,
+    body[data-core-state="alert"] .utility-mark::after,
+    body[data-core-state="alert"] .utility-mark .core-glyph span {
+      background: var(--ion-bright);
+      box-shadow: 0 0 10px rgba(var(--ion-rgb), .35);
     }
-    body[data-window-state="entering"] .core-membrane,
-    body[data-window-state="active"] .core-membrane {
-      animation: core-morph 14s ease-in-out infinite reverse;
-    }
-    body[data-window-state="entering"] .core-glow-a,
-    body[data-window-state="active"] .core-glow-a { animation: core-drift-a 19s ease-in-out infinite alternate; }
-    body[data-window-state="entering"] .core-glow-b,
-    body[data-window-state="active"] .core-glow-b { animation: core-drift-b 27s ease-in-out infinite alternate; }
-    body[data-window-state="entering"] .core-glow-c,
-    body[data-window-state="active"] .core-glow-c { animation: core-caustic 31s ease-in-out infinite alternate; }
-    body[data-window-state="entering"] .core-halo,
-    body[data-window-state="active"] .core-halo { animation: core-halo-breathe 9s ease-in-out infinite; }
-    body[data-window-state="entering"] .core-halo-inner,
-    body[data-window-state="active"] .core-halo-inner { animation-delay: -4.5s; }
-    body[data-window-state="entering"] .utility-orbit-signal,
-    body[data-window-state="active"] .utility-orbit-signal { animation: orbit-signal-drift 64s linear infinite; }
-
-    @keyframes core-morph {
-      0%, 100% { border-radius: 50% 50% 50% 50% / 50% 50% 50% 50%; }
-      25%      { border-radius: 52% 48% 49% 51% / 48% 52% 51% 49%; }
-      50%      { border-radius: 49% 51% 52% 48% / 51% 48% 49% 52%; }
-      75%      { border-radius: 48% 52% 50% 50% / 52% 49% 48% 51%; }
-    }
-    @keyframes core-drift-a {
-      from { transform: translate(-7px, -4px) scale(.92); }
-      to   { transform: translate(7px, 5px) scale(1.14); }
-    }
-    @keyframes core-drift-b {
-      from { transform: translate(6px, 5px) scale(1.05); }
-      to   { transform: translate(-6px, -5px) scale(.9); }
-    }
-    @keyframes core-caustic {
-      from { transform: translate(-14px, 7px) rotate(-8deg) scale(.96); }
-      to   { transform: translate(13px, -6px) rotate(9deg) scale(1.08); }
-    }
-    @keyframes core-halo-breathe {
-      0%, 100% { opacity: .55; }
-      50%      { opacity: 1; }
-    }
-    @keyframes orbit-signal-drift {
-      from { stroke-dashoffset: 0; }
-      to   { stroke-dashoffset: -352; }
+    body[data-core-state="alert"][data-window-state="active"] .utility-mark,
+    body[data-core-state="alert"][data-window-state="entering"] .utility-mark {
+      animation: core-alert-pulse 900ms var(--ease-out);
     }
     @keyframes core-alert-pulse {
       0%   { transform: scale(1); }
       35%  { transform: scale(1.028); }
       100% { transform: scale(1); }
     }
-
-    /* Core states. Focus = detectors restarting; alert = a test event fired.
-       Energy rises, holds briefly, then collapses smoothly back to idle. */
-    body[data-core-state="focus"] .utility-mark .core-halo { opacity: 1; }
-    body[data-core-state="focus"] .utility-mark .core-glow-a,
-    body[data-core-state="focus"] .utility-mark .core-glow-b { opacity: 1; }
-    body[data-core-state="focus"] .utility-mark .core-perimeter { opacity: 1; border-color: rgba(var(--ion-rgb), .4); }
-    body[data-core-state="focus"] .utility-mark .core-body {
-      box-shadow:
-        inset 0 1px rgba(255, 255, 255, .055),
-        inset 0 0 0 1px rgba(var(--ion-rgb), .26),
-        0 0 34px rgba(var(--ion-rgb), .095);
-    }
-    body[data-core-state="focus"] .utility-orbit-signal { opacity: 1; }
-    body[data-core-state="alert"] .utility-mark .core-halo { opacity: 1; }
-    body[data-core-state="alert"] .utility-mark .core-glow-a,
-    body[data-core-state="alert"] .utility-mark .core-glow-b { opacity: 1; }
-    body[data-core-state="alert"] .utility-mark .core-perimeter { opacity: 1; border-color: rgba(var(--ion-rgb), .5); }
-    body[data-core-state="alert"] .utility-orbit-signal { opacity: 1; }
-    body[data-core-state="alert"][data-window-state="active"] .utility-mark,
-    body[data-core-state="alert"][data-window-state="entering"] .utility-mark {
-      animation: core-alert-pulse 900ms var(--ease-out);
-    }
-    /* Severity escalates the alert response — same palette, more energy.
-       Internal compression: the central glows tighten and brighten; the
-       perimeter sharpens; critical adds a restrained double pulse. */
-    body[data-core-state="alert"][data-core-severity="warning"] .utility-mark .core-membrane { border-color: rgba(var(--ion-rgb), .16); }
-    body[data-core-state="alert"][data-core-severity="warning"] .utility-mark .core-glow-a {
-      transform: translate(-2px, -1px) scale(1.06);
-    }
-    body[data-core-state="alert"][data-core-severity="critical"] .utility-mark .core-membrane { border-color: rgba(var(--ion-rgb), .22); }
-    body[data-core-state="alert"][data-core-severity="critical"] .utility-mark .core-glow-a,
-    body[data-core-state="alert"][data-core-severity="critical"] .utility-mark .core-glow-b { transform: none; }
-    body[data-core-state="alert"][data-core-severity="critical"] .utility-mark .core-body {
-      box-shadow:
-        inset 0 1px rgba(255, 255, 255, .06),
-        inset 0 -6px 18px rgba(0, 2, 1, .6),
-        inset 0 0 0 1px rgba(var(--ion-rgb), .34),
-        0 0 40px rgba(var(--ion-rgb), .12);
-    }
     body[data-core-state="alert"][data-core-severity="critical"][data-window-state="active"] .utility-mark {
       animation: core-alert-pulse 760ms var(--ease-out) 2;
     }
-    body[data-core-state="focus"] .utility-mark .core-glow-c { opacity: .85; }
-    body[data-core-state="alert"] .utility-mark .core-glow-c { opacity: .95; }
-    .utility-mark::before,
-    .utility-mark::after { left: 35px; width: 32px; height: 5px; border-radius: 999px; background: var(--ion); box-shadow: 0 0 8px rgba(var(--ion-rgb), .32); }
-    .utility-mark::before { top: 27px; }
-    .utility-mark::after { bottom: 27px; }
     .utility-status h2 {
       font-family: var(--font-display);
       font-size: 23px;
@@ -1953,7 +1763,68 @@
     }
     /* Status language without chips: quiet text with light markers,
        grouped by whitespace — hierarchy by type, not containers. */
-    .utility-stats { display: flex; justify-content: center; gap: 18px; flex-wrap: wrap; }
+    .utility-stats { display: flex; justify-content: center; align-items: center; gap: 18px; flex-wrap: wrap; }
+    .utility-stat .stat-dot {
+      display: inline-block;
+      width: 5px;
+      height: 5px;
+      margin-right: 7px;
+      vertical-align: 1px;
+      border-radius: 50%;
+      background: var(--ion);
+    }
+
+    /* Live metric cards — one calm rounded row of real system data. */
+    .metric-grid {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 10px;
+      width: min(330px, 100%);
+      margin-top: 2px;
+    }
+    .metric-card {
+      display: grid;
+      gap: 2px;
+      padding: 11px 13px 10px;
+      border: 1px solid rgba(255, 255, 255, .07);
+      border-radius: 14px;
+      background: var(--ion-surface-1, #111312);
+      text-align: left;
+      transition: background-color var(--motion-control) ease, border-color var(--motion-control) ease, transform var(--motion-control) var(--ease-settle);
+    }
+    .metric-card:hover {
+      border-color: rgba(255, 255, 255, .12);
+      background-color: var(--ion-surface-2, #151716);
+    }
+    .metric-card:active { transform: scale(.99); }
+    .metric-label {
+      color: rgba(245, 245, 247, .45);
+      font-size: 10px;
+      font-weight: 560;
+      letter-spacing: .04em;
+    }
+    .metric-value {
+      color: var(--ion-text, #F5F5F7);
+      font-family: var(--font-display);
+      font-size: 19px;
+      font-weight: 620;
+      letter-spacing: -.01em;
+      font-variant-numeric: tabular-nums;
+    }
+    .metric-sub {
+      color: rgba(245, 245, 247, .4);
+      font-size: 10px;
+      font-weight: 500;
+    }
+    .metric-card.is-active .metric-sub { color: var(--ion); }
+
+    .utility-note {
+      max-width: 318px;
+      color: rgba(245, 245, 247, .4);
+      font-size: 10.5px;
+      font-weight: 500;
+      line-height: 1.5;
+    }
     .utility-stat {
       padding: 0;
       color: rgba(255, 255, 255, .5);
@@ -2271,6 +2142,190 @@
       button.primary { width: 100%; }
     }
 
+    /* ── Apple-minimal control plane (2026-08 pass) ─────────────────────
+       Final layer: iOS-style toggles, solid restrained save action,
+       status pill, rounded-square back button, section numbering. */
+
+    /* Toggle: gray track off, solid #34C759 track on, white knob, spring. */
+    .track {
+      width: 42px;
+      height: 25px;
+      border: 0;
+      border-radius: 999px;
+      background: rgba(255, 255, 255, .16);
+      box-shadow: inset 0 1px 2px rgba(0, 0, 0, .18);
+      transition: background 220ms var(--ion-ease-spring, cubic-bezier(.34, 1.3, .42, 1));
+    }
+    .track::after {
+      top: 2px;
+      left: 2px;
+      width: 21px;
+      height: 21px;
+      background: #fff;
+      border-radius: 50%;
+      box-shadow: 0 2px 5px rgba(0, 0, 0, .35), 0 0 1px rgba(0, 0, 0, .2);
+      transition: transform 220ms var(--ion-ease-spring, cubic-bezier(.34, 1.3, .42, 1)), background 220ms var(--ion-ease-spring, cubic-bezier(.34, 1.3, .42, 1));
+    }
+    .switch input:checked + .track {
+      border-color: transparent;
+      background: var(--ion, #34C759);
+      box-shadow: none;
+    }
+    .switch input:checked + .track::after {
+      transform: translateX(17px);
+      background: #fff;
+      box-shadow: 0 2px 5px rgba(0, 0, 0, .3);
+    }
+    .switch input:focus-visible + .track {
+      outline: 2px solid var(--ion, #34C759);
+      outline-offset: 3px;
+    }
+    .switch input:disabled + .track { opacity: .5; }
+
+    /* Save action: solid, restrained green — the one filled control. */
+    button.primary {
+      width: auto;
+      min-height: 40px;
+      padding: 0 22px;
+      color: #06210F;
+      border: 0;
+      border-radius: 11px;
+      background: var(--ion, #34C759);
+      box-shadow: inset 0 1px 0 rgba(255, 255, 255, .16), 0 4px 14px rgba(0, 0, 0, .22);
+      font-size: 12.5px;
+      font-weight: 640;
+      letter-spacing: .01em;
+      text-transform: none;
+      transition:
+        background var(--motion-control) ease,
+        transform 130ms var(--ease-press),
+        box-shadow var(--motion-control) ease;
+    }
+    button.primary:hover:not(:disabled) {
+      background: var(--ion-bright, #3DD968);
+      box-shadow: inset 0 1px 0 rgba(255, 255, 255, .2), 0 6px 18px rgba(0, 0, 0, .26);
+    }
+    button.primary:active:not(:disabled) {
+      transform: scale(.97);
+      filter: brightness(.96);
+    }
+    button.primary:focus-visible {
+      outline: 2px solid var(--ion-bright, #3DD968);
+      outline-offset: 3px;
+    }
+    button.primary:disabled {
+      background: rgba(255, 255, 255, .12);
+      color: rgba(245, 245, 247, .4);
+      box-shadow: none;
+    }
+    form[data-dirty="true"] button.primary:not(:disabled),
+    form[data-dirty="true"] button.primary:hover:not(:disabled) {
+      background: var(--ion, #34C759);
+    }
+    form[data-dirty="true"] button.primary:hover:not(:disabled) {
+      background: var(--ion-bright, #3DD968);
+    }
+
+    /* Status pill: neutral by default, green when saved, red on error. */
+    #status {
+      min-height: 32px;
+      padding: 0 14px 0 30px;
+      color: rgba(245, 245, 247, .55);
+      border: 1px solid rgba(255, 255, 255, .08);
+      border-radius: 999px;
+      background: rgba(255, 255, 255, .03);
+      font-size: 10.5px;
+      letter-spacing: .01em;
+    }
+    #status::before {
+      width: 6px;
+      height: 6px;
+      margin-left: -16px;
+      background: rgba(245, 245, 247, .35);
+      box-shadow: none;
+    }
+    #status[data-state="success"] {
+      color: rgba(214, 240, 220, .88);
+      border-color: rgba(var(--ion-rgb), .22);
+      background: rgba(var(--ion-rgb), .06);
+    }
+    #status[data-state="success"]::before {
+      background: var(--ion, #34C759);
+      box-shadow: 0 0 6px rgba(var(--ion-rgb), .3);
+    }
+    #status[data-state="dirty"] {
+      color: rgba(245, 245, 247, .7);
+      border-color: rgba(255, 255, 255, .12);
+      background: rgba(255, 255, 255, .04);
+    }
+    #status[data-state="dirty"]::before {
+      border: 0;
+      background: rgba(245, 245, 247, .5);
+      box-shadow: none;
+    }
+    #status[data-state="error"] {
+      color: #ffb5b5;
+      border-color: rgba(255, 105, 105, .2);
+      background: rgba(255, 72, 72, .04);
+    }
+    #status[data-state="error"]::before { background: #ff7777; box-shadow: none; }
+
+    /* Back button: quiet rounded-square chevron. */
+    .editor-back {
+      top: 9px;
+      right: 9px;
+      width: 30px;
+      min-height: 30px;
+      color: rgba(245, 245, 247, .55);
+      border: 1px solid rgba(255, 255, 255, .09);
+      border-radius: 8px;
+      background: rgba(255, 255, 255, .035);
+      transition: background var(--motion-control) ease, color var(--motion-control) ease, border-color var(--motion-control) ease, transform 130ms var(--ease-press);
+    }
+    .editor-back:hover {
+      color: var(--ion-text, #F5F5F7);
+      background: rgba(255, 255, 255, .07);
+      border-color: rgba(255, 255, 255, .14);
+    }
+    .editor-back:active { transform: scale(.94); }
+
+    /* Section numbering: quiet "Section 01" eyebrow over each card heading.
+       Resets inherited diamond-marker geometry from older layers. */
+    .settings-card h2::before {
+      content: attr(data-section);
+      display: block;
+      width: auto;
+      height: auto;
+      margin-bottom: 3px;
+      border: 0;
+      border-radius: 0;
+      transform: none;
+      box-shadow: none;
+      color: rgba(245, 245, 247, .32);
+      font-family: var(--font-ui);
+      font-size: 9px;
+      font-weight: 620;
+      letter-spacing: .16em;
+      line-height: 1;
+      text-transform: uppercase;
+    }
+
+    /* ── Monitoring surface, final layer (2026-08 pass) ──────────────
+       Quiet text stats with a green dot, calm copy, live metric cards. */
+    .utility-stat {
+      padding: 0;
+      color: rgba(245, 245, 247, .5);
+      border: 0;
+      border-radius: 0;
+      background: transparent;
+      font-family: var(--font-ui);
+      font-size: 11px;
+      font-weight: 520;
+      letter-spacing: .01em;
+      text-transform: none;
+    }
+    .utility-stat strong { color: var(--ion, #34C759); font-weight: 620; }
+
     @media (prefers-reduced-motion: reduce) {
       :root {
         --motion-micro: 1ms;
@@ -2287,12 +2342,9 @@
         scroll-behavior: auto !important;
       }
       .utility-settings-button:hover:not(:disabled) { transform: none; }
-      body[data-window-state="active"] .utility-orbit-signal { animation: none; }
       /* Reduced motion keeps elegant fades for the Sense Core states. */
-      .utility-mark .core-halo,
-      .utility-mark .core-body-glow,
-      .utility-mark .core-perimeter,
-      .utility-mark .core-body { transition-duration: 140ms !important; }
+      .utility-mark .core-progress-arc,
+      .utility-mark .core-ring { transition-duration: 140ms !important; }
     }
   </style>
 </head>
@@ -2307,31 +2359,43 @@
       <div class="utility-status">
         <div class="eyebrow">System status</div>
         <div class="utility-mark" aria-hidden="true">
-          <span class="core-halo core-halo-outer"></span>
-          <span class="core-halo core-halo-inner"></span>
-          <svg class="utility-mark-orbit" viewBox="0 0 128 128">
-            <circle class="utility-orbit-track" cx="64" cy="64" r="56"></circle>
-            <circle class="utility-orbit-signal" cx="64" cy="64" r="56"></circle>
+          <span class="core-ring"></span>
+          <span class="core-concentric"></span>
+          <svg class="core-progress" viewBox="0 0 128 128">
+            <circle class="core-progress-arc" pathLength="1" cx="64" cy="64" r="56"></circle>
           </svg>
-          <span class="core-body">
-            <span class="core-body-veil"></span>
-            <span class="core-body-glow core-glow-a"></span>
-            <span class="core-body-glow core-glow-b"></span>
-            <span class="core-body-glow core-glow-c"></span>
-            <span class="core-membrane"></span>
-            <span class="core-perimeter"></span>
-            <span class="core-glyph">
-              <span></span>
-            </span>
-          </span>
+          <span class="core-glyph"><span></span></span>
         </div>
         <h2>Monitoring</h2>
-        <p>Quietly monitoring the signals that matter. Ion Sense will surface an alert when something needs you.</p>
+        <p>ION Sense is quietly monitoring the signals that matter. You'll only hear from it when something needs your attention.</p>
         <div class="utility-stats" aria-label="Enabled detector summary">
-          <span class="utility-stat"><strong id="enabled-count">0</strong> active</span>
+          <span class="utility-stat"><span class="stat-dot" aria-hidden="true"></span><strong id="enabled-count">0</strong>&nbsp;active</span>
           <span class="utility-stat">Runtime live</span>
         </div>
         <div id="active-detectors" class="utility-detectors" aria-label="Active detectors"></div>
+        <div class="metric-grid" aria-label="Live system metrics">
+          <div class="metric-card" id="metric-battery">
+            <span class="metric-label">Battery</span>
+            <span class="metric-value" id="metric-battery-value">—</span>
+            <span class="metric-sub" id="metric-battery-sub">Checking…</span>
+          </div>
+          <div class="metric-card" id="metric-temperature">
+            <span class="metric-label">Temperature</span>
+            <span class="metric-value" id="metric-temperature-value">—</span>
+            <span class="metric-sub" id="metric-temperature-sub">Checking…</span>
+          </div>
+          <div class="metric-card" id="metric-cpu">
+            <span class="metric-label">CPU</span>
+            <span class="metric-value" id="metric-cpu-value">—</span>
+            <span class="metric-sub" id="metric-cpu-sub">Checking…</span>
+          </div>
+          <div class="metric-card" id="metric-downloads">
+            <span class="metric-label">Downloads</span>
+            <span class="metric-value" id="metric-downloads-value">—</span>
+            <span class="metric-sub" id="metric-downloads-sub">Today</span>
+          </div>
+        </div>
+        <div class="utility-note" id="utility-note">All systems nominal. Alerts appear only when a detector is triggered.</div>
       </div>
       <nav class="utility-nav" aria-label="Ion Sense utility navigation">
         <div class="utility-wordmark">ION SENSE<small>system awareness</small></div>
@@ -2358,7 +2422,7 @@
         <div class="settings-grid">
       <section class="settings-card grid-wide system-card" aria-labelledby="section-system">
         <div class="section-head">
-          <h2 id="section-system">System</h2>
+          <h2 id="section-system" data-section="Section 01">System</h2>
           <label class="switch"><input id="launch-at-login" type="checkbox"><span class="track"></span>Launch at login</label>
         </div>
         <p id="settings-path" class="hint"></p>
@@ -2366,7 +2430,7 @@
 
       <section class="settings-card grid-half" aria-labelledby="section-battery">
         <div class="section-head">
-          <h2 id="section-battery">Battery low</h2>
+          <h2 id="section-battery" data-section="Section 02">Battery low</h2>
           <label class="switch"><input id="battery-enabled" type="checkbox"><span class="track"></span>Enabled</label>
         </div>
         <div class="grid">
@@ -2377,7 +2441,7 @@
 
       <section class="settings-card grid-half" aria-labelledby="section-temperature">
         <div class="section-head">
-          <h2 id="section-temperature">PC overheating</h2>
+          <h2 id="section-temperature" data-section="Section 03">PC overheating</h2>
           <label class="switch"><input id="temperature-enabled" type="checkbox"><span class="track"></span>Enabled</label>
         </div>
         <div class="grid">
@@ -2389,7 +2453,7 @@
 
       <section class="settings-card grid-wide" aria-labelledby="section-downloads">
         <div class="section-head">
-          <h2 id="section-downloads">Downloads</h2>
+          <h2 id="section-downloads" data-section="Section 04">Downloads</h2>
           <label class="switch"><input id="downloads-enabled" type="checkbox"><span class="track"></span>Enabled</label>
         </div>
         <label class="field">Folder override<input id="downloads-directory" type="text" placeholder="Leave blank for the OS Downloads folder"></label>
@@ -2398,7 +2462,7 @@
 
       <section class="settings-card grid-wide" aria-labelledby="section-email">
         <div class="section-head">
-          <h2 id="section-email">New email · IMAP</h2>
+          <h2 id="section-email" data-section="Section 05">New email · IMAP</h2>
           <label class="switch"><input id="email-enabled" type="checkbox"><span class="track"></span>Enabled</label>
         </div>
         <div class="grid">
@@ -2416,7 +2480,7 @@
 
       <section class="settings-card grid-wide" aria-labelledby="section-discord">
         <div class="section-head">
-          <h2 id="section-discord">Discord bot message</h2>
+          <h2 id="section-discord" data-section="Section 06">Discord bot message</h2>
           <label class="switch"><input id="discord-enabled" type="checkbox"><span class="track"></span>Enabled</label>
         </div>
         <div class="grid">
@@ -2430,7 +2494,7 @@
       </section>
 
       <section id="dev-tools" class="settings-card grid-wide" aria-labelledby="section-developer" hidden>
-        <div class="section-head"><h2 id="section-developer">Developer test events</h2><span class="eyebrow">tauri dev only</span></div>
+        <div class="section-head"><h2 id="section-developer" data-section="Dev · debug only">Developer test events</h2><span class="eyebrow">tauri dev only</span></div>
         <div class="dev-grid">
           <button type="button" data-test-event="battery_low">Battery low</button>
           <button type="button" data-test-event="overheating">Overheating</button>
@@ -2514,6 +2578,12 @@
           case "get_settings": return structuredClone(previewSettings);
           case "get_runtime_info": return { settingsPath: "Preview mode", platform: "windows", dev: false };
           case "get_credential_status": return { imapConfigured: false, discordConfigured: false };
+          case "get_system_metrics": return {
+            battery: { present: true, percent: 72, charging: true },
+            temperature: { present: true, celsius: 46 },
+            cpu: { usage: 8 },
+            downloads: { bytesLast24h: 1389413 }
+          };
           case "save_settings": return structuredClone(args.settings);
           case "clear_imap_password": return { ...currentSettings, email: { ...currentSettings.email, enabled: false } };
           case "clear_discord_token": return { ...currentSettings, discord: { ...currentSettings.discord, enabled: false } };
@@ -2609,6 +2679,7 @@
         hero.inert = nextView !== "editor";
         form.inert = nextView !== "editor";
         field("open-editor").setAttribute("aria-expanded", String(nextView === "editor"));
+        if (changed && nextView === "overview") scheduleMetrics();
         viewMotionTimer = window.setTimeout(() => {
           shell.dataset.viewMotion = "settled";
           if (!focus || closing) return;
@@ -2707,6 +2778,7 @@
           })
           .map(([, label]) => label);
         const container = field("active-detectors");
+        if (!container) return;
         container.replaceChildren(...(active.length ? active : ["No detectors enabled"]).map((label) => {
           const item = document.createElement("span");
           item.className = "utility-detector";
@@ -2716,12 +2788,62 @@
         container.dataset.empty = String(active.length === 0);
       }
 
+      function formatMetricBytes(bytes) {
+        if (!Number.isFinite(bytes) || bytes <= 0) return "0 B";
+        const units = ["B", "KB", "MB", "GB", "TB"];
+        let value = bytes;
+        let unit = 0;
+        while (value >= 1024 && unit < units.length - 1) {
+          value /= 1024;
+          unit += 1;
+        }
+        const rounded = value >= 100 ? Math.round(value) : Math.round(value * 10) / 10;
+        return `${rounded} ${units[unit]}`;
+      }
+
+      function setMetric(cardId, value, sub) {
+        const card = field(cardId);
+        if (!card) return;
+        field(`${cardId}-value`).textContent = value;
+        field(`${cardId}-sub`).textContent = sub;
+      }
+
+      async function refreshMetrics() {
+        try {
+          const metrics = await invoke("get_system_metrics");
+          const battery = metrics.battery || {};
+          const temperature = metrics.temperature || {};
+          const cpu = metrics.cpu || {};
+          const downloads = metrics.downloads || {};
+          const batteryPresent = battery.present === true;
+          setMetric(
+            "metric-battery",
+            batteryPresent ? `${Math.round(battery.percent)}%` : "—",
+            batteryPresent ? (battery.charging ? "Charging" : "On battery") : "No battery"
+          );
+          field("metric-battery").classList.toggle("is-active", batteryPresent);
+          const temperaturePresent = temperature.present === true && Number.isFinite(temperature.celsius);
+          setMetric(
+            "metric-temperature",
+            temperaturePresent ? `${Math.round(temperature.celsius)}°` : "—",
+            temperaturePresent ? "Component peak" : "No sensor"
+          );
+          const cpuUsage = Number.isFinite(cpu.usage) ? cpu.usage : null;
+          setMetric("metric-cpu", cpuUsage === null ? "—" : `${Math.max(0, Math.round(cpuUsage))}%`, "Processor");
+          const bytes = Number.isFinite(downloads.bytesLast24h) ? downloads.bytesLast24h : 0;
+          setMetric("metric-downloads", formatMetricBytes(bytes), "Last 24 hours");
+        } catch (error) {
+          console.info("Ion Sense live metrics are unavailable.", error);
+        }
+      }
+
       function updateDetectorOverviewFromControls() {
         const active = detectorControls
           .filter(([id]) => field(id).checked)
           .map(([, label]) => label);
         field("enabled-count").textContent = String(active.length);
         const container = field("active-detectors");
+        if (!container) return;
         container.replaceChildren(...(active.length ? active : ["No detectors enabled"]).map((label) => {
           const item = document.createElement("span");
           item.className = "utility-detector";
@@ -2977,6 +3099,16 @@
       field("close-editor").addEventListener("click", () => {
         setView("overview");
       });
+
+      let metricsTimer = 0;
+      function scheduleMetrics() {
+        window.clearTimeout(metricsTimer);
+        // Light poll: refresh live metrics while the monitoring view is shown.
+        if (shell.dataset.view !== "overview") return;
+        refreshMetrics().catch(() => {});
+        metricsTimer = window.setTimeout(scheduleMetrics, 15000);
+      }
+      scheduleMetrics();
 
       const previewView = new URLSearchParams(location.search).get("view");
       setView(previewView === "editor" ? "editor" : "overview", { focus: false });
