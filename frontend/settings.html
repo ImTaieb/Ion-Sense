@@ -639,11 +639,14 @@
     }
     form[aria-busy="true"] button.primary .button-label { opacity: 0; transform: translateY(2px); }
     form[aria-busy="true"] button.primary .button-progress { opacity: 1; animation: status-spin 620ms linear infinite; }
-    /* 700ms saved-state swap (brief §10). No radial flash, no bounce. */
+    /* 700ms saved-state swap (brief §10). No radial flash, no bounce.
+       Stays the same solid green as idle so the swap reads as a label
+       change, not a re-skin. */
     button.primary[data-state="saved"] {
-      background: rgba(var(--ion-rgb), .18);
-      border-color: rgba(var(--ion-rgb), .62);
-      color: #eafff0;
+      border: 0;
+      background: var(--ion, #34C759);
+      color: #06210F;
+      box-shadow: inset 0 1px 0 rgba(255, 255, 255, .16), 0 4px 14px rgba(0, 0, 0, .22);
     }
     button.primary[data-state="saved"] .button-label[data-label="idle"] { display: none; }
     button.primary[data-state="saved"] .button-label[data-label="saved"] { display: inline-flex; }
@@ -651,8 +654,8 @@
       content: "";
       width: 7px;
       height: 3px;
-      border-left: 1.5px solid var(--ion-bright);
-      border-bottom: 1.5px solid var(--ion-bright);
+      border-left: 1.5px solid #06210F;
+      border-bottom: 1.5px solid #06210F;
       transform: rotate(-45deg) translate(1px, -1px);
     }
     button.primary .button-label[data-label="saved"] { display: none; }
@@ -1359,35 +1362,9 @@
       transform: scale(.965) rotate(0deg);
       transition-duration: 90ms;
     }
-    .utility-settings-button::after {
-      content: "Detector settings";
-      position: absolute;
-      right: 8px;
-      bottom: 54px;
-      width: max-content;
-      max-width: 150px;
-      padding: 6px 8px;
-      visibility: hidden;
-      opacity: 0;
-      color: #c8d2cc;
-      border: 1px solid rgba(255,255,255,.1);
-      border-radius: 7px;
-      background: rgba(2,7,4,.96);
-      box-shadow: 0 8px 20px rgba(0,0,0,.3);
-      transform: translateY(4px);
-      pointer-events: none;
-      font-size: 8.5px;
-      font-weight: 600;
-      letter-spacing: .04em;
-      transition: opacity var(--motion-micro) ease, transform var(--motion-micro) var(--ease-out), visibility 0s linear var(--motion-micro);
-    }
-    .utility-settings-button:hover::after,
-    .utility-settings-button:focus-visible::after {
-      visibility: visible;
-      opacity: 1;
-      transform: none;
-      transition-delay: 180ms, 180ms, 0s;
-    }
+    /* The popover is 390px wide; a hover tooltip crowds and pops. The
+       button keeps its title attribute for discovery instead. */
+    .utility-settings-button::after { content: none; }
 
     /* Editor */
     .settings-brand {
@@ -1642,111 +1619,53 @@
       font-weight: 600;
       letter-spacing: .18em;
     }
-    /* The monitoring mark: a quiet circular logo. One thin neutral ring,
-       almost-invisible concentric lines, a restrained green progress arc,
-       and the clean capital I. States (focus/alert) raise energy only. */
-    .utility-mark {
+    /* ION Core — the living energy orb (frontend/ion-core.js, three.js
+       vendored at frontend/vendor/). State rules target .hero-core-wrap. */
+    .hero-core-wrap {
       position: relative;
       display: grid;
       place-items: center;
-      width: 96px;
-      height: 96px;
+      width: 150px;
+      height: 150px;
+      opacity: 0;
       border: 0;
       background: transparent;
       box-shadow: none;
-      transition: transform var(--motion-panel) var(--ease-out);
+      animation: hero-core-reveal 900ms var(--ease-out) 160ms forwards;
     }
-    .utility-mark .core-ring {
+    .hero-core-wrap #ion-core-canvas {
+      width: 100%;
+      height: 100%;
+      display: block;
+    }
+    .hero-core-fallback,
+    .hero-core-wrap .ion-core-fallback {
       position: absolute;
       inset: 0;
-      border: 1px solid rgba(255, 255, 255, .12);
       border-radius: 50%;
-      background: radial-gradient(circle at 46% 36%, rgba(var(--ion-rgb), .05), transparent 58%), #0B0D0C;
-      box-shadow: inset 0 1px rgba(255, 255, 255, .035);
-      transition: border-color var(--motion-control) ease;
-    }
-    .utility-mark .core-concentric {
-      position: absolute;
-      inset: 14px;
-      border-radius: 50%;
-      background:
-        radial-gradient(circle, transparent 0 99.2%, rgba(255, 255, 255, .05) 100%),
-        transparent;
-    }
-    .utility-mark .core-concentric::before {
-      content: "";
-      position: absolute;
-      inset: 10px;
-      border-radius: 50%;
-      background: radial-gradient(circle, transparent 0 99.2%, rgba(255, 255, 255, .04) 100%);
-    }
-    .utility-mark .core-progress {
-      position: absolute;
-      inset: 3px;
-      overflow: visible;
+      background: radial-gradient(circle at 45% 45%, #5CE87C 0%, #34C759 20%, #1B7A38 50%, transparent 75%);
+      filter: blur(20px);
+      opacity: 0.5;
       pointer-events: none;
-      transform: rotate(-90deg);
     }
-    .utility-mark .core-progress-arc {
-      fill: none;
-      stroke: var(--ion);
-      stroke-width: 2;
-      stroke-linecap: round;
-      stroke-dasharray: .22 .78;
-      opacity: .6;
-      transition: opacity var(--motion-panel) ease, stroke-dasharray var(--motion-panel) var(--ease-settle);
-    }
-    .utility-mark .core-glyph {
-      position: absolute;
-      inset: 26px;
-      display: grid;
-      place-items: center;
-    }
-    .utility-mark .core-glyph span {
-      width: 5px;
-      height: 34px;
-      border-radius: 999px;
-      background: var(--ion);
-      box-shadow: 0 0 6px rgba(var(--ion-rgb), .22);
-      transition: background var(--motion-control) ease, box-shadow var(--motion-control) ease;
-    }
-    .utility-mark::before,
-    .utility-mark::after {
-      content: "";
-      position: absolute;
-      left: 32px;
-      width: 32px;
-      height: 5px;
-      border-radius: 999px;
-      background: var(--ion);
-      transition: background var(--motion-control) ease, box-shadow var(--motion-control) ease;
-    }
-    .utility-mark::before { top: 26px; }
-    .utility-mark::after { bottom: 26px; }
+    @keyframes hero-core-reveal { to { opacity: 1; } }
 
     /* Core states: focus = detectors restarting, alert = a test event fired.
-       Energy rises through the arc and the glyph, then settles back. */
-    body[data-core-state="focus"] .utility-mark .core-ring,
-    body[data-core-state="alert"] .utility-mark .core-ring { border-color: rgba(var(--ion-rgb), .26); }
-    body[data-core-state="focus"] .utility-mark .core-progress-arc,
-    body[data-core-state="alert"] .utility-mark .core-progress-arc { opacity: .95; stroke-dasharray: .34 .66; }
-    body[data-core-state="alert"] .utility-mark::before,
-    body[data-core-state="alert"] .utility-mark::after,
-    body[data-core-state="alert"] .utility-mark .core-glyph span {
-      background: var(--ion-bright);
-      box-shadow: 0 0 10px rgba(var(--ion-rgb), .35);
-    }
-    body[data-core-state="alert"][data-window-state="active"] .utility-mark,
-    body[data-core-state="alert"][data-window-state="entering"] .utility-mark {
-      animation: core-alert-pulse 900ms var(--ease-out);
+       The orb's shader energy rises through uEnergy; the wrap adds only a
+       restrained scale pulse for the alert beat. */
+    body[data-core-state="alert"][data-window-state="active"] .hero-core-wrap,
+    body[data-core-state="alert"][data-window-state="entering"] .hero-core-wrap {
+      animation: hero-core-reveal 900ms var(--ease-out) 160ms forwards,
+        core-alert-pulse 900ms var(--ease-out);
     }
     @keyframes core-alert-pulse {
       0%   { transform: scale(1); }
       35%  { transform: scale(1.028); }
       100% { transform: scale(1); }
     }
-    body[data-core-state="alert"][data-core-severity="critical"][data-window-state="active"] .utility-mark {
-      animation: core-alert-pulse 760ms var(--ease-out) 2;
+    body[data-core-state="alert"][data-core-severity="critical"][data-window-state="active"] .hero-core-wrap {
+      animation: hero-core-reveal 900ms var(--ease-out) 160ms forwards,
+        core-alert-pulse 760ms var(--ease-out) 2;
     }
     .utility-status h2 {
       font-family: var(--font-display);
@@ -1908,7 +1827,7 @@
       stroke-linejoin: round;
       pointer-events: none;
     }
-    .utility-settings-button svg { transition: transform 300ms var(--ease-out); }
+    .utility-settings-button svg { transition: transform 200ms var(--ease-out); }
     .utility-settings-button:hover:not(:disabled) {
       color: var(--ion);
       border-color: rgba(var(--ion-rgb),.34);
@@ -1916,7 +1835,7 @@
       box-shadow: 0 8px 22px rgba(0,0,0,.2), inset 0 1px rgba(255,255,255,.05);
       transform: scale(1.02);
     }
-    .utility-settings-button:hover:not(:disabled) svg { transform: scale(1.06); }
+
     .utility-settings-button:active:not(:disabled) { transform: translateY(0) scale(.97); }
 
     .settings-hero {
@@ -2213,10 +2132,15 @@
       outline: 2px solid var(--ion-bright, #3DD968);
       outline-offset: 3px;
     }
+    /* :disabled fires while the save round-trip is in flight — the button
+       must keep its green instead of flashing gray. A dim gray is only for
+       the genuinely inert state (nothing to save while busy-free). */
     button.primary:disabled {
-      background: rgba(255, 255, 255, .12);
-      color: rgba(245, 245, 247, .4);
-      box-shadow: none;
+      background: var(--ion, #34C759);
+      color: #06210F;
+      box-shadow: inset 0 1px 0 rgba(255, 255, 255, .16), 0 4px 14px rgba(0, 0, 0, .22);
+      opacity: .82;
+      cursor: default;
     }
     form[data-dirty="true"] button.primary:not(:disabled),
     form[data-dirty="true"] button.primary:hover:not(:disabled) {
@@ -2236,6 +2160,7 @@
       background: rgba(255, 255, 255, .03);
       font-size: 10.5px;
       letter-spacing: .01em;
+      line-height: 30px;
     }
     #status::before {
       width: 6px;
@@ -2343,10 +2268,17 @@
       }
       .utility-settings-button:hover:not(:disabled) { transform: none; }
       /* Reduced motion keeps elegant fades for the Sense Core states. */
-      .utility-mark .core-progress-arc,
-      .utility-mark .core-ring { transition-duration: 140ms !important; }
+      .hero-core-wrap { animation: none; opacity: 1; }
     }
   </style>
+
+  <!-- ION Core: three.js 0.160.0 is vendored locally (no CDN at runtime —
+       the tray app must render fully offline). Import map must precede the
+       module script. -->
+  <script type="importmap">
+    { "imports": { "three": "./vendor/three-0.160.0.module.js" } }
+  </script>
+  <script type="module" src="ion-core.js"></script>
 </head>
 <body data-window-state="hidden">
   <div class="shell" data-view="overview">
@@ -2358,13 +2290,9 @@
       </div>
       <div class="utility-status">
         <div class="eyebrow">System status</div>
-        <div class="utility-mark" aria-hidden="true">
-          <span class="core-ring"></span>
-          <span class="core-concentric"></span>
-          <svg class="core-progress" viewBox="0 0 128 128">
-            <circle class="core-progress-arc" pathLength="1" cx="64" cy="64" r="56"></circle>
-          </svg>
-          <span class="core-glyph"><span></span></span>
+        <div class="hero-core-wrap" aria-hidden="true">
+          <canvas id="ion-core-canvas"></canvas>
+          <div class="ion-core-fallback"></div>
         </div>
         <h2>Monitoring</h2>
         <p>ION Sense is quietly monitoring the signals that matter. You'll only hear from it when something needs your attention.</p>
@@ -2400,7 +2328,7 @@
       <nav class="utility-nav" aria-label="Ion Sense utility navigation">
         <div class="utility-wordmark">ION SENSE<small>system awareness</small></div>
         <button id="open-editor" class="utility-settings-button" type="button" aria-label="Open detector settings" aria-controls="settings-form" aria-expanded="false" title="Open detector settings">
-          <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 8.25A3.75 3.75 0 1 0 12 15.75 3.75 3.75 0 0 0 12 8.25Z"/><path d="M19.2 13.7c.07-.56.07-1.14 0-1.7l1.62-1.25-1.75-3.03-1.9.77a7.4 7.4 0 0 0-1.48-.86L15.4 5.6h-3.5l-.3 2.03a7.4 7.4 0 0 0-1.48.86l-1.9-.77-1.75 3.03L8.1 12c-.07.56-.07 1.14 0 1.7l-1.62 1.25 1.75 3.03 1.9-.77c.46.35.95.64 1.48.86l.3 2.03h3.5l.3-2.03a7.4 7.4 0 0 0 1.48-.86l1.9.77 1.75-3.03-1.63-1.25Z"/></svg>
+          <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 7h16"/><circle cx="9.5" cy="7" r="2.6"/><path d="M4 12h16"/><circle cx="15" cy="12" r="2.6"/><path d="M4 17h16"/><circle cx="8" cy="17" r="2.6"/></svg>
         </button>
       </nav>
     </section>
