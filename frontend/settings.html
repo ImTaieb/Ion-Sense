@@ -1625,8 +1625,9 @@
       position: relative;
       display: grid;
       place-items: center;
-      width: 150px;
-      height: 150px;
+      width: 172px;
+      height: 172px;
+      margin: -6px 0 -10px;
       opacity: 0;
       border: 0;
       background: transparent;
@@ -1876,11 +1877,11 @@
     .grid { gap: 14px; }
     .settings-grid {
       gap: 0;
-      padding: 0 2px;
-      border: 1px solid rgba(255, 255, 255, .06);
-      border-radius: 16px;
-      background: rgba(3, 9, 6, .72);
-      box-shadow: inset 0 1px rgba(255, 255, 255, .022), 0 10px 26px rgba(0, 0, 0, .22);
+      padding: 0;
+      border: 0;
+      border-radius: 0;
+      background: transparent;
+      box-shadow: none;
       overflow: clip;
     }
     /* macOS-style grouped surface: one continuous material with hairline
@@ -2060,6 +2061,175 @@
       .actions { grid-template-columns: 1fr; min-height: 102px; }
       button.primary { width: 100%; }
     }
+
+    /* ── Reference alignment (2026-09 pass) ──────────────────────────
+       The ION Core orb is the centerpiece; everything arranges around
+       it in one calm centered column. Editor groups read as macOS
+       System Settings list surfaces. */
+
+    /* Hero column */
+    .utility-status {
+      gap: 13px;
+      padding: 16px 22px 16px;
+      background:
+        radial-gradient(circle at 50% 30%, rgba(52, 199, 89, .085), transparent 42%),
+        linear-gradient(180deg, rgba(255, 255, 255, .008), transparent 30%);
+    }
+    .utility-status > .eyebrow {
+      color: rgba(245, 245, 247, .42);
+      font-size: 9px;
+      font-weight: 620;
+      letter-spacing: .2em;
+    }
+    .utility-status h2 {
+      margin: 2px 0 0;
+      color: #F5F5F7;
+      font-family: var(--font-display);
+      font-size: 24px;
+      font-weight: 640;
+      letter-spacing: -.02em;
+    }
+    .utility-status p {
+      max-width: 292px;
+      margin: -4px 0 0;
+      color: rgba(245, 245, 247, .48);
+      font-size: 11.5px;
+      line-height: 1.5;
+    }
+    .utility-stats { gap: 16px; margin-top: -2px; }
+    .utility-stat { color: rgba(245, 245, 247, .46); font-size: 11px; }
+
+    /* Metric cards — elevated, tabular, reference-sized values */
+    .metric-grid { gap: 10px; width: min(330px, 100%); margin-top: 2px; }
+    .metric-card {
+      gap: 3px;
+      padding: 12px 14px 11px;
+      border-color: rgba(255, 255, 255, .075);
+      border-radius: 16px;
+      background: linear-gradient(180deg, rgba(255, 255, 255, .028), rgba(255, 255, 255, 0)) , var(--ion-surface-2, #151716);
+      box-shadow: inset 0 1px 0 rgba(255, 255, 255, .04), 0 6px 16px rgba(0, 0, 0, .22);
+      transition: border-color var(--motion-control) ease, box-shadow var(--motion-control) ease, background-color var(--motion-control) ease, transform 130ms var(--ease-press);
+    }
+    .metric-card:hover {
+      border-color: rgba(255, 255, 255, .13);
+      transform: translateY(-1px);
+    }
+    .metric-card:active { transform: translateY(0) scale(.99); }
+    .metric-label {
+      color: rgba(245, 245, 247, .42);
+      font-size: 9px;
+      font-weight: 600;
+      letter-spacing: .08em;
+      text-transform: uppercase;
+    }
+    .metric-value {
+      color: #F5F5F7;
+      font-family: var(--font-display);
+      font-size: 20px;
+      font-weight: 640;
+      letter-spacing: -.01em;
+      font-variant-numeric: tabular-nums;
+    }
+    .metric-sub { color: rgba(245, 245, 247, .34); font-size: 9.5px; }
+    .utility-note { color: rgba(245, 245, 247, .36); font-size: 10px; line-height: 1.5; }
+
+    /* Editor groups — individually boxed cards per the reference image.
+       Two older generations fought this: a continuous grouped-list surface
+       and a flat divided-rows layout. These overrides match their selector
+       specificity so boxed geometry with gaps wins. */
+    .settings-grid {
+      display: grid;
+      grid-template-columns: 1fr;
+      gap: 10px;
+    }
+    .settings-grid .grid-half,
+    .settings-grid .grid-wide { grid-column: 1 / -1; }
+    section.settings-card,
+    section.settings-card:first-child,
+    section.settings-card:last-child,
+    section.settings-card:only-of-type {
+      margin: 0;
+      padding: 16px 15px 18px;
+      overflow: clip;
+      border: 1px solid rgba(255, 255, 255, .07);
+      border-bottom: 1px solid rgba(255, 255, 255, .07);
+      border-radius: 16px;
+      background: var(--ion-surface-1, #111312);
+      box-shadow: none;
+      animation-delay: calc(var(--card-index, 0) * 40ms);
+    }
+    section.settings-card + section.settings-card { border-top-width: 1px; }
+    section.settings-card:hover,
+    section.settings-card:focus-within {
+      transform: none;
+      border-color: rgba(255, 255, 255, .1);
+      box-shadow: none;
+    }
+    section.settings-card[data-validation="error"] { border-color: rgba(255, 105, 105, .38); }
+    section.settings-card[data-detector-state="disabled"] { background-color: rgba(17, 19, 18, .55); }
+    .settings-card h2 { color: #F5F5F7; }
+    .hint { color: rgba(245, 245, 247, .38); }
+
+    /* ── Motion choreography (2026-09 pass) ───────────────────────────
+       Entrance cascades run after the view/window motion settles, so
+       the panel lands first and its contents then stagger in. Brief,
+       precise, spring-settled; every piece is disposable information,
+       never a blocker. */
+    @keyframes hero-rise {
+      from { opacity: 0; transform: translateY(8px); }
+      to   { opacity: 1; transform: none; }
+    }
+    @keyframes card-rise {
+      from { opacity: 0; transform: translateY(10px); }
+      to   { opacity: 1; transform: none; }
+    }
+    @keyframes core-bloom {
+      from { opacity: 0; transform: scale(.9); }
+      to   { opacity: 1; transform: scale(1); }
+    }
+    @keyframes label-in {
+      from { opacity: 0; transform: translateY(3px); }
+      to   { opacity: 1; transform: none; }
+    }
+
+    .utility-status[data-hero-enter] > * {
+      animation: hero-rise 440ms var(--ease-out) both;
+    }
+    .utility-status[data-hero-enter] > .eyebrow { animation-delay: 20ms; }
+    .utility-status[data-hero-enter] > .hero-core-wrap {
+      animation: core-bloom 620ms var(--ease-out) 70ms both;
+    }
+    .utility-status[data-hero-enter] > h2 { animation-delay: 150ms; }
+    .utility-status[data-hero-enter] > p { animation-delay: 200ms; }
+    .utility-status[data-hero-enter] > .utility-stats { animation-delay: 250ms; }
+    .utility-status[data-hero-enter] > #active-detectors { animation-delay: 290ms; }
+    .utility-status[data-hero-enter] > .utility-note { animation-delay: 520ms; }
+    .utility-status[data-hero-enter] .metric-card {
+      animation: card-rise 420ms var(--ease-out) both;
+    }
+    .utility-status[data-hero-enter] .metric-grid > .metric-card:nth-child(1) { animation-delay: 340ms; }
+    .utility-status[data-hero-enter] .metric-grid > .metric-card:nth-child(2) { animation-delay: 380ms; }
+    .utility-status[data-hero-enter] .metric-grid > .metric-card:nth-child(3) { animation-delay: 420ms; }
+    .utility-status[data-hero-enter] .metric-grid > .metric-card:nth-child(4) { animation-delay: 460ms; }
+
+    .settings-grid[data-list-enter] > section.settings-card {
+      animation: card-rise 420ms var(--ease-out) both;
+    }
+    .settings-grid[data-list-enter] > section:nth-child(1) { animation-delay: 0ms; }
+    .settings-grid[data-list-enter] > section:nth-child(2) { animation-delay: 40ms; }
+    .settings-grid[data-list-enter] > section:nth-child(3) { animation-delay: 80ms; }
+    .settings-grid[data-list-enter] > section:nth-child(4) { animation-delay: 120ms; }
+    .settings-grid[data-list-enter] > section:nth-child(5) { animation-delay: 160ms; }
+    .settings-grid[data-list-enter] > section:nth-child(6) { animation-delay: 200ms; }
+    .settings-grid[data-list-enter] > section:nth-child(7) { animation-delay: 240ms; }
+
+    /* Saved label settles in instead of snapping. */
+    button.primary[data-state="saved"] .button-label[data-label="saved"] {
+      animation: label-in 260ms var(--ease-out) both;
+    }
+
+    /* Status pill crossfade. */
+    #status { transition: opacity 140ms ease, color 180ms ease, border-color 180ms ease, background-color 180ms ease; }
 
     /* ── Apple-minimal control plane (2026-08 pass) ─────────────────────
        Final layer: iOS-style toggles, solid restrained save action,
@@ -2608,6 +2778,7 @@
         form.inert = nextView !== "editor";
         field("open-editor").setAttribute("aria-expanded", String(nextView === "editor"));
         if (changed && nextView === "overview") scheduleMetrics();
+        if (changed) playViewEntrance(nextView);
         viewMotionTimer = window.setTimeout(() => {
           shell.dataset.viewMotion = "settled";
           if (!focus || closing) return;
@@ -2628,6 +2799,7 @@
           });
         }
         catch (error) { console.error("Ion Sense could not reveal settings", error); }
+        playViewEntrance(shell.dataset.view || "overview");
       }
 
       async function announceSettingsReady() {
@@ -2668,9 +2840,22 @@
         throw lastError;
       }
 
+      let statusSwapTimer = 0;
       function setStatus(message, error = false, state = "neutral") {
-        status.textContent = message;
-        status.dataset.state = error ? "error" : state;
+        const apply = () => {
+          status.textContent = message;
+          status.dataset.state = error ? "error" : state;
+          status.style.opacity = "";
+        };
+        if (reducedMotion.matches) {
+          apply();
+          return;
+        }
+        // Crossfade: dip to transparent, swap, ease back. Rapid updates
+        // collapse into the latest message instead of strobing.
+        window.clearTimeout(statusSwapTimer);
+        status.style.opacity = "0";
+        statusSwapTimer = window.setTimeout(apply, 130);
       }
 
       function setBusy(busy) {
@@ -2729,11 +2914,50 @@
         return `${rounded} ${units[unit]}`;
       }
 
+      const metricCountTimers = new Map();
+
       function setMetric(cardId, value, sub) {
         const card = field(cardId);
         if (!card) return;
-        field(`${cardId}-value`).textContent = value;
         field(`${cardId}-sub`).textContent = sub;
+        const target = field(`${cardId}-value`);
+        if (reducedMotion.matches) {
+          target.textContent = value;
+          return;
+        }
+        // Count-up: parse the leading number, roll it over ~500ms, keep the
+        // suffix. Non-numeric values render instantly.
+        const match = String(value).match(/^(-?[\d.]+)(.*)$/);
+        if (!match) {
+          target.textContent = value;
+          return;
+        }
+        const goal = Number(match[1]);
+        const suffix = match[2] || "";
+        const from = Number(target.dataset.countedValue);
+        const start = Number.isFinite(from) ? from : 0;
+        if (!Number.isFinite(goal) || goal === start) {
+          target.textContent = value;
+          target.dataset.countedValue = String(goal);
+          return;
+        }
+        window.clearTimeout(metricCountTimers.get(cardId));
+        const began = performance.now();
+        const duration = 520;
+        const step = (now) => {
+          const t = Math.min(1, (now - began) / duration);
+          const eased = 1 - Math.pow(1 - t, 3);
+          const current = start + (goal - start) * eased;
+          const shown = Math.abs(goal % 1) > 0 ? current.toFixed(1) : String(Math.round(current));
+          target.textContent = `${shown}${suffix}`;
+          if (t < 1) {
+            metricCountTimers.set(cardId, window.setTimeout(step, 16));
+          } else {
+            target.textContent = value;
+            target.dataset.countedValue = String(goal);
+          }
+        };
+        metricCountTimers.set(cardId, window.setTimeout(step, 16));
       }
 
       async function refreshMetrics() {
@@ -3027,6 +3251,45 @@
       field("close-editor").addEventListener("click", () => {
         setView("overview");
       });
+
+      // Entrance cascades. The attributes are removed once the cascade lands
+      // so their `animation ... both` fill cannot pin hover transforms later.
+      let heroMotionTimer = 0;
+      let heroCleanupTimer = 0;
+      let listMotionTimer = 0;
+      let listCleanupTimer = 0;
+
+      function playViewEntrance(view) {
+        window.clearTimeout(heroMotionTimer);
+        window.clearTimeout(heroCleanupTimer);
+        window.clearTimeout(listMotionTimer);
+        window.clearTimeout(listCleanupTimer);
+        if (view === "overview") {
+          const status = document.querySelector(".utility-status");
+          if (!status) return;
+          status.removeAttribute("data-hero-enter");
+          heroMotionTimer = window.setTimeout(() => {
+            void status.offsetWidth;
+            status.setAttribute("data-hero-enter", "");
+            heroCleanupTimer = window.setTimeout(
+              () => status.removeAttribute("data-hero-enter"),
+              reducedMotion.matches ? 80 : 1150,
+            );
+          }, reducedMotion.matches ? 0 : 120);
+          return;
+        }
+        const grid = document.querySelector(".settings-grid");
+        if (!grid) return;
+        grid.removeAttribute("data-list-enter");
+        listMotionTimer = window.setTimeout(() => {
+          void grid.offsetWidth;
+          grid.setAttribute("data-list-enter", "");
+          listCleanupTimer = window.setTimeout(
+            () => grid.removeAttribute("data-list-enter"),
+            reducedMotion.matches ? 80 : 1150,
+          );
+        }, reducedMotion.matches ? 0 : 120);
+      }
 
       let metricsTimer = 0;
       function scheduleMetrics() {
