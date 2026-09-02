@@ -1061,7 +1061,7 @@
     body[data-window-state="exiting"] .settings-hero,
     body[data-window-state="exiting"] #settings-form {
       opacity: 0 !important;
-      transform: translateY(3px) scale(.997) !important;
+      transform: translateY(8px) scale(.985) !important;
       transition-duration: var(--motion-window-out) !important;
       transition-timing-function: var(--ease-in) !important;
     }
@@ -1565,10 +1565,10 @@
     /* Settings window entrance animates only the shell. The brief
        explicitly forbids per-child stagger. */
     body[data-window-state="entering"] .shell {
-      animation: shell-enter 320ms var(--ion-spring) both;
+      animation: shell-enter 380ms cubic-bezier(.32, .72, 0, 1) both;
     }
     @keyframes shell-enter {
-      from { opacity: 0; transform: translateY(4px) scale(0.99); }
+      from { opacity: 0; transform: translateY(10px) scale(.965); }
       to   { opacity: 1; transform: none; }
     }
     @keyframes status-confirm {
@@ -3074,6 +3074,55 @@
       35%  { transform: scale(1.02); }
       100% { transform: scale(1); }
     }
+
+    /* ═══ Interaction system (v3.1): one grammar for every control ═════
+       hover = lightness, press = scale + ink, focus = 3px accent ring,
+       disabled = dim + default cursor. Timing: 160ms hover, 130ms press,
+       180ms ring, all on the shared spring. */
+
+    :root {
+      --press-ease: cubic-bezier(.2, .7, .2, 1);
+    }
+
+    button {
+      cursor: pointer;
+      transition:
+        background-color 160ms ease,
+        border-color 160ms ease,
+        color 160ms ease,
+        box-shadow 180ms ease,
+        transform 130ms var(--press-ease);
+    }
+    button:disabled { cursor: default; opacity: .5; }
+    button:disabled:hover { transform: none; }
+
+    button:focus-visible,
+    #open-editor:focus-visible {
+      outline: none;
+      box-shadow: 0 0 0 3px rgba(48, 209, 88, .26);
+    }
+
+    .collapse-chev:active { transform: scale(.92); }
+
+    input:disabled { opacity: .5; cursor: default; }
+    label.switch { cursor: pointer; }
+    .switch input:disabled + .track { opacity: .5; }
+    label.switch:active .track::after { transform: scale(.92); }
+    label.switch:active input:checked + .track::after { transform: translateX(16px) scale(.92); }
+
+    /* Press ink: a quiet highlight blooming from the pointer-down point
+       on the primary actions. Transform + opacity only. */
+    .ripple-host { position: relative; overflow: hidden; }
+    .ripple-ink {
+      position: absolute;
+      border-radius: 50%;
+      pointer-events: none;
+      background: rgba(255, 255, 255, .2);
+      transform: scale(0);
+      opacity: 1;
+      animation: ripple-ink 460ms var(--ease-out) forwards;
+    }
+    @keyframes ripple-ink { to { transform: scale(1); opacity: 0; } }
     .button-progress { width: 16px; height: 16px; }
 
     .settings-scroll {
@@ -3810,6 +3859,27 @@
         const card = chevron.closest("section.settings-card");
         const collapsed = card.toggleAttribute("data-collapsed");
         chevron.setAttribute("aria-expanded", String(!collapsed));
+      });
+
+      /* Press ink: a quiet highlight that blooms from the pointer-down
+         point on the primary actions. Transform + opacity only; skipped
+         under reduced motion. */
+      const rippleHosts = [form.querySelector("button.primary"), document.getElementById("open-editor")];
+      rippleHosts.forEach((el) => { if (el) el.classList.add("ripple-host"); });
+      document.addEventListener("pointerdown", (event) => {
+        if (reducedMotion.matches) return;
+        const host = event.target.closest ? event.target.closest(".ripple-host") : null;
+        if (!host || host.disabled) return;
+        const rect = host.getBoundingClientRect();
+        const ink = document.createElement("span");
+        ink.className = "ripple-ink";
+        const size = Math.max(rect.width, rect.height) * 2.2;
+        ink.style.width = `${size}px`;
+        ink.style.height = `${size}px`;
+        ink.style.left = `${event.clientX - rect.left - size / 2}px`;
+        ink.style.top = `${event.clientY - rect.top - size / 2}px`;
+        host.appendChild(ink);
+        ink.addEventListener("animationend", () => ink.remove(), { once: true });
       });
       let currentSettings = null;
       let windowMotionTimer = 0;
