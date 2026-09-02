@@ -3170,6 +3170,7 @@
       from { opacity: 0; transform: translateX(-24px); }
       to   { opacity: 1; transform: none; }
     }
+
     .button-progress { width: 16px; height: 16px; }
 
     .settings-scroll {
@@ -3719,6 +3720,51 @@
     button.primary:disabled { background: #30D158; color: #F2FFF5; opacity: .72; }
 
 
+
+    /* ═══ Bug-fix pass (2026-09): measured corrections ═════════════════
+
+       Eyebrow pill: an older layer pinned height:16px with overflow
+       hidden while the text run needed 12px + padding - the label
+       painted past the pill's bottom edge and clipped. Size the pill
+       from its content and center the line box. */
+    .utility-status > .eyebrow {
+      height: auto;
+      overflow: visible;
+      padding: 6px 14px;
+      line-height: 1.2;
+      margin-bottom: 0;
+    }
+
+    /* Metric columns: 14px column padding left only ~58px for a ~75px
+       icon+label, so TEMPERATURE/DOWNLOADS painted across the dividers
+       and the value wrapped. Rebuild the budget: tighter status gutters,
+       7px column padding, 10px icons, dense uppercase labels with a
+       hard no-overflow guarantee, and one-line values. */
+    .utility-status { padding: 16px 14px 8px; }
+    .metric-card {
+      min-width: 0;
+      padding: 10px 7px 9px;
+    }
+    .metric-label {
+      max-width: 100%;
+      gap: 4px;
+      overflow: hidden;
+      white-space: nowrap;
+      font-size: 8.5px;
+      font-weight: 600;
+      letter-spacing: .02em;
+    }
+    .metric-label svg { width: 10px; height: 10px; stroke-width: 2; }
+    .metric-value { white-space: nowrap; }
+
+    /* Runtime pill: uniform stat padding, small edge insets. */
+    .utility-stat { padding: 0 18px; }
+    .utility-stat:first-child { padding-left: 8px; }
+    .utility-stat:last-child { padding-right: 8px; }
+
+    /* Footer: the wordmark carried a second left padding on top of the
+       nav gutter; align it to the same edge. */
+    .utility-wordmark { padding-left: 0; }
 @media (prefers-reduced-motion: reduce) {
       :root {
         --motion-micro: 1ms;
