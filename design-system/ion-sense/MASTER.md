@@ -122,3 +122,14 @@ ION Sense is a quiet desktop awareness utility: premium system software first, f
 - The alert conduit (core-to-content line) flares once as the alert materializes; the panel shell carries the same light-pool/shadow-pool material as the Core; the ambient screen field is severity-graded on the existing overlay surface.
 - Settings uses one continuous grouped surface with hairline rows (macOS System Settings structure); inputs are recessed neutral material that turns ION only on focus; save is a ghost hairline action that strengthens when dirty.
 - Motion is per-interaction: `--ease-press` (120-130ms press), `--ease-glow` (luminance), `--ease-settle` (state landings, core, 190ms toggle), entrance spring for arrival, near-linear decisive contraction for dismissal.
+
+## Settings 3.0: flat target visual language (2026-09)
+
+Supersedes the grouped-surface/orb settings material above for the settings utility. The HUD keeps its 2.1 material.
+
+- One muted accent green `#34C759` (Apple system green family) across toggles, section numbers, focus rings, and the live dot; bright linework is reserved for the I-mark gradient. The deep `#2E9E44` save button (hover `#37AF4E`) is the only large green fill.
+- Flat near-black canvas `rgba(12, 15, 16, .92)` with a single neutral hairline `rgba(255, 255, 255, .065)`. No cards, no rail, no raised surfaces, no glow stacking in the settings window.
+- Hero: topbar I-mark lockup, centered status column, flat breathing I-mark core (19×46px stroke glyph, `i-breathe` 5.6s ±2.5% scale) instead of any 3D/energy orb; four bare metric columns under a green-tinted hairline; bottom wordmark + "Detector settings" pill nav.
+- Editor: hairline-separated sections (`rgba(255, 255, 255, .05)`) with green monospace section numbers top-right; iOS-scale 40×24 flat toggles (off track neutral, on track `#34C759`, white knob, no halo); stacked full-width fields with top/bottom hairlines and green focus underline; quiet status line; solid deep-green save.
+- Typography stays Segoe UI Variable with 12–13px body; section numbers are the only monospace. No emoji, no icon rows.
+- Legacy accent `#45EE86` remains HUD-only; the two palettes must not be mixed within one window.
