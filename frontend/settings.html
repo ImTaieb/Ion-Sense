@@ -259,7 +259,6 @@
       font-size: 10px;
       font-weight: 650;
     }
-    button:hover { box-shadow: 0 0 14px rgba(var(--ion-rgb),.07); transform: translateY(-1px); }
     button:active { transform: translateY(0); }
     button.primary {
       min-width: 188px;
@@ -389,7 +388,6 @@
       box-shadow: none;
     }
     .utility-overview::after { content: none; }
-    .utility-overview:hover { transform: none; border-color: transparent; background-color: #010302; }
     .utility-status {
       display: grid;
       place-items: center;
@@ -540,7 +538,6 @@
     .switch input:focus-visible + .track { outline: 2px solid var(--ion); outline-offset: 3px; }
     .credential-row { gap: 9px; }
     button { min-height: 42px; padding: 0 15px; border-radius: 10px; font-size: 10px; transition: transform 160ms cubic-bezier(.16,1,.3,1), color 160ms ease, border-color 160ms ease, background 160ms ease, box-shadow 160ms ease; }
-    button:hover:not(:disabled) { transform: translateY(-1px); border-color: rgba(var(--ion-rgb),.35); box-shadow: 0 9px 20px rgba(0,0,0,.18), 0 0 14px rgba(var(--ion-rgb),.045); }
     button:active:not(:disabled) { transform: translateY(0) scale(.985); }
     button:focus-visible { outline: 2px solid rgba(var(--ion-rgb),.82); outline-offset: 3px; }
     button:disabled { cursor: wait; opacity: .58; }
@@ -1525,7 +1522,6 @@
       font-size: 9px;
       transition: transform 130ms var(--ease-press), color var(--motion-micro) ease, border-color var(--motion-micro) ease, background var(--motion-micro) ease, box-shadow var(--motion-micro) var(--ease-glow);
     }
-    button:hover:not(:disabled) { transform: scale(1.01); color: var(--ion); border-color: rgba(var(--ion-rgb),.33); background: rgba(var(--ion-rgb),.045); box-shadow: 0 7px 16px rgba(0,0,0,.15); }
     button:active:not(:disabled) { transform: scale(.975); }
     button:focus-visible { outline: 2px solid rgba(var(--ion-rgb),.76); outline-offset: 2px; }
     .platform-note { margin: 0; padding: 11px 12px; border: 1px solid rgba(var(--ion-rgb),.09); border-left: 2px solid rgba(var(--ion-rgb),.34); border-radius: 10px; background: rgba(var(--ion-rgb),.018); color: #849087; font-size: 9.25px; line-height: 1.48; animation: none; }
@@ -2441,9 +2437,10 @@
       box-shadow: 0 18px 48px rgba(0, 0, 0, .55);
     }
     .shell::before, .shell::after { content: none !important; }
+    .shell { display: flex; flex-direction: column; }
 
     /* Retired components from earlier generations */
-    .utility-rail, .utility-detectors, .hero-core-wrap, .metric-icon,
+    .utility-rail, .utility-detectors, .metric-icon,
     .utility-note-row .note-icon, .utility-note-row .note-chevron,
     .hero-state { display: none !important; }
 
@@ -2550,32 +2547,15 @@
       line-height: 1.6;
     }
 
-    /* I-mark core: flat, quiet, breathing */
-    .hero-i-wrap {
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      margin: 24px 0 8px;
+    /* ION Core: the green energy orb (frontend/ion-core.js + vendored
+       three.js). Sizing only; reveal, fallback disc, and the alert pulse
+       come from the ION Core layer above. */
+    .hero-core-wrap {
+      width: 148px;
+      height: 148px;
+      margin: 18px 0 4px;
     }
-    .hero-i-mark {
-      width: 19px;
-      height: 46px;
-      color: #34C759;
-      opacity: .92;
-      overflow: visible;
-      animation: i-breathe 5.6s ease-in-out infinite;
-      transition: color 400ms ease, opacity 400ms ease, filter 400ms ease;
-    }
-    body[data-core-state="focus"] .hero-i-mark { opacity: 1; }
-    body[data-core-state="alert"] .hero-i-mark {
-      opacity: 1;
-      filter: drop-shadow(0 0 5px rgba(52, 199, 89, .35));
-    }
-    @keyframes i-breathe {
-      0%, 100% { opacity: .86; transform: scale(1); }
-      50% { opacity: 1; transform: scale(1.025); }
-    }
-    .utility-status[data-hero-enter] > .hero-i-wrap {
+    .utility-status[data-hero-enter] > .hero-core-wrap {
       animation: core-bloom 620ms var(--ease-out) 70ms both;
     }
 
@@ -2707,7 +2687,10 @@
     /* Editor */
 
     .settings-hero {
-      display: flex;
+      position: static;
+      inset: auto;
+      display: flex !important;
+      flex: none;
       align-items: center;
       gap: 13px;
       height: auto;
@@ -2782,7 +2765,14 @@
       line-height: 1.55;
     }
 
-    #settings-form { inset: 106px 0 0; }
+    #settings-form {
+      position: static;
+      inset: auto;
+      display: flex !important;
+      flex-direction: column;
+      flex: 1 1 auto;
+      min-height: 0;
+    }
 
     /* Flat sections: hairline dividers, no cards */
     .settings-grid {
@@ -2882,7 +2872,7 @@
       background: #FBFBFC;
       box-shadow: none;
     }
-    .switch input:focus-visible + .track { box-shadow: 0 0 0 3px rgba(52, 199, 89, .18); }
+    .switch input:focus-visible + .track { outline: none; box-shadow: 0 0 0 3px rgba(52, 199, 89, .18); }
 
     /* Fields: bare inline values with a hairline underline */
     .settings-card .grid {
@@ -2977,11 +2967,17 @@
       color: rgba(237, 239, 234, .6);
       font-size: 10px;
     }
+    #dev-tools .dev-grid button:hover {
+      border-color: rgba(255, 255, 255, .2);
+      color: #EDEFEA;
+      transform: none;
+      box-shadow: none;
+    }
 
     /* Footer: hairline, quiet status, solid deep-green save */
     .actions {
-      position: sticky;
-      bottom: 0;
+      position: static;
+      flex: none;
       display: flex;
       align-items: center;
       gap: 14px;
@@ -3015,6 +3011,17 @@
       margin: 0;
       transform: none;
     }
+    #status[data-state="success"],
+    #status[data-state="error"],
+    #status[data-state="dirty"] {
+      border: none;
+      background: transparent;
+    }
+    #status[data-state="dirty"]::before {
+      border: none;
+      box-shadow: none;
+      background: #34C759;
+    }
     button.primary {
       flex: none;
       min-height: 40px;
@@ -3047,7 +3054,12 @@
     }
     .button-progress { width: 16px; height: 16px; }
 
-    .settings-scroll { padding: 0 4px 6px 0; }
+    .settings-scroll {
+      flex: 1 1 auto;
+      min-height: 0;
+      overflow: hidden auto;
+      padding: 0 4px 6px 0;
+    }
     .settings-scroll::-webkit-scrollbar { width: 5px; }
     .settings-scroll::-webkit-scrollbar-track { background: transparent; margin: 0; border-radius: 0; }
     .settings-scroll::-webkit-scrollbar-thumb { border: none; border-radius: 999px; background: rgba(255, 255, 255, .1); }
@@ -3070,11 +3082,14 @@
       }
       .utility-settings-button:hover:not(:disabled) { transform: none; }
       /* Reduced motion keeps elegant fades for the Sense Core states. */
-      .hero-i-wrap { animation: none; opacity: 1; }
-      .hero-i-mark { animation: none; opacity: .92; }
+      .hero-core-wrap { animation: none; opacity: 1; }
     }
   </style>
 
+  <script type="importmap">
+    { "imports": { "three": "./vendor/three-0.160.0.module.js" } }
+  </script>
+  <script type="module" src="ion-core.js"></script>
 </head>
 <body data-window-state="hidden">
   <div class="shell" data-view="overview">
@@ -3088,13 +3103,9 @@
         <div class="eyebrow">System status</div>
         <h2>All systems nominal</h2>
         <p>ION Sense is quietly monitoring the signals that matter.</p>
-        <div class="hero-i-wrap" aria-hidden="true">
-          <svg class="hero-i-mark" viewBox="0 0 30 72" fill="none">
-            <path d="M8 3.5h14" stroke="currentColor" stroke-width="3.2"/>
-            <path d="M15 3.5v65" stroke="currentColor" stroke-width="3.6"/>
-            <path d="M8 68.5h14" stroke="currentColor" stroke-width="3.2"/>
-            <path d="M.4 35.8h3.4M26.2 35.8h3.4" stroke="currentColor" stroke-width="2" stroke-opacity=".42"/>
-          </svg>
+        <div class="hero-core-wrap" aria-hidden="true">
+          <canvas id="ion-core-canvas"></canvas>
+          <div class="ion-core-fallback"></div>
         </div>
         <div class="utility-stats" aria-label="Enabled detector summary">
           <span class="utility-stat"><span class="stat-dot" aria-hidden="true"></span><strong id="enabled-count">0</strong>&nbsp;Active</span>
