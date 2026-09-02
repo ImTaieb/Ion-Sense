@@ -1163,14 +1163,22 @@
     }
     .shell[data-view="editor"][data-view-motion="transitioning"] .settings-hero,
     .shell[data-view="editor"][data-view-motion="transitioning"] #settings-form {
-      animation: editor-view-in 300ms 35ms var(--ease-out) both;
+      animation: editor-push-in 340ms cubic-bezier(.32, .72, 0, 1) both;
     }
     .shell[data-view="overview"][data-view-motion="transitioning"] .utility-overview {
       animation: overview-view-in 300ms 25ms var(--ease-out) both;
     }
     .shell[data-view="overview"][data-view-motion="transitioning"] .settings-hero,
     .shell[data-view="overview"][data-view-motion="transitioning"] #settings-form {
-      animation: editor-view-out 210ms var(--ease-standard) both;
+      animation: editor-push-out 220ms var(--ease-standard) both;
+    }
+    @keyframes editor-push-in {
+      from { opacity: 0; transform: translateX(26%); }
+      to   { opacity: 1; transform: none; }
+    }
+    @keyframes editor-push-out {
+      from { opacity: 1; transform: none; }
+      to   { opacity: 0; transform: translateX(26%); }
     }
     /* Brief §17 settings navigation: small crossfade, optional 2-4px
        directional translation, ~180-240ms. No scale, no overshoot. */
@@ -1185,6 +1193,13 @@
     @keyframes editor-view-in {
       from { opacity: 0; transform: translateY(3px); }
       to   { opacity: 1; transform: none; }
+    }
+
+    /* Push navigation: the editor column slides in from the right over the
+       fading overview; reverse on back. Replaces the 3px crossfade. */
+    .shell[data-view="overview"] .settings-hero,
+    .shell[data-view="overview"] #settings-form {
+      transform: translateX(26%);
     }
     @keyframes editor-view-out {
       from { opacity: 1; }
@@ -2472,7 +2487,7 @@
       border: none;
       border-radius: 0;
       background: transparent;
-      color: rgba(52, 199, 89, .9);
+      color: rgba(48, 209, 88, .9);
       box-shadow: none;
     }
     .utility-app-icon svg { width: 100%; height: 100%; display: block; }
@@ -2845,19 +2860,19 @@
 
     /* iOS-scale toggles, flat */
     .track {
-      width: 40px;
-      height: 24px;
+      width: 42px;
+      height: 26px;
       border: none;
       border-radius: 999px;
-      background: rgba(255, 255, 255, .13);
+      background: rgba(120, 120, 128, .32);
       box-shadow: none;
-      transition: background-color 200ms ease;
+      transition: background-color 220ms ease;
     }
     .track::after {
       top: 2px;
       left: 2px;
-      width: 20px;
-      height: 20px;
+      width: 22px;
+      height: 22px;
       border-radius: 50%;
       background: #FBFBFC;
       box-shadow: 0 1px 2px rgba(0, 0, 0, .35);
@@ -3021,7 +3036,7 @@
     #status[data-state="dirty"]::before {
       border: none;
       box-shadow: none;
-      background: #34C759;
+      background: #30D158;
     }
     button.primary {
       flex: none;
@@ -3049,9 +3064,15 @@
     button.primary:focus-visible { outline: none; box-shadow: 0 0 0 3px rgba(52, 199, 89, .22); }
     button.primary:disabled { background: #2E9E44; color: #ECFFF1; opacity: .72; }
     button.primary[data-state="saved"] {
-      background: #2E9E44;
-      color: #ECFFF1;
+      background: #30D158;
+      color: #F2FFF5;
       border: none;
+      animation: save-pulse 700ms var(--ease-out);
+    }
+    @keyframes save-pulse {
+      0%   { transform: scale(1); }
+      35%  { transform: scale(1.02); }
+      100% { transform: scale(1); }
     }
     .button-progress { width: 16px; height: 16px; }
 
@@ -3072,15 +3093,15 @@
        below still wins. The ION Core orb layers are untouched. */
 
     :root {
-      --v3-bg: #090D0B;
-      --v3-surface: #0D1210;
-      --v3-surface-2: #111613;
+      --v3-bg: #0A0C0B;
+      --v3-surface: #131614;
+      --v3-surface-2: #1A1E1C;
       --v3-text-hi: #F5F7F5;
-      --v3-text-mid: #929993;
-      --v3-text-low: #626963;
-      --v3-line: rgba(255, 255, 255, .07);
-      --v3-line-soft: rgba(255, 255, 255, .055);
-      --v3-green: #34C759;
+      --v3-text-mid: #99A19A;
+      --v3-text-low: #7E8580;
+      --v3-line: rgba(255, 255, 255, .08);
+      --v3-line-soft: rgba(255, 255, 255, .06);
+      --v3-green: #30D158;
       --v3-r-lg: 20px;
       --v3-r-md: 14px;
     }
@@ -3088,7 +3109,7 @@
     .shell,
     div.shell {
       border: 1px solid rgba(255, 255, 255, .06) !important;
-      background: #090D0B !important;
+      background: #0A0C0B !important;
       box-shadow: 0 18px 48px rgba(0, 0, 0, .55) !important;
     }
 
@@ -3111,29 +3132,29 @@
 
     .utility-status { padding: 16px 20px 8px; }
     .utility-status > .eyebrow {
-      padding: 6px 14px;
+      padding: 7px 14px;
       border: 1px solid var(--v3-line);
       border-radius: 999px;
       background: var(--v3-surface);
       color: var(--v3-text-mid);
-      font-size: 9px;
+      font-size: 10px;
       font-weight: 650;
-      letter-spacing: .22em;
+      letter-spacing: .08em;
     }
     .utility-status h2 {
-      margin: 12px 0 0;
+      margin: 10px 0 0;
       color: var(--v3-text-hi);
-      font-size: 22px;
+      font-size: 28px;
       font-weight: 700;
-      letter-spacing: -.02em;
-      line-height: 1.2;
+      letter-spacing: -.022em;
+      line-height: 1.15;
     }
     .utility-status p {
-      max-width: 270px;
+      max-width: 300px;
       margin: 8px 0 0;
       color: var(--v3-text-mid);
-      font-size: 11.5px;
-      line-height: 1.6;
+      font-size: 13px;
+      line-height: 1.5;
     }
 
     /* Status pill: dot + count | runtime */
@@ -3167,6 +3188,7 @@
       border: 1px solid var(--v3-line);
       border-radius: var(--v3-r-lg);
       background: var(--v3-surface);
+      box-shadow: inset 0 1px 0 rgba(255, 255, 255, .04);
     }
     .metric-card {
       display: flex;
@@ -3180,11 +3202,19 @@
       background: transparent;
       box-shadow: none;
     }
-    .metric-card + .metric-card { border-left: 1px solid var(--v3-line-soft); }
+    .metric-card { position: relative; }
     .metric-card:hover, .metric-card:active { border: none; background: transparent; transform: none; }
-    .metric-card + .metric-card:hover { border-left: 1px solid var(--v3-line-soft); }
+    .metric-card + .metric-card::before {
+      content: "";
+      position: absolute;
+      left: 0;
+      top: 10px;
+      bottom: 10px;
+      width: 1px;
+      background: var(--v3-line-soft);
+    }
     .metric-label { color: var(--v3-text-low); font-size: 8.5px; font-weight: 650; letter-spacing: .14em; }
-    .metric-value { color: var(--v3-text-hi); font-size: 17px; font-weight: 700; font-variant-numeric: tabular-nums; letter-spacing: -.01em; }
+    .metric-value { color: var(--v3-text-hi); font-size: 20px; font-weight: 700; font-variant-numeric: tabular-nums; letter-spacing: -.015em; }
     .metric-sub { color: var(--v3-text-low); font-size: 9px; }
 
     /* Alert card */
@@ -3198,6 +3228,7 @@
       border: 1px solid var(--v3-line);
       border-radius: var(--v3-r-lg);
       background: var(--v3-surface);
+      box-shadow: inset 0 1px 0 rgba(255, 255, 255, .04);
       color: var(--v3-text-mid);
       font-size: 11px;
       line-height: 1.55;
@@ -3226,9 +3257,10 @@
       border: 1px solid var(--v3-line);
       border-radius: var(--v3-r-lg);
       background: var(--v3-surface);
+      box-shadow: inset 0 1px 0 rgba(255, 255, 255, .04);
     }
     .utility-wordmark { color: var(--v3-text-hi); font-size: 12px; font-weight: 700; letter-spacing: .08em; }
-    .utility-wordmark small { color: var(--v3-text-low); font-size: 8.5px; font-weight: 500; letter-spacing: .06em; }
+    .utility-wordmark small { color: var(--v3-text-low); font-size: 9px; font-weight: 500; letter-spacing: .06em; }
     #open-editor {
       display: inline-flex;
       align-items: center;
@@ -3249,13 +3281,24 @@
     #open-editor svg { width: 13px; height: 13px; }
     #open-editor .chev { width: 11px; height: 11px; color: var(--v3-text-low); }
     #open-editor:hover {
-      border-color: rgba(52, 199, 89, .38);
-      background: #131A15;
+      border-color: rgba(255, 255, 255, .12);
+      background: #232923;
       color: var(--v3-text-hi);
       transform: none;
       box-shadow: none;
     }
-    #open-editor:active { transform: scale(.98); }
+    #open-editor:active { transform: scale(.97); }
+
+    #open-editor svg,
+    .collapse-chev svg,
+    .utility-note svg,
+    .editor-back svg,
+    .utility-app-icon svg {
+      stroke-width: 1.8;
+      stroke-linecap: round;
+      stroke-linejoin: round;
+      fill: none;
+    }
 
     /* ── Editor ── */
     .settings-hero { padding: 18px 20px 16px; border-bottom: 1px solid var(--v3-line-soft); }
@@ -3264,7 +3307,7 @@
     .settings-brand {
       width: 46px;
       height: 46px;
-      border: 1px solid rgba(52, 199, 89, .42);
+      border: 1px solid rgba(48, 209, 88, .42);
       border-radius: 50%;
       background: var(--v3-surface-2);
       box-shadow: none;
@@ -3281,12 +3324,12 @@
     .settings-brand::before { top: 12px; }
     .settings-brand::after { bottom: 12px; }
     .settings-brand span { width: 3px; height: 15px; background: var(--v3-green); box-shadow: none; }
-    .settings-hero .eyebrow { color: rgba(52, 199, 89, .8); font-size: 9px; font-weight: 650; letter-spacing: .2em; }
-    .settings-hero h1 { margin: 4px 0 0; color: var(--v3-text-hi); font-size: 21px; font-weight: 680; letter-spacing: -.015em; }
-    .settings-hero .intro { margin: 6px 0 0; max-width: 280px; color: var(--v3-text-mid); font-size: 10.5px; line-height: 1.55; }
+    .settings-hero .eyebrow { color: rgba(48, 209, 88, .85); font-size: 10px; font-weight: 650; letter-spacing: .1em; }
+    .settings-hero h1 { margin: 4px 0 0; color: var(--v3-text-hi); font-size: 24px; font-weight: 700; letter-spacing: -.02em; }
+    .settings-hero .intro { margin: 6px 0 0; max-width: 300px; color: var(--v3-text-mid); font-size: 12.5px; line-height: 1.5; }
 
     /* Cards */
-    .settings-grid { display: flex; flex-direction: column; gap: 14px; padding: 16px 16px 4px; }
+    .settings-grid { display: flex; flex-direction: column; gap: 12px; padding: 16px 16px 4px; }
     section.settings-card,
     section.settings-card:first-child,
     section.settings-card:last-child,
@@ -3296,7 +3339,7 @@
       border: 1px solid var(--v3-line);
       border-radius: var(--v3-r-lg);
       background: var(--v3-surface);
-      box-shadow: none;
+      box-shadow: inset 0 1px 0 rgba(255, 255, 255, .04);
     }
     section.settings-card + section.settings-card {
       margin-top: 0;
@@ -3306,9 +3349,9 @@
     section.settings-card:hover,
     section.settings-card:focus-within {
       transform: none;
-      border-color: rgba(255, 255, 255, .11);
-      background: var(--v3-surface);
-      box-shadow: none;
+      border-color: var(--v3-line);
+      background: #161A18;
+      box-shadow: inset 0 1px 0 rgba(255, 255, 255, .04);
     }
 
     /* Section header: number + title / toggle row / collapse chevron */
@@ -3319,7 +3362,7 @@
         "title chev"
         "switch switch";
       column-gap: 12px;
-      row-gap: 13px;
+      row-gap: 12px;
       align-items: center;
       margin: 0;
       padding: 0;
@@ -3333,7 +3376,7 @@
       padding: 0;
       border: none;
       color: var(--v3-text-hi);
-      font-size: 14px;
+      font-size: 15px;
       font-weight: 650;
       letter-spacing: 0;
     }
@@ -3396,7 +3439,7 @@
     section.settings-card[data-collapsed] .card-body { grid-template-rows: 0fr; }
 
     /* Fields: quiet label over an underlined value */
-    .settings-card .grid { display: grid; grid-template-columns: 1fr; gap: 16px; margin-top: 14px; }
+    .settings-card .grid { display: grid; grid-template-columns: 1fr; gap: 14px; margin-top: 14px; }
     .settings-card .dev-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 12px 14px; margin-top: 14px; }
     .settings-card .grid .span-2 { grid-column: 1 / -1; }
     label.field { display: block; min-width: 0; color: var(--v3-text-low); font-size: 9.5px; font-weight: 560; letter-spacing: .04em; }
@@ -3405,35 +3448,33 @@
     input[type="number"] {
       min-height: 40px;
       margin: 6px 0 0;
-      padding: 8px 2px;
-      border: none;
-      border-top: 1px solid transparent;
-      border-bottom: 1px solid var(--v3-line);
-      border-radius: 0;
-      background: transparent;
+      padding: 8px 12px;
+      border: 1px solid rgba(255, 255, 255, .08);
+      border-radius: 10px;
+      background: rgba(255, 255, 255, .05);
       box-shadow: none;
       color: var(--v3-text-hi);
-      font-size: 15px;
-      font-weight: 480;
-      transition: border-color 180ms ease;
+      font-size: 14px;
+      font-weight: 460;
+      transition: border-color 180ms ease, background-color 180ms ease, box-shadow 180ms ease;
     }
     input[type="text"]:hover,
     input[type="password"]:hover,
-    input[type="number"]:hover { border-bottom-color: rgba(255, 255, 255, .16); background: transparent; box-shadow: none; }
+    input[type="number"]:hover { border-color: rgba(255, 255, 255, .14); background: rgba(255, 255, 255, .065); box-shadow: none; }
     input[type="text"]:focus,
     input[type="password"]:focus,
     input[type="number"]:focus {
-      border-bottom-color: rgba(52, 199, 89, .6);
-      background: transparent;
-      box-shadow: none;
+      border-color: rgba(48, 209, 88, .65);
+      background: rgba(48, 209, 88, .05);
+      box-shadow: 0 0 0 3px rgba(48, 209, 88, .18);
       outline: none;
     }
     .hint { margin: 12px 0 0; color: var(--v3-text-low); font-size: 9.5px; line-height: 1.6; border-top: none; padding-top: 0; }
     .hint code { color: var(--v3-text-mid); }
     .credential-row { display: flex; align-items: flex-end; gap: 12px; }
     .credential-row button {
-      min-height: 32px;
-      margin: 0 0 4px;
+      min-height: 40px;
+      margin: 0;
       padding: 0 12px;
       border: 1px solid var(--v3-line);
       border-radius: 999px;
@@ -3443,7 +3484,8 @@
       box-shadow: none;
       transition: border-color 160ms ease, color 160ms ease;
     }
-    .credential-row button:hover { border-color: rgba(255, 255, 255, .2); color: var(--v3-text-hi); transform: none; box-shadow: none; }
+    .credential-row button:hover { border-color: rgba(255, 255, 255, .12); background: rgba(255, 255, 255, .05); color: var(--v3-text-hi); transform: none; box-shadow: none; }
+    .credential-row button:active { transform: scale(.97); }
     #dev-tools .dev-grid button {
       min-height: 32px;
       border: 1px solid var(--v3-line);
@@ -3452,7 +3494,8 @@
       color: var(--v3-text-mid);
       font-size: 10.5px;
     }
-    #dev-tools .dev-grid button:hover { border-color: rgba(255, 255, 255, .2); color: var(--v3-text-hi); transform: none; box-shadow: none; }
+    #dev-tools .dev-grid button:hover { border-color: rgba(255, 255, 255, .12); background: rgba(255, 255, 255, .05); color: var(--v3-text-hi); transform: none; box-shadow: none; }
+    #dev-tools .dev-grid button:active { transform: scale(.97); }
 
     .platform-note {
       margin: 14px 0 2px;
@@ -3507,6 +3550,10 @@
       margin: 0;
       transform: none;
     }
+    #status[data-state="success"]::before {
+      background: var(--v3-green);
+      box-shadow: 0 0 6px rgba(48, 209, 88, .35);
+    }
     button.primary {
       flex: none;
       width: 100%;
@@ -3515,7 +3562,7 @@
       padding: 0 18px;
       border: none;
       border-radius: var(--v3-r-md);
-      background: #2E9E44;
+      background: #30D158;
       color: #F2FFF5;
       font-size: 13.5px;
       font-weight: 660;
@@ -3523,10 +3570,10 @@
       box-shadow: none;
       transition: background-color 180ms ease, transform 120ms ease;
     }
-    button.primary:hover:not(:disabled) { background: #37AF4E; transform: none; box-shadow: none; }
-    button.primary:active:not(:disabled) { transform: scale(.985); }
-    button.primary:focus-visible { outline: none; box-shadow: 0 0 0 3px rgba(52, 199, 89, .25); }
-    button.primary:disabled { background: #2E9E44; color: #F2FFF5; opacity: .72; }
+    button.primary:hover:not(:disabled) { background: #3ADD64; transform: none; box-shadow: none; }
+    button.primary:active:not(:disabled) { transform: scale(.97); }
+    button.primary:focus-visible { outline: none; box-shadow: 0 0 0 3px rgba(48, 209, 88, .25); }
+    button.primary:disabled { background: #30D158; color: #F2FFF5; opacity: .72; }
 
 
 @media (prefers-reduced-motion: reduce) {
