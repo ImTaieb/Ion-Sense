@@ -716,7 +716,7 @@
       .span-2 { grid-column: auto; }
       .credential-row { grid-template-columns: 1fr; }
     }
-    @media (prefers-reduced-motion: reduce) {
+@media (prefers-reduced-motion: reduce) {
       *, *::before, *::after { scroll-behavior: auto !important; animation-duration: .01ms !important; animation-delay: 0ms !important; animation-iteration-count: 1 !important; transition-duration: .01ms !important; }
     }
 
@@ -1084,7 +1084,7 @@
       position: absolute;
       inset: 0;
       z-index: 2;
-      display: grid !important;
+      display: block !important;
       grid-template-rows: 56px minmax(0, 1fr) 66px;
       min-width: 0;
       min-height: 0;
@@ -1100,7 +1100,7 @@
       position: absolute;
       inset: 0 0 auto;
       z-index: 3;
-      display: grid !important;
+      display: block !important;
       width: auto;
       height: 88px;
       margin: 0;
@@ -1123,7 +1123,7 @@
       position: absolute;
       inset: 88px 0 0;
       z-index: 2;
-      display: grid !important;
+      display: block !important;
       grid-template-rows: minmax(0, 1fr) auto;
       gap: 0;
       min-width: 0;
@@ -1143,14 +1143,14 @@
     }
     .shell[data-view="overview"] .settings-hero,
     .shell[data-view="overview"] #settings-form {
-      display: grid !important;
+      display: block !important;
       visibility: hidden;
       opacity: 0;
       transform: translateY(6px) scale(.995);
       pointer-events: none;
     }
     .shell[data-view="editor"] .utility-overview {
-      display: grid !important;
+      display: block !important;
       visibility: hidden;
       opacity: 0;
       transform: translateY(-4px) scale(.997);
@@ -2421,317 +2421,637 @@
     }
     .utility-stat strong { color: var(--ion, #34C759); font-weight: 620; }
 
-        /* ═══ Reference rebuild (2026-09, final word) ═══════════════════════
-       The hero copies the reference image exactly: icon rail left,
-       orb centerpiece, "● N Active / Runtime live" pill, four metric
-       cards in one row, alert note row with chevron. The editor copies
-       the detector-settings reference: circular logo header, section
-       number top-right, hairline rows, big pill + save footer. */
+        /* ═══ Target visual language (2026-09 v2, final word) ══════════════
+       Flat near-black canvas, hairline dividers, a single muted green
+       accent, a geometric I-mark as the hero core (no 3D orb, no glow),
+       bare left-aligned metric columns, flat editor sections separated
+       by hairlines, and a solid deep-green save button. Supersedes
+       every layer above; the reduced-motion block below still wins. */
 
-    /* Hero grid: topbar / rail+status / footer */
-    .utility-overview {
-      grid-template-columns: 56px minmax(0, 1fr);
-      grid-template-rows: 56px minmax(0, 1fr) 50px;
+    /* Canvas: one flat surface, no gradients, no green washes */
+    div.shell {
+      border: 1px solid rgba(255, 255, 255, .065);
+      background: rgba(12, 15, 16, .92);
+      box-shadow: 0 18px 48px rgba(0, 0, 0, .55);
     }
-    .utility-topbar { grid-column: 1 / -1; grid-row: 1; }
-    .utility-rail {
-      grid-column: 1;
-      grid-row: 2;
+    body[data-window-state="entering"] div.shell,
+    body[data-window-state="active"] div.shell,
+    body[data-window-state="exiting"] div.shell {
+      border-color: rgba(255, 255, 255, .065);
+      box-shadow: 0 18px 48px rgba(0, 0, 0, .55);
+    }
+    .shell::before, .shell::after { content: none !important; }
+
+    /* Retired components from earlier generations */
+    .utility-rail, .utility-detectors, .hero-core-wrap, .metric-icon,
+    .utility-note-row .note-icon, .utility-note-row .note-chevron,
+    .hero-state { display: none !important; }
+
+    /* Overview: topbar / scrollable status / bottom nav */
+    section.utility-overview {
       display: flex;
       flex-direction: column;
-      align-items: center;
-      gap: 4px;
-      padding: 14px 0;
-    }
-    .rail-icon {
-      display: grid;
-      place-items: center;
-      width: 38px;
-      height: 38px;
-      color: rgba(245, 245, 247, .32);
-    }
-    .rail-icon svg {
-      width: 19px;
-      height: 19px;
-      fill: none;
-      stroke: currentColor;
-      stroke-width: 1.6;
-      stroke-linecap: round;
-      stroke-linejoin: round;
-    }
-    .rail-icon.is-active {
-      color: var(--ion);
-      background: rgba(var(--ion-rgb), .13);
-      border-radius: 12px;
-    }
-    .rail-button {
-      margin: 8px 0 0;
-      color: rgba(245, 245, 247, .5);
-      border: 0;
+      height: 100%;
+      padding: 0;
+      border: none;
       background: transparent;
-      cursor: pointer;
-      transition: color 200ms ease, background-color 200ms ease, transform 130ms var(--ease-press);
+      box-shadow: none;
     }
-    .rail-button:hover { color: var(--ion); background: rgba(var(--ion-rgb), .1); }
-    .rail-button:active { transform: scale(.94); }
-    .utility-nav { grid-column: 1 / -1; grid-row: 3; grid-template-columns: 1fr; align-items: center; }
-
-    /* Status column */
-    .utility-status {
-      grid-column: 2;
-      grid-row: 2;
-      gap: 9px;
-      padding: 8px 18px 10px;
-      overflow-y: auto;
-      scrollbar-width: none;
-    }
-    .utility-status::-webkit-scrollbar { display: none; }
-    .utility-status > .eyebrow { color: rgba(245, 245, 247, .4); font-size: 9px; letter-spacing: .22em; }
-    .utility-status h2 {
-      margin: 0;
-      color: #F5F5F7;
-      font-family: var(--font-display);
-      font-size: 22px;
-      font-weight: 600;
-      letter-spacing: -.015em;
-    }
-    .utility-status p { margin: 0; max-width: 260px; color: rgba(245, 245, 247, .45); font-size: 11px; line-height: 1.5; }
-    .hero-core-wrap { width: 150px; height: 150px; margin: 0; }
-
-    /* Stats pill */
-    .utility-stats {
-      display: inline-flex;
-      align-items: center;
-      gap: 18px;
-      padding: 8px 16px;
-      border: 1px solid rgba(255, 255, 255, .08);
-      border-radius: 999px;
-      background: rgba(255, 255, 255, .03);
-    }
-    .utility-detectors { display: none; }
-
-    /* Metric cards: one row of four with icons */
-    .metric-grid { grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 8px; width: 100%; margin-top: 0; }
-    .metric-card {
-      gap: 4px;
-      padding: 11px 6px 10px;
-      align-items: center;
-      border-radius: 14px;
-      text-align: center;
-    }
-    .metric-icon { display: grid; place-items: center; color: var(--ion); }
-    .metric-icon svg {
-      width: 18px;
-      height: 18px;
-      fill: none;
-      stroke: currentColor;
-      stroke-width: 1.6;
-      stroke-linecap: round;
-      stroke-linejoin: round;
-    }
-    .metric-label { font-size: 8.5px; letter-spacing: .05em; }
-    .metric-value { font-size: 16.5px; font-weight: 640; }
-    .metric-sub { font-size: 8.5px; }
-
-    /* Alert note row */
-    .utility-note-row {
+    .utility-topbar {
       display: flex;
       align-items: center;
       gap: 10px;
-      width: 100%;
-      margin-top: 2px;
-      padding: 12px 14px;
-      border: 1px solid rgba(255, 255, 255, .07);
-      border-radius: 14px;
-      background: var(--ion-surface-1, #111312);
-      text-align: left;
-      transition: border-color var(--motion-control) ease;
-    }
-    .utility-note-row:hover { border-color: rgba(255, 255, 255, .12); }
-    .note-icon { display: grid; place-items: center; color: var(--ion); flex: 0 0 auto; }
-    .note-icon svg, .note-chevron svg {
-      width: 16px;
-      height: 16px;
-      fill: none;
-      stroke: currentColor;
-      stroke-width: 1.6;
-      stroke-linecap: round;
-      stroke-linejoin: round;
-    }
-    #utility-note { flex: 1; min-width: 0; margin: 0; color: rgba(245, 245, 247, .55); font-size: 10.5px; line-height: 1.45; }
-    .note-chevron { display: grid; place-items: center; color: rgba(245, 245, 247, .3); transition: transform var(--motion-control) var(--ease-out); }
-    .utility-note-row:hover .note-chevron { transform: translateX(2px); }
-
-    /* Topbar: circular outlined logo */
-    .utility-app-icon {
-      border-color: rgba(var(--ion-rgb), .45);
-      border-radius: 50%;
-      background: rgba(var(--ion-rgb), .04);
-      font-family: Georgia, 'Times New Roman', serif;
-      font-weight: 600;
-    }
-
-    /* Editor header */
-    .settings-hero {
-      height: 128px;
-      padding: 18px 70px 14px 18px;
-      grid-template-columns: 56px minmax(0, 1fr);
-      gap: 14px;
-      align-items: start;
-    }
-    #settings-form { inset: 128px 0 0; }
-    .settings-brand {
-      width: 56px;
-      height: 56px;
-      border-color: rgba(var(--ion-rgb), .45);
-      border-radius: 50%;
-      background: rgba(var(--ion-rgb), .04);
+      flex: none;
+      padding: 13px 24px 11px;
+      border-bottom: 1px solid rgba(255, 255, 255, .055);
+      background: transparent;
       box-shadow: none;
     }
-    .settings-brand::before, .settings-brand::after { left: 17px; width: 21px; height: 4px; }
-    .settings-brand::before { top: 12px; }
-    .settings-brand::after { bottom: 12px; }
-    .settings-brand span { width: 4px; height: 24px; margin-top: 2px; }
-    .hero-copy .eyebrow {
-      color: var(--ion);
-      font-size: 10px;
-      font-weight: 650;
-      letter-spacing: .22em;
-      text-transform: uppercase;
+    .utility-app-icon {
+      display: flex;
+      width: 11px;
+      height: 25px;
+      margin: 0;
+      border: none;
+      border-radius: 0;
+      background: transparent;
+      color: rgba(52, 199, 89, .9);
+      box-shadow: none;
     }
-    .hero-copy h1 { margin: 4px 0 4px; color: #F5F5F7; font-size: 25px; font-weight: 680; letter-spacing: -.02em; }
-    .hero-copy .intro { max-width: 250px; color: rgba(245, 245, 247, .45); font-size: 11.5px; line-height: 1.5; }
-    .editor-back {
-      top: 16px;
-      right: 14px;
-      width: 48px;
-      min-height: 48px;
-      border-radius: 16px;
+    .utility-app-icon svg { width: 100%; height: 100%; display: block; }
+    .utility-app-name {
+      display: flex;
+      flex-direction: column;
+      gap: 1px;
+      color: #EDEFEA;
+      font-size: 10px;
+      font-weight: 680;
+      letter-spacing: .16em;
+    }
+    .utility-app-name small {
+      margin: 0;
+      color: rgba(237, 239, 234, .34);
+      font-size: 8.5px;
+      font-weight: 480;
+      letter-spacing: .09em;
+    }
+    .utility-live {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      margin: 0 0 0 auto;
+      color: rgba(237, 239, 234, .5);
+      font-size: 9.5px;
+      letter-spacing: .06em;
+    }
+    .utility-live::before {
+      width: 5px;
+      height: 5px;
+      margin: 0;
+      border-radius: 50%;
+      background: #34C759;
+      box-shadow: none;
     }
 
-    /* Editor cards: title + number, hairline rows */
-    .settings-grid {
+    .utility-status {
+      flex: 1 1 auto;
+      min-height: 0;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      text-align: center;
+      padding: 26px 24px 10px;
+      overflow-y: auto;
+      grid-area: auto;
+    }
+    .utility-status::-webkit-scrollbar { width: 0; }
+    .utility-status > .eyebrow {
+      margin: 0;
+      color: rgba(237, 239, 234, .42);
+      font-size: 8.5px;
+      font-weight: 560;
+      letter-spacing: .24em;
+      text-transform: uppercase;
+    }
+    .utility-status h2 {
+      margin: 10px 0 0;
+      color: #EDEFEA;
+      font-size: 17px;
+      font-weight: 620;
+      letter-spacing: -.012em;
+      line-height: 1.25;
+    }
+    .utility-status h2::before { content: none; }
+    .utility-status p {
+      max-width: 250px;
+      margin: 8px 0 0;
+      color: rgba(237, 239, 234, .44);
+      font-size: 10.5px;
+      line-height: 1.6;
+    }
+
+    /* I-mark core: flat, quiet, breathing */
+    .hero-i-wrap {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      margin: 24px 0 8px;
+    }
+    .hero-i-mark {
+      width: 19px;
+      height: 46px;
+      color: #34C759;
+      opacity: .92;
+      overflow: visible;
+      animation: i-breathe 5.6s ease-in-out infinite;
+      transition: color 400ms ease, opacity 400ms ease, filter 400ms ease;
+    }
+    body[data-core-state="focus"] .hero-i-mark { opacity: 1; }
+    body[data-core-state="alert"] .hero-i-mark {
+      opacity: 1;
+      filter: drop-shadow(0 0 5px rgba(52, 199, 89, .35));
+    }
+    @keyframes i-breathe {
+      0%, 100% { opacity: .86; transform: scale(1); }
+      50% { opacity: 1; transform: scale(1.025); }
+    }
+    .utility-status[data-hero-enter] > .hero-i-wrap {
+      animation: core-bloom 620ms var(--ease-out) 70ms both;
+    }
+
+    /* Stats: plain text row with a green dot */
+    .utility-stats {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 14px;
+      margin: 12px 0 0;
+      padding: 0;
+      border: none;
+      border-radius: 0;
+      background: transparent;
+      color: rgba(237, 239, 234, .5);
+      font-size: 10.5px;
+    }
+    .utility-stat { display: inline-flex; align-items: center; gap: 6px; }
+    .stat-dot {
+      width: 5px;
+      height: 5px;
+      margin: 0;
+      border-radius: 50%;
+      background: #34C759;
+      box-shadow: none;
+    }
+    .utility-stat strong { color: #EDEFEA; font-weight: 620; }
+
+    /* Metrics: bare left-aligned columns under a green-tinted hairline */
+    .metric-grid {
+      width: 100%;
       display: grid;
-      grid-template-columns: 1fr;
+      grid-template-columns: repeat(4, minmax(0, 1fr));
+      gap: 8px;
+      margin: 24px 0 0;
+      padding: 16px 0 0;
+      border-top: 1px solid rgba(52, 199, 89, .12);
+    }
+    .metric-card {
+      display: flex;
+      flex-direction: column;
+      align-items: flex-start;
+      text-align: left;
+      gap: 3px;
+      margin: 0;
+      padding: 8px 4px 6px;
+      border: none;
+      border-radius: 0;
+      background: transparent;
+      box-shadow: none;
+    }
+    .metric-card:hover { border: none; background: transparent; transform: none; }
+    .metric-label {
+      color: rgba(237, 239, 234, .4);
+      font-size: 8.5px;
+      font-weight: 520;
+      letter-spacing: .05em;
+    }
+    .metric-value {
+      color: #EDEFEA;
+      font-size: 14.5px;
+      font-weight: 620;
+      letter-spacing: -.01em;
+    }
+    .metric-sub {
+      color: rgba(237, 239, 234, .3);
+      font-size: 8.5px;
+    }
+
+    .utility-note {
+      margin: 22px 0 6px;
+      color: rgba(237, 239, 234, .34);
+      font-size: 10px;
+      line-height: 1.65;
+    }
+
+    /* Bottom navigation: wordmark + settings action */
+    .utility-nav {
+      flex: none;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
       gap: 12px;
-      padding: 14px 14px 6px;
+      padding: 11px 24px 13px;
+      border-top: 1px solid rgba(255, 255, 255, .055);
+      background: transparent;
+      grid-column: auto;
+      grid-row: auto;
+    }
+    .utility-wordmark {
+      color: rgba(237, 239, 234, .5);
+      font-size: 9px;
+      font-weight: 660;
+      letter-spacing: .18em;
+    }
+    .utility-wordmark small {
+      display: block;
+      margin-top: 2px;
+      color: rgba(237, 239, 234, .28);
+      font-size: 8px;
+      font-weight: 460;
+      letter-spacing: .1em;
+    }
+    #open-editor {
+      display: inline-flex;
+      align-items: center;
+      gap: 7px;
+      margin: 0;
+      padding: 7px 13px;
+      border: 1px solid rgba(255, 255, 255, .09);
+      border-radius: 999px;
+      background: transparent;
+      color: rgba(237, 239, 234, .62);
+      font-size: 10px;
+      font-weight: 540;
+      letter-spacing: .03em;
+      box-shadow: none;
+      transition: color 180ms ease, border-color 180ms ease, background-color 180ms ease, transform 120ms ease;
+    }
+    #open-editor svg { width: 12px; height: 12px; }
+    #open-editor:hover {
+      color: #7FE29A;
+      border-color: rgba(52, 199, 89, .38);
+      background: rgba(52, 199, 89, .06);
+    }
+    #open-editor:active { transform: scale(.97); }
+    #open-editor:focus-visible { outline: none; box-shadow: 0 0 0 3px rgba(52, 199, 89, .16); }
+
+    /* Editor */
+
+    .settings-hero {
+      display: flex;
+      align-items: center;
+      gap: 13px;
+      height: auto;
+      min-height: 106px;
+      padding: 16px 24px 15px;
+      border: none;
+      border-bottom: 1px solid rgba(255, 255, 255, .055);
+      background: transparent;
+      box-shadow: none;
+    }
+    .settings-hero::after { content: none; }
+    .editor-back {
+      flex: none;
+      width: 30px;
+      height: 30px;
+      margin: 2px 0 0 -7px;
+      border: none;
+      border-radius: 9px;
+      background: transparent;
+      color: rgba(237, 239, 234, .42);
+      box-shadow: none;
+    }
+    .editor-back svg { width: 15px; height: 15px; }
+    .editor-back:hover { background: rgba(255, 255, 255, .05); color: #EDEFEA; transform: none; }
+    .editor-back:active { transform: scale(.94); }
+    .settings-brand {
+      flex: none;
+      width: 42px;
+      height: 42px;
+      border: none;
+      border-radius: 50%;
+      background: #34C759;
+      box-shadow: none;
+    }
+    .settings-brand::before,
+    .settings-brand::after {
+      left: 13px;
+      width: 16px;
+      height: 3px;
+      border-radius: 1px;
+      background: #0A2413;
+      box-shadow: none;
+    }
+    .settings-brand::before { top: 11px; }
+    .settings-brand::after { bottom: 11px; }
+    .settings-brand span {
+      width: 3px;
+      height: 14px;
+      margin: 0;
+      background: #0A2413;
+      box-shadow: none;
+    }
+    .settings-hero .hero-copy { min-width: 0; }
+    .settings-hero .eyebrow {
+      color: rgba(52, 199, 89, .72);
+      font-size: 8.5px;
+      font-weight: 620;
+      letter-spacing: .2em;
+    }
+    .settings-hero h1 {
+      margin: 3px 0 0;
+      color: #EDEFEA;
+      font-size: 19px;
+      font-weight: 640;
+      letter-spacing: -.015em;
+    }
+    .settings-hero .intro {
+      margin: 5px 0 0;
+      max-width: 300px;
+      color: rgba(237, 239, 234, .42);
+      font-size: 10px;
+      line-height: 1.55;
+    }
+
+    #settings-form { inset: 106px 0 0; }
+
+    /* Flat sections: hairline dividers, no cards */
+    .settings-grid {
+      display: block;
+      padding: 6px 24px 8px;
     }
     section.settings-card,
     section.settings-card:first-child,
     section.settings-card:last-child,
     section.settings-card:only-of-type {
       margin: 0;
-      padding: 16px 16px 16px;
-      border: 1px solid rgba(255, 255, 255, .07);
-      border-bottom: 1px solid rgba(255, 255, 255, .07);
-      border-radius: 20px;
-      background: var(--ion-surface-1, #111312);
+      padding: 0;
+      border: none;
+      border-radius: 0;
+      background: transparent;
       box-shadow: none;
-      animation-delay: calc(var(--card-index, 0) * 40ms);
     }
-    .settings-grid .grid-half,
-    .settings-grid .grid-wide { grid-column: 1 / -1; }
+    section.settings-card + section.settings-card {
+      margin-top: 20px;
+      padding-top: 20px;
+      border-top: 1px solid rgba(255, 255, 255, .05);
+    }
+    section.settings-card[data-detector-state="disabled"] .grid,
+    section.settings-card[data-detector-state="disabled"] .hint,
+    section.settings-card[data-detector-state="disabled"] label.field { opacity: .45; }
     .section-head {
-      display: grid;
-      grid-template-columns: minmax(0, 1fr) auto;
-      align-items: center;
-      margin-bottom: 0;
+      display: block;
+      min-height: 0;
+      margin: 0;
       padding: 0;
     }
     .section-head h2 {
-      grid-column: 1 / -1;
       position: relative;
-      margin: 0 0 12px;
-      padding: 2px 40px 12px 0;
-      border-bottom: 1px solid rgba(255, 255, 255, .06);
-      color: #F5F5F7;
-      font-size: 17px;
-      font-weight: 640;
-      letter-spacing: -.015em;
+      margin: 0;
+      padding: 0;
+      border: none;
+      color: #EDEFEA;
+      font-size: 13px;
+      font-weight: 620;
+      letter-spacing: .005em;
     }
-    .settings-card h2::before {
+    .section-head h2::before {
       content: attr(data-section);
       position: absolute;
-      top: 4px;
+      top: 2px;
       right: 0;
-      width: auto;
-      height: auto;
       margin: 0;
-      border: 0;
-      border-radius: 0;
-      transform: none;
-      box-shadow: none;
-      color: var(--ion);
-      font-family: ui-monospace, 'Cascadia Mono', Consolas, monospace;
+      padding: 0;
+      border: none;
+      background: transparent;
+      color: rgba(52, 199, 89, .75);
+      font-family: ui-monospace, "Cascadia Mono", "SF Mono", Consolas, monospace;
+      font-size: 9.5px;
+      font-weight: 500;
+      letter-spacing: .14em;
+    }
+    .section-head .switch {
+      display: flex;
+      flex-direction: row-reverse;
+      justify-content: space-between;
+      align-items: center;
+      width: 100%;
+      gap: 12px;
+      margin: 12px 0 4px;
+      color: rgba(237, 239, 234, .58);
       font-size: 11px;
-      font-weight: 600;
-      letter-spacing: .1em;
-      line-height: 1;
-      text-transform: uppercase;
+      font-weight: 520;
     }
-    .section-head .switch { grid-column: 1 / -1; margin: 0 0 2px; padding-right: 0; justify-content: space-between; }
-    section.settings-card > .section-head + *,
-    section.settings-card > .field + .field,
-    section.settings-card > .field + .hint,
-    section.settings-card > .credential-row + .credential-row,
-    section.settings-card > .field + .credential-row {
-      margin-top: 12px;
-      padding-top: 12px;
-      border-top: 1px solid rgba(255, 255, 255, .05);
-    }
-    section.settings-card > .section-head + .hint { margin-top: 12px; padding-top: 12px; border-top: 1px solid rgba(255, 255, 255, .05); }
-    label.field { color: rgba(245, 245, 247, .55); font-size: 11px; font-weight: 500; letter-spacing: .01em; }
-    input[type="text"], input[type="password"], input[type="number"] {
-      min-height: 46px;
-      margin-top: 7px;
-      padding: 10px 13px;
-      border-color: rgba(255, 255, 255, .09);
-      border-radius: 12px;
-      background: rgba(255, 255, 255, .03);
+
+    /* iOS-scale toggles, flat */
+    .track {
+      width: 40px;
+      height: 24px;
+      border: none;
+      border-radius: 999px;
+      background: rgba(255, 255, 255, .13);
       box-shadow: none;
-      color: #F5F5F7;
-      font-size: 14px;
-      transition: border-color 180ms ease, background-color 180ms ease, box-shadow 180ms ease;
+      transition: background-color 200ms ease;
     }
-    input[type="text"]:focus, input[type="password"]:focus, input[type="number"]:focus {
-      border-color: rgba(var(--ion-rgb), .55);
-      background: rgba(var(--ion-rgb), .03);
-      box-shadow: 0 0 0 3px rgba(var(--ion-rgb), .12);
+    .track::after {
+      top: 2px;
+      left: 2px;
+      width: 20px;
+      height: 20px;
+      border-radius: 50%;
+      background: #FBFBFC;
+      box-shadow: 0 1px 2px rgba(0, 0, 0, .35);
+      transition: transform 200ms cubic-bezier(.2, .7, .2, 1);
+    }
+    .switch input:checked + .track {
+      border-color: transparent;
+      background: #34C759;
+    }
+    .switch input:checked + .track::after {
+      left: 2px;
+      transform: translateX(16px);
+      background: #FBFBFC;
+      box-shadow: none;
+    }
+    .switch input:focus-visible + .track { box-shadow: 0 0 0 3px rgba(52, 199, 89, .18); }
+
+    /* Fields: bare inline values with a hairline underline */
+    .settings-card .grid {
+      display: grid;
+      grid-template-columns: 1fr;
+      gap: 14px;
+      margin-top: 10px;
+    }
+    .settings-card .dev-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 12px 20px;
+      margin-top: 10px;
+    }
+    .settings-card .grid .span-2 { grid-column: 1 / -1; }
+    .credential-row { display: flex; align-items: flex-end; gap: 12px; }
+    .credential-row label.field { flex: 1 1 auto; }
+    label.field {
+      display: block;
+      min-width: 0;
+      color: rgba(237, 239, 234, .42);
+      font-size: 9.5px;
+      font-weight: 520;
+      letter-spacing: .02em;
+    }
+    input[type="text"],
+    input[type="password"],
+    input[type="number"] {
+      min-height: 42px;
+      margin: 5px 0 0;
+      padding: 8px 2px;
+      border: none;
+      border-top: 1px solid rgba(255, 255, 255, .07);
+      border-bottom: 1px solid rgba(255, 255, 255, .07);
+      border-radius: 0;
+      background: transparent;
+      box-shadow: none;
+      color: #EDEFEA;
+      font-size: 14px;
+      font-weight: 480;
+      text-align: left;
+      transition: border-color 180ms ease;
+    }
+    input[type="text"]:hover,
+    input[type="password"]:hover,
+    input[type="number"]:hover { border-color: rgba(255, 255, 255, .16); }
+    input[type="text"]:focus,
+    input[type="password"]:focus,
+    input[type="number"]:focus {
+      border-color: rgba(52, 199, 89, .55);
+      background: transparent;
+      box-shadow: none;
       outline: none;
     }
-    .hint { color: rgba(245, 245, 247, .35); font-size: 10.5px; }
+    input[type="number"]::-webkit-inner-spin-button,
+    input[type="number"]::-webkit-outer-spin-button { -webkit-appearance: none; margin: 0; }
+    input::placeholder { color: rgba(237, 239, 234, .24); }
+    .hint {
+      margin: 10px 0 0;
+      color: rgba(237, 239, 234, .32);
+      font-size: 9.5px;
+      line-height: 1.55;
+      border-top: none;
+      padding-top: 0;
+    }
+    .hint code { color: rgba(237, 239, 234, .5); }
+    .credential-row button {
+      min-height: 30px;
+      margin: 0 0 4px;
+      padding: 0 11px;
+      border: 1px solid rgba(255, 255, 255, .1);
+      border-radius: 999px;
+      background: transparent;
+      color: rgba(237, 239, 234, .55);
+      font-size: 10px;
+      box-shadow: none;
+    }
+    .credential-row button:hover { border-color: rgba(255, 255, 255, .22); color: #EDEFEA; }
+    .platform-note {
+      margin: 18px 0 4px;
+      padding: 2px 0 2px 12px;
+      border-left: 2px solid rgba(52, 199, 89, .5);
+      background: transparent;
+      color: rgba(237, 239, 234, .34);
+      font-size: 9.5px;
+    }
+    #dev-tools .dev-grid button {
+      min-height: 30px;
+      border: 1px solid rgba(255, 255, 255, .1);
+      border-radius: 9px;
+      background: transparent;
+      color: rgba(237, 239, 234, .6);
+      font-size: 10px;
+    }
 
-    /* iOS-scale toggles */
-    .track { width: 50px; height: 30px; border-radius: 999px; }
-    .track::after { top: 2px; left: 2px; width: 26px; height: 26px; }
-    .switch input:checked + .track::after { transform: translateX(20px); }
-
-    /* Footer: big pill + save */
-    #status {
-      min-height: 48px;
-      padding: 0 16px 0 34px;
-      border-radius: 16px;
-      color: rgba(245, 245, 247, .72);
-      font-size: 12px;
-      line-height: normal;
+    /* Footer: hairline, quiet status, solid deep-green save */
+    .actions {
+      position: sticky;
+      bottom: 0;
       display: flex;
       align-items: center;
+      gap: 14px;
+      padding: 13px 24px 15px;
+      border: none;
+      border-top: 1px solid rgba(255, 255, 255, .05);
+      border-radius: 0;
+      background: #0C0F10;
+      backdrop-filter: none;
+      box-shadow: none;
+    }
+    #status {
+      position: relative;
+      flex: 1;
+      min-height: 0;
+      display: block;
+      padding: 1px 0 0 14px;
+      border: none;
+      border-radius: 0;
+      background: transparent;
+      color: rgba(237, 239, 234, .48);
+      font-size: 9.5px;
+      line-height: 1.45;
     }
     #status::before {
       position: absolute;
-      left: 13px;
-      top: 50%;
+      left: 0;
+      top: 5px;
+      width: 5px;
+      height: 5px;
       margin: 0;
-      transform: translateY(-50%);
+      transform: none;
     }
     button.primary {
-      min-height: 52px;
-      padding: 0 22px;
-      border-radius: 16px;
-      font-size: 13.5px;
-      font-weight: 660;
+      flex: none;
+      min-height: 40px;
+      margin: 0;
+      padding: 0 18px;
+      border: none;
+      border-radius: 12px;
+      background: #2E9E44;
+      color: #ECFFF1;
+      font-size: 12px;
+      font-weight: 620;
+      letter-spacing: .01em;
+      box-shadow: none;
+      transition: background-color 180ms ease, transform 120ms ease;
     }
-    .button-progress { width: 18px; height: 18px; }
+    button.primary:hover:not(:disabled),
+    form[data-dirty="true"] button.primary:not(:disabled),
+    form[data-dirty="true"] button.primary:hover:not(:disabled) {
+      background: #37AF4E;
+      box-shadow: none;
+      transform: none;
+    }
+    button.primary:active:not(:disabled) { transform: scale(.98); }
+    button.primary:focus-visible { outline: none; box-shadow: 0 0 0 3px rgba(52, 199, 89, .22); }
+    button.primary:disabled { background: #2E9E44; color: #ECFFF1; opacity: .72; }
+    button.primary[data-state="saved"] {
+      background: #2E9E44;
+      color: #ECFFF1;
+      border: none;
+    }
+    .button-progress { width: 16px; height: 16px; }
+
+    .settings-scroll { padding: 0 4px 6px 0; }
+    .settings-scroll::-webkit-scrollbar { width: 5px; }
+    .settings-scroll::-webkit-scrollbar-track { background: transparent; margin: 0; border-radius: 0; }
+    .settings-scroll::-webkit-scrollbar-thumb { border: none; border-radius: 999px; background: rgba(255, 255, 255, .1); }
+    .settings-scroll::-webkit-scrollbar-thumb:hover { background: rgba(255, 255, 255, .18); }
 
 @media (prefers-reduced-motion: reduce) {
       :root {
@@ -2750,23 +3070,17 @@
       }
       .utility-settings-button:hover:not(:disabled) { transform: none; }
       /* Reduced motion keeps elegant fades for the Sense Core states. */
-      .hero-core-wrap { animation: none; opacity: 1; }
+      .hero-i-wrap { animation: none; opacity: 1; }
+      .hero-i-mark { animation: none; opacity: .92; }
     }
   </style>
 
-  <!-- ION Core: three.js 0.160.0 is vendored locally (no CDN at runtime —
-       the tray app must render fully offline). Import map must precede the
-       module script. -->
-  <script type="importmap">
-    { "imports": { "three": "./vendor/three-0.160.0.module.js" } }
-  </script>
-  <script type="module" src="ion-core.js"></script>
 </head>
 <body data-window-state="hidden">
   <div class="shell" data-view="overview">
     <section class="utility-overview" aria-label="Ion Sense status">
       <div class="utility-topbar">
-        <span class="utility-app-icon" aria-hidden="true">I</span>
+        <span class="utility-app-icon" aria-hidden="true"><svg viewBox="0 0 28 72" fill="none"><path d="M7 4h14M14 4v64M7 68h14" stroke="currentColor" stroke-width="4.5"/></svg></span>
         <div class="utility-app-name">ION SENSE<small>system utility</small></div>
         <span class="utility-live">Live</span>
       </div>
@@ -2774,58 +3088,48 @@
         <div class="eyebrow">System status</div>
         <h2>All systems nominal</h2>
         <p>ION Sense is quietly monitoring the signals that matter.</p>
-        <div class="hero-core-wrap" aria-hidden="true">
-          <canvas id="ion-core-canvas"></canvas>
-          <div class="ion-core-fallback"></div>
+        <div class="hero-i-wrap" aria-hidden="true">
+          <svg class="hero-i-mark" viewBox="0 0 30 72" fill="none">
+            <path d="M8 3.5h14" stroke="currentColor" stroke-width="3.2"/>
+            <path d="M15 3.5v65" stroke="currentColor" stroke-width="3.6"/>
+            <path d="M8 68.5h14" stroke="currentColor" stroke-width="3.2"/>
+            <path d="M.4 35.8h3.4M26.2 35.8h3.4" stroke="currentColor" stroke-width="2" stroke-opacity=".42"/>
+          </svg>
         </div>
         <div class="utility-stats" aria-label="Enabled detector summary">
           <span class="utility-stat"><span class="stat-dot" aria-hidden="true"></span><strong id="enabled-count">0</strong>&nbsp;Active</span>
           <span class="utility-stat">Runtime live</span>
         </div>
-        <div id="active-detectors" class="utility-detectors" aria-label="Active detectors"></div>
         <div class="metric-grid" aria-label="Live system metrics">
           <div class="metric-card" id="metric-battery">
-            <span class="metric-icon" aria-hidden="true"><svg viewBox="0 0 24 24"><rect x="2.5" y="8" width="16" height="9" rx="2.5"/><path d="M21.5 11v3.5"/><path d="M6 11v3"/></svg></span>
             <span class="metric-label">Battery</span>
             <span class="metric-value" id="metric-battery-value">—</span>
             <span class="metric-sub" id="metric-battery-sub">Checking…</span>
           </div>
           <div class="metric-card" id="metric-temperature">
-            <span class="metric-icon" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M14 4v10.54a4 4 0 1 1-4 0V4a2 2 0 0 1 4 0Z"/></svg></span>
             <span class="metric-label">Temperature</span>
             <span class="metric-value" id="metric-temperature-value">—</span>
             <span class="metric-sub" id="metric-temperature-sub">Checking…</span>
           </div>
           <div class="metric-card" id="metric-cpu">
-            <span class="metric-icon" aria-hidden="true"><svg viewBox="0 0 24 24"><rect x="5" y="5" width="14" height="14" rx="2.5"/><rect x="9.5" y="9.5" width="5" height="5" rx="1"/><path d="M9 2.5v2.5M15 2.5v2.5M9 19v2.5M15 19v2.5M2.5 9H5M2.5 15H5M19 9h2.5M19 15h2.5"/></svg></span>
             <span class="metric-label">CPU</span>
             <span class="metric-value" id="metric-cpu-value">—</span>
             <span class="metric-sub" id="metric-cpu-sub">Checking…</span>
           </div>
           <div class="metric-card" id="metric-downloads">
-            <span class="metric-icon" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M12 4v11"/><path d="m7 10 5 5 5-5"/><path d="M5 20h14"/></svg></span>
             <span class="metric-label">Downloads</span>
             <span class="metric-value" id="metric-downloads-value">—</span>
             <span class="metric-sub" id="metric-downloads-sub">Today</span>
           </div>
         </div>
-        <div class="utility-note-row">
-          <span class="note-icon" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M3 12h4l3-8 4 16 3-8h4"/></svg></span>
-          <p id="utility-note">ION Sense will surface an alert when something needs you.</p>
-          <span class="note-chevron" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="m9 6 6 6-6 6"/></svg></span>
-        </div>
-      </div>
-      <div class="utility-rail" aria-label="Ion Sense sections">
-        <span class="rail-icon is-active" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="m3 10 9-7 9 7"/><path d="M5 8.5V21h14V8.5"/></svg></span>
-        <span class="rail-icon" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M3 12h4l3-8 4 16 3-8h4"/></svg></span>
-        <span class="rail-icon" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M14.7 6.3a1 1 0 0 0 0 1.4l1.6 1.6a1 1 0 0 0 1.4 0l3.77-3.77a6 6 0 0 1-7.94 7.94l-6.91 6.91a2.12 2.12 0 0 1-3-3l6.91-6.91a6 6 0 0 1 7.94-7.94l-3.76 3.76z"/></svg></span>
-        <span class="rail-icon" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M18 8a6 6 0 0 0-12 0c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.73 21a2 2 0 0 1-3.46 0"/></svg></span>
-        <button id="open-editor" class="rail-icon rail-button" type="button" aria-label="Open detector settings" aria-controls="settings-form" aria-expanded="false" title="Open detector settings">
-          <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 7h16"/><circle cx="9.5" cy="7" r="2.6"/><path d="M4 12h16"/><circle cx="15" cy="12" r="2.6"/><path d="M4 17h16"/><circle cx="8" cy="17" r="2.6"/></svg>
-        </button>
+        <p id="utility-note" class="utility-note">ION Sense will surface an alert when something needs you.</p>
       </div>
       <nav class="utility-nav" aria-label="Ion Sense utility navigation">
         <div class="utility-wordmark">ION SENSE<small>system awareness</small></div>
+        <button id="open-editor" type="button" aria-label="Open detector settings" aria-controls="settings-form" aria-expanded="false" title="Open detector settings">
+          <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 7h16"/><circle cx="9.5" cy="7" r="2.6"/><path d="M4 12h16"/><circle cx="15" cy="12" r="2.6"/><path d="M4 17h16"/><circle cx="8" cy="17" r="2.6"/></svg>
+          <span>Detector settings</span>
+        </button>
       </nav>
     </section>
     <header class="settings-hero" tabindex="-1">
@@ -2834,11 +3138,10 @@
       </button>
       <div class="settings-brand" aria-hidden="true"><span>I</span></div>
       <div class="hero-copy">
-        <div class="eyebrow">Ion Sense</div>
+        <div class="eyebrow">ION SENSE</div>
         <h1>Detector settings</h1>
         <p class="intro">Choose what Ion Sense watches for you. Credentials stay in the system vault.</p>
       </div>
-      <div class="hero-state"><span></span>Runtime live</div>
     </header>
 
     <form id="settings-form">
@@ -3574,6 +3877,9 @@
       field("open-editor").addEventListener("click", () => {
         setView("editor");
       });
+      if (new URLSearchParams(location.search).get("view") === "editor") {
+        setView("editor");
+      }
       field("close-editor").addEventListener("click", () => {
         setView("overview");
       });
