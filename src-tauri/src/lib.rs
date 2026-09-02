@@ -760,6 +760,21 @@ fn hud_present(
     hud.show().map_err(|error| error.to_string())?;
     hud.set_always_on_top(true)
         .map_err(|error| error.to_string())?;
+    // Aggressive topmost overlays (GPU/vendor HUDs) re-assert their own
+    // z-order and can climb above the reminder mid-dwell. Re-pin the HUD
+    // while this event is visibly showing; the loop ends once the HUD
+    // acknowledges idle for this timestamp.
+    let pinned = hud.clone();
+    let lifecycle = state.hud.clone();
+    tauri::async_runtime::spawn(async move {
+        for _ in 0..8 {
+            tokio::time::sleep(Duration::from_millis(700)).await;
+            if lifecycle.acknowledged_timestamp.load(Ordering::Acquire) == timestamp {
+                break;
+            }
+            let _ = pinned.set_always_on_top(true);
+        }
+    });
     Ok(true)
 }
 

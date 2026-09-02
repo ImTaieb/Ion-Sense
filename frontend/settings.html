@@ -3117,12 +3117,43 @@
       position: absolute;
       border-radius: 50%;
       pointer-events: none;
-      background: rgba(255, 255, 255, .2);
+      background: rgba(255, 255, 255, .14);
       transform: scale(0);
       opacity: 1;
-      animation: ripple-ink 460ms var(--ease-out) forwards;
+      animation: ripple-ink 380ms var(--ease-out) forwards;
     }
     @keyframes ripple-ink { to { transform: scale(1); opacity: 0; } }
+
+    /* One entrance mechanism per element. The card grid's staggered
+       keyframe entrance (data-list-enter -> card-rise) is authoritative;
+       the legacy transition-stagger (hidden base + data-view reveal
+       delays) ran alongside it and made every card animate twice. */
+    section.settings-card,
+    .shell[data-view="editor"] section.settings-card,
+    .shell[data-view="editor"][data-view-motion="settled"] section.settings-card {
+      opacity: 1;
+      transform: none;
+      transition-delay: 0s;
+    }
+
+    ::selection { background: rgba(48, 209, 88, .28); }
+
+    /* Push parallax: the overview drifts against the editor's slide
+       instead of mixing a Y-fade into an X-push. */
+    .shell[data-view="editor"][data-view-motion="transitioning"] .utility-overview {
+      animation: overview-push-out 240ms var(--ease-standard) both;
+    }
+    .shell[data-view="overview"][data-view-motion="transitioning"] .utility-overview {
+      animation: overview-push-in 300ms 25ms var(--ease-out) both;
+    }
+    @keyframes overview-push-out {
+      from { opacity: 1; transform: none; }
+      to   { opacity: 0; transform: translateX(-24px); }
+    }
+    @keyframes overview-push-in {
+      from { opacity: 0; transform: translateX(-24px); }
+      to   { opacity: 1; transform: none; }
+    }
     .button-progress { width: 16px; height: 16px; }
 
     .settings-scroll {
@@ -4122,6 +4153,11 @@
         const submit = form.querySelector("button.primary");
         if (!submit) return;
         window.clearTimeout(savedStateTimer);
+        // Restart the pulse deterministically (idle -> reflow -> saved) so a
+        // rapid second save re-runs exactly one clean animation instead of
+        // being swallowed by the still-applied attribute.
+        submit.dataset.state = "idle";
+        void submit.offsetWidth;
         submit.dataset.state = "saved";
         savedStateTimer = window.setTimeout(() => {
           submit.dataset.state = "idle";
@@ -4521,28 +4557,26 @@
         if (view === "overview") {
           const status = document.querySelector(".utility-status");
           if (!status) return;
+          // Same-task remove -> reflow -> re-add: the keyframes restart
+          // deterministically and the view never paints unstyled frames.
           status.removeAttribute("data-hero-enter");
-          heroMotionTimer = window.setTimeout(() => {
-            void status.offsetWidth;
-            status.setAttribute("data-hero-enter", "");
-            heroCleanupTimer = window.setTimeout(
-              () => status.removeAttribute("data-hero-enter"),
-              reducedMotion.matches ? 80 : 1150,
-            );
-          }, reducedMotion.matches ? 0 : 120);
+          void status.offsetWidth;
+          status.setAttribute("data-hero-enter", "");
+          heroCleanupTimer = window.setTimeout(
+            () => status.removeAttribute("data-hero-enter"),
+            reducedMotion.matches ? 80 : 1150,
+          );
           return;
         }
         const grid = document.querySelector(".settings-grid");
         if (!grid) return;
         grid.removeAttribute("data-list-enter");
-        listMotionTimer = window.setTimeout(() => {
-          void grid.offsetWidth;
-          grid.setAttribute("data-list-enter", "");
-          listCleanupTimer = window.setTimeout(
-            () => grid.removeAttribute("data-list-enter"),
-            reducedMotion.matches ? 80 : 1150,
-          );
-        }, reducedMotion.matches ? 0 : 120);
+        void grid.offsetWidth;
+        grid.setAttribute("data-list-enter", "");
+        listCleanupTimer = window.setTimeout(
+          () => grid.removeAttribute("data-list-enter"),
+          reducedMotion.matches ? 80 : 1150,
+        );
       }
 
       let metricsTimer = 0;
