@@ -133,3 +133,12 @@ Supersedes the grouped-surface/orb settings material above for the settings util
 - Editor: the shell is a flex column (header in flow, scroll region `flex: 1 1 auto`, footer a static flex item — no absolute insets, no sticky footer); hairline-separated sections (`rgba(255, 255, 255, .05)`) with green monospace section numbers top-right; iOS-scale 40×24 flat toggles (off track neutral, on track `#34C759`, white knob, no halo); stacked full-width fields with top/bottom hairlines and green focus underline; quiet status line; solid deep-green save. No global button hover lifts/glows — hover is color/border only.
 - Typography stays Segoe UI Variable with 12–13px body; section numbers are the only monospace. No emoji, no icon rows.
 - Legacy accent `#45EE86` remains HUD-only; the two palettes must not be mixed within one window.
+
+## Settings 3.1: Apple card reference language (2026-09)
+
+Refines 3.0 to the rounded-card reference mockup. The ION Core orb and its layers are untouched.
+
+- Canvas `#090D0B`, elevated card surface `#0D1210`, higher surface `#111613`; text `#F5F7F5` / `#929993` / `#626963`; hairlines `rgba(255,255,255,.07)`. Cards use 20px radius, 1px hairline border, no shadows. Shell background must win by declaration (`!important` hardcode) — older layers pin green-tinted gradients.
+- Overview: "SYSTEM STATUS" eyebrow pill, 22px headline, the unchanged orb (flex:none — never squeeze it), status pill with a divider (`3 Active | Runtime live`), one grouped metric card with column hairlines, alert card with a green shield icon, footer card with wordmark + "Detector settings ›" pill. Hover never repaints the canvas.
+- Editor: header with back arrow, dark circle I-mark (green glyph), green eyebrow, 21px title; one rounded card per section with green mono numbers (01…06) left of the title; sections are collapsible via a chevron button (`data-collapsed` + `grid-template-rows 1fr→0fr` animation, all content stays in the DOM); underline inputs; status line over a full-width 50px deep-green save button.
+- Card-body collapse uses a `.card-body/.card-body-inner` wrapper built by JS before listeners attach; inputs' focus is border-color only so `overflow: hidden` clipping is safe.

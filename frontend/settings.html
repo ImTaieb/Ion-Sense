@@ -2551,9 +2551,10 @@
        three.js). Sizing only; reveal, fallback disc, and the alert pulse
        come from the ION Core layer above. */
     .hero-core-wrap {
+      flex: none;
       width: 148px;
       height: 148px;
-      margin: 18px 0 4px;
+      margin: 6px 0 2px;
     }
     .utility-status[data-hero-enter] > .hero-core-wrap {
       animation: core-bloom 620ms var(--ease-out) 70ms both;
@@ -3065,6 +3066,469 @@
     .settings-scroll::-webkit-scrollbar-thumb { border: none; border-radius: 999px; background: rgba(255, 255, 255, .1); }
     .settings-scroll::-webkit-scrollbar-thumb:hover { background: rgba(255, 255, 255, .18); }
 
+    /* ═══ Reference card language (2026-09 v3) ══════════════════════════
+       Rounded elevated cards on a near-black canvas per the reference
+       mockup. Supersedes every layer above; the reduced-motion block
+       below still wins. The ION Core orb layers are untouched. */
+
+    :root {
+      --v3-bg: #090D0B;
+      --v3-surface: #0D1210;
+      --v3-surface-2: #111613;
+      --v3-text-hi: #F5F7F5;
+      --v3-text-mid: #929993;
+      --v3-text-low: #626963;
+      --v3-line: rgba(255, 255, 255, .07);
+      --v3-line-soft: rgba(255, 255, 255, .055);
+      --v3-green: #34C759;
+      --v3-r-lg: 20px;
+      --v3-r-md: 14px;
+    }
+
+    .shell,
+    div.shell {
+      border: 1px solid rgba(255, 255, 255, .06) !important;
+      background: #090D0B !important;
+      box-shadow: 0 18px 48px rgba(0, 0, 0, .55) !important;
+    }
+
+    /* ── Overview ── */
+    .utility-topbar { padding: 12px 20px 10px; border-bottom: 1px solid var(--v3-line-soft); }
+    .utility-app-name { color: var(--v3-text-hi); font-size: 12.5px; font-weight: 700; letter-spacing: .08em; }
+    .utility-app-name small { color: var(--v3-text-low); font-size: 9px; font-weight: 500; letter-spacing: .04em; }
+    .utility-live {
+      display: inline-flex;
+      align-items: center;
+      gap: 7px;
+      color: var(--v3-text-mid);
+      font-size: 9.5px;
+      font-weight: 650;
+      letter-spacing: .18em;
+      text-transform: uppercase;
+      animation: live-breathe 2.4s ease-in-out infinite;
+    }
+    .utility-live::before { content: ""; width: 6px; height: 6px; border-radius: 50%; background: var(--v3-green); }
+
+    .utility-status { padding: 16px 20px 8px; }
+    .utility-status > .eyebrow {
+      padding: 6px 14px;
+      border: 1px solid var(--v3-line);
+      border-radius: 999px;
+      background: var(--v3-surface);
+      color: var(--v3-text-mid);
+      font-size: 9px;
+      font-weight: 650;
+      letter-spacing: .22em;
+    }
+    .utility-status h2 {
+      margin: 12px 0 0;
+      color: var(--v3-text-hi);
+      font-size: 22px;
+      font-weight: 700;
+      letter-spacing: -.02em;
+      line-height: 1.2;
+    }
+    .utility-status p {
+      max-width: 270px;
+      margin: 8px 0 0;
+      color: var(--v3-text-mid);
+      font-size: 11.5px;
+      line-height: 1.6;
+    }
+
+    /* Status pill: dot + count | runtime */
+    .utility-stats {
+      display: flex;
+      align-items: stretch;
+      justify-content: center;
+      margin: 12px 0 0;
+      padding: 11px 8px;
+      border: 1px solid var(--v3-line);
+      border-radius: 999px;
+      background: var(--v3-surface);
+      color: var(--v3-text-mid);
+      font-size: 11px;
+    }
+    .utility-stat { display: inline-flex; align-items: center; gap: 8px; padding: 0 16px; }
+    .utility-stat:first-child { padding-left: 4px; }
+    .utility-stat:last-child { padding-right: 4px; }
+    .utility-stat + .utility-stat { border-left: 1px solid var(--v3-line); }
+    .utility-stat strong { color: var(--v3-text-hi); font-weight: 680; font-variant-numeric: tabular-nums; }
+    .stat-dot { width: 6px; height: 6px; background: var(--v3-green); }
+
+    /* Metric card: one grouped rounded container */
+    .metric-grid {
+      width: 100%;
+      display: grid;
+      grid-template-columns: repeat(4, minmax(0, 1fr));
+      gap: 0;
+      margin: 12px 0 0;
+      padding: 2px 0;
+      border: 1px solid var(--v3-line);
+      border-radius: var(--v3-r-lg);
+      background: var(--v3-surface);
+    }
+    .metric-card {
+      display: flex;
+      flex-direction: column;
+      align-items: flex-start;
+      gap: 4px;
+      margin: 0;
+      padding: 14px 14px 12px;
+      border: none;
+      border-radius: 0;
+      background: transparent;
+      box-shadow: none;
+    }
+    .metric-card + .metric-card { border-left: 1px solid var(--v3-line-soft); }
+    .metric-card:hover, .metric-card:active { border: none; background: transparent; transform: none; }
+    .metric-card + .metric-card:hover { border-left: 1px solid var(--v3-line-soft); }
+    .metric-label { color: var(--v3-text-low); font-size: 8.5px; font-weight: 650; letter-spacing: .14em; }
+    .metric-value { color: var(--v3-text-hi); font-size: 17px; font-weight: 700; font-variant-numeric: tabular-nums; letter-spacing: -.01em; }
+    .metric-sub { color: var(--v3-text-low); font-size: 9px; }
+
+    /* Alert card */
+    .utility-note {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      width: 100%;
+      margin: 10px 0 2px;
+      padding: 12px 16px;
+      border: 1px solid var(--v3-line);
+      border-radius: var(--v3-r-lg);
+      background: var(--v3-surface);
+      color: var(--v3-text-mid);
+      font-size: 11px;
+      line-height: 1.55;
+      text-align: left;
+    }
+    .utility-note svg {
+      flex: none;
+      width: 20px;
+      height: 20px;
+      fill: none;
+      stroke: var(--v3-green);
+      stroke-width: 1.6;
+      stroke-linecap: round;
+      stroke-linejoin: round;
+    }
+
+    /* Footer card: wordmark + settings action */
+    .utility-nav {
+      flex: none;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 12px;
+      margin: 12px 16px 14px;
+      padding: 11px 11px 11px 18px;
+      border: 1px solid var(--v3-line);
+      border-radius: var(--v3-r-lg);
+      background: var(--v3-surface);
+    }
+    .utility-wordmark { color: var(--v3-text-hi); font-size: 12px; font-weight: 700; letter-spacing: .08em; }
+    .utility-wordmark small { color: var(--v3-text-low); font-size: 8.5px; font-weight: 500; letter-spacing: .06em; }
+    #open-editor {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      min-height: 40px;
+      margin: 0;
+      padding: 0 12px 0 14px;
+      border: 1px solid var(--v3-line);
+      border-radius: 999px;
+      background: var(--v3-surface-2);
+      color: var(--v3-text-hi);
+      font-size: 11.5px;
+      font-weight: 600;
+      letter-spacing: .01em;
+      box-shadow: none;
+      transition: border-color 160ms ease, background-color 160ms ease, transform 120ms ease;
+    }
+    #open-editor svg { width: 13px; height: 13px; }
+    #open-editor .chev { width: 11px; height: 11px; color: var(--v3-text-low); }
+    #open-editor:hover {
+      border-color: rgba(52, 199, 89, .38);
+      background: #131A15;
+      color: var(--v3-text-hi);
+      transform: none;
+      box-shadow: none;
+    }
+    #open-editor:active { transform: scale(.98); }
+
+    /* ── Editor ── */
+    .settings-hero { padding: 18px 20px 16px; border-bottom: 1px solid var(--v3-line-soft); }
+    .editor-back { align-self: flex-start; margin: 0 0 0 -6px; color: var(--v3-text-low); }
+    .editor-back:hover { background: rgba(255, 255, 255, .06); color: var(--v3-text-hi); transform: none; }
+    .settings-brand {
+      width: 46px;
+      height: 46px;
+      border: 1px solid rgba(52, 199, 89, .42);
+      border-radius: 50%;
+      background: var(--v3-surface-2);
+      box-shadow: none;
+    }
+    .settings-brand::before,
+    .settings-brand::after {
+      left: 15px;
+      width: 16px;
+      height: 3px;
+      border-radius: 1px;
+      background: var(--v3-green);
+      box-shadow: none;
+    }
+    .settings-brand::before { top: 12px; }
+    .settings-brand::after { bottom: 12px; }
+    .settings-brand span { width: 3px; height: 15px; background: var(--v3-green); box-shadow: none; }
+    .settings-hero .eyebrow { color: rgba(52, 199, 89, .8); font-size: 9px; font-weight: 650; letter-spacing: .2em; }
+    .settings-hero h1 { margin: 4px 0 0; color: var(--v3-text-hi); font-size: 21px; font-weight: 680; letter-spacing: -.015em; }
+    .settings-hero .intro { margin: 6px 0 0; max-width: 280px; color: var(--v3-text-mid); font-size: 10.5px; line-height: 1.55; }
+
+    /* Cards */
+    .settings-grid { display: flex; flex-direction: column; gap: 14px; padding: 16px 16px 4px; }
+    section.settings-card,
+    section.settings-card:first-child,
+    section.settings-card:last-child,
+    section.settings-card:only-of-type {
+      margin: 0;
+      padding: 16px 18px 18px;
+      border: 1px solid var(--v3-line);
+      border-radius: var(--v3-r-lg);
+      background: var(--v3-surface);
+      box-shadow: none;
+    }
+    section.settings-card + section.settings-card {
+      margin-top: 0;
+      padding-top: 16px;
+      border-top: 1px solid var(--v3-line);
+    }
+    section.settings-card:hover,
+    section.settings-card:focus-within {
+      transform: none;
+      border-color: rgba(255, 255, 255, .11);
+      background: var(--v3-surface);
+      box-shadow: none;
+    }
+
+    /* Section header: number + title / toggle row / collapse chevron */
+    .section-head {
+      display: grid;
+      grid-template-columns: 1fr auto;
+      grid-template-areas:
+        "title chev"
+        "switch switch";
+      column-gap: 12px;
+      row-gap: 13px;
+      align-items: center;
+      margin: 0;
+      padding: 0;
+    }
+    .section-head h2 {
+      grid-area: title;
+      display: flex;
+      align-items: baseline;
+      gap: 10px;
+      margin: 0;
+      padding: 0;
+      border: none;
+      color: var(--v3-text-hi);
+      font-size: 14px;
+      font-weight: 650;
+      letter-spacing: 0;
+    }
+    .section-head h2::before {
+      content: attr(data-section);
+      position: static;
+      margin: 0;
+      padding: 0;
+      border: none;
+      background: transparent;
+      color: var(--v3-green);
+      font-family: ui-monospace, "Cascadia Mono", "SF Mono", Consolas, monospace;
+      font-size: 11px;
+      font-weight: 600;
+      letter-spacing: .1em;
+    }
+    .section-head .switch {
+      grid-area: switch;
+      display: flex;
+      flex-direction: row-reverse;
+      justify-content: space-between;
+      align-items: center;
+      width: 100%;
+      gap: 12px;
+      margin: 0;
+      color: #C7CDC7;
+      font-size: 11.5px;
+      font-weight: 520;
+    }
+    .section-head .eyebrow { grid-area: switch; justify-self: start; }
+    .collapse-chev {
+      grid-area: chev;
+      display: grid;
+      place-items: center;
+      width: 28px;
+      height: 28px;
+      margin: 0;
+      padding: 0;
+      border: none;
+      border-radius: 8px;
+      background: transparent;
+      color: var(--v3-text-low);
+      transition: color 160ms ease, background-color 160ms ease;
+    }
+    .collapse-chev svg {
+      width: 14px;
+      height: 14px;
+      fill: none;
+      stroke: currentColor;
+      stroke-width: 2;
+      stroke-linecap: round;
+      stroke-linejoin: round;
+      transition: transform 240ms var(--ease-out);
+    }
+    .collapse-chev:hover { color: var(--v3-text-hi); background: rgba(255, 255, 255, .05); transform: none; box-shadow: none; }
+    .collapse-chev:active { transform: none; }
+    section.settings-card[data-collapsed] .collapse-chev svg { transform: rotate(180deg); }
+    .card-body { display: grid; grid-template-rows: 1fr; transition: grid-template-rows 260ms var(--ease-out); }
+    .card-body > .card-body-inner { min-height: 0; overflow: hidden; padding: 13px 4px 0; margin: 0 -4px; }
+    section.settings-card[data-collapsed] .card-body { grid-template-rows: 0fr; }
+
+    /* Fields: quiet label over an underlined value */
+    .settings-card .grid { display: grid; grid-template-columns: 1fr; gap: 16px; margin-top: 14px; }
+    .settings-card .dev-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 12px 14px; margin-top: 14px; }
+    .settings-card .grid .span-2 { grid-column: 1 / -1; }
+    label.field { display: block; min-width: 0; color: var(--v3-text-low); font-size: 9.5px; font-weight: 560; letter-spacing: .04em; }
+    input[type="text"],
+    input[type="password"],
+    input[type="number"] {
+      min-height: 40px;
+      margin: 6px 0 0;
+      padding: 8px 2px;
+      border: none;
+      border-top: 1px solid transparent;
+      border-bottom: 1px solid var(--v3-line);
+      border-radius: 0;
+      background: transparent;
+      box-shadow: none;
+      color: var(--v3-text-hi);
+      font-size: 15px;
+      font-weight: 480;
+      transition: border-color 180ms ease;
+    }
+    input[type="text"]:hover,
+    input[type="password"]:hover,
+    input[type="number"]:hover { border-bottom-color: rgba(255, 255, 255, .16); background: transparent; box-shadow: none; }
+    input[type="text"]:focus,
+    input[type="password"]:focus,
+    input[type="number"]:focus {
+      border-bottom-color: rgba(52, 199, 89, .6);
+      background: transparent;
+      box-shadow: none;
+      outline: none;
+    }
+    .hint { margin: 12px 0 0; color: var(--v3-text-low); font-size: 9.5px; line-height: 1.6; border-top: none; padding-top: 0; }
+    .hint code { color: var(--v3-text-mid); }
+    .credential-row { display: flex; align-items: flex-end; gap: 12px; }
+    .credential-row button {
+      min-height: 32px;
+      margin: 0 0 4px;
+      padding: 0 12px;
+      border: 1px solid var(--v3-line);
+      border-radius: 999px;
+      background: transparent;
+      color: var(--v3-text-mid);
+      font-size: 10px;
+      box-shadow: none;
+      transition: border-color 160ms ease, color 160ms ease;
+    }
+    .credential-row button:hover { border-color: rgba(255, 255, 255, .2); color: var(--v3-text-hi); transform: none; box-shadow: none; }
+    #dev-tools .dev-grid button {
+      min-height: 32px;
+      border: 1px solid var(--v3-line);
+      border-radius: 10px;
+      background: transparent;
+      color: var(--v3-text-mid);
+      font-size: 10.5px;
+    }
+    #dev-tools .dev-grid button:hover { border-color: rgba(255, 255, 255, .2); color: var(--v3-text-hi); transform: none; box-shadow: none; }
+
+    .platform-note {
+      margin: 14px 0 2px;
+      padding: 12px 14px;
+      border: 1px solid var(--v3-line);
+      border-left: 1px solid var(--v3-line);
+      border-radius: var(--v3-r-md);
+      background: var(--v3-surface);
+      color: var(--v3-text-mid);
+      font-size: 10px;
+      line-height: 1.55;
+    }
+
+    /* Footer: status line over a full-width primary action */
+    .actions {
+      position: static;
+      flex: none;
+      display: flex;
+      flex-direction: column;
+      align-items: stretch;
+      gap: 0;
+      margin: 12px 16px 16px;
+      padding: 2px 2px 0;
+      border: none;
+      border-radius: 0;
+      background: transparent;
+      backdrop-filter: none;
+      box-shadow: none;
+    }
+    #status {
+      position: relative;
+      flex: none;
+      display: block;
+      min-height: 0;
+      padding: 2px 0 10px 15px;
+      border: none;
+      border-radius: 0;
+      background: transparent;
+      color: var(--v3-text-mid);
+      font-size: 10.5px;
+      line-height: 1.5;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+    }
+    #status::before {
+      position: absolute;
+      left: 0;
+      top: 5px;
+      width: 6px;
+      height: 6px;
+      margin: 0;
+      transform: none;
+    }
+    button.primary {
+      flex: none;
+      width: 100%;
+      min-height: 50px;
+      margin: 0;
+      padding: 0 18px;
+      border: none;
+      border-radius: var(--v3-r-md);
+      background: #2E9E44;
+      color: #F2FFF5;
+      font-size: 13.5px;
+      font-weight: 660;
+      letter-spacing: .01em;
+      box-shadow: none;
+      transition: background-color 180ms ease, transform 120ms ease;
+    }
+    button.primary:hover:not(:disabled) { background: #37AF4E; transform: none; box-shadow: none; }
+    button.primary:active:not(:disabled) { transform: scale(.985); }
+    button.primary:focus-visible { outline: none; box-shadow: 0 0 0 3px rgba(52, 199, 89, .25); }
+    button.primary:disabled { background: #2E9E44; color: #F2FFF5; opacity: .72; }
+
+
 @media (prefers-reduced-motion: reduce) {
       :root {
         --motion-micro: 1ms;
@@ -3133,13 +3597,14 @@
             <span class="metric-sub" id="metric-downloads-sub">Today</span>
           </div>
         </div>
-        <p id="utility-note" class="utility-note">ION Sense will surface an alert when something needs you.</p>
+        <p id="utility-note" class="utility-note"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 3l7 3v5c0 4.6-3 8.2-7 9.5C8 19.2 5 15.6 5 11V6l7-3z"/><path d="M12 8.5v3.5"/><path d="M12 15.2h.01"/></svg><span>ION Sense will surface an alert when something needs you.</span></p>
       </div>
       <nav class="utility-nav" aria-label="Ion Sense utility navigation">
         <div class="utility-wordmark">ION SENSE<small>system awareness</small></div>
         <button id="open-editor" type="button" aria-label="Open detector settings" aria-controls="settings-form" aria-expanded="false" title="Open detector settings">
           <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 7h16"/><circle cx="9.5" cy="7" r="2.6"/><path d="M4 12h16"/><circle cx="15" cy="12" r="2.6"/><path d="M4 17h16"/><circle cx="8" cy="17" r="2.6"/></svg>
           <span>Detector settings</span>
+          <svg class="chev" viewBox="0 0 24 24" aria-hidden="true"><path d="m9 6 6 6-6 6"/></svg>
         </button>
       </nav>
     </section>
@@ -3161,6 +3626,7 @@
       <section class="settings-card grid-wide system-card" aria-labelledby="section-system">
         <div class="section-head">
           <h2 id="section-system" data-section="01">System</h2>
+          <button type="button" class="collapse-chev" aria-expanded="true" aria-label="Toggle section"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="m18 15-6-6-6 6"/></svg></button>
           <label class="switch"><input id="launch-at-login" type="checkbox"><span class="track"></span>Launch at login</label>
         </div>
         <p id="settings-path" class="hint"></p>
@@ -3169,6 +3635,7 @@
       <section class="settings-card grid-half" aria-labelledby="section-battery">
         <div class="section-head">
           <h2 id="section-battery" data-section="02">Battery low</h2>
+          <button type="button" class="collapse-chev" aria-expanded="true" aria-label="Toggle section"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="m18 15-6-6-6 6"/></svg></button>
           <label class="switch"><input id="battery-enabled" type="checkbox"><span class="track"></span>Enabled</label>
         </div>
         <div class="grid">
@@ -3180,6 +3647,7 @@
       <section class="settings-card grid-half" aria-labelledby="section-temperature">
         <div class="section-head">
           <h2 id="section-temperature" data-section="03">PC overheating</h2>
+          <button type="button" class="collapse-chev" aria-expanded="true" aria-label="Toggle section"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="m18 15-6-6-6 6"/></svg></button>
           <label class="switch"><input id="temperature-enabled" type="checkbox"><span class="track"></span>Enabled</label>
         </div>
         <div class="grid">
@@ -3192,6 +3660,7 @@
       <section class="settings-card grid-wide" aria-labelledby="section-downloads">
         <div class="section-head">
           <h2 id="section-downloads" data-section="04">Downloads</h2>
+          <button type="button" class="collapse-chev" aria-expanded="true" aria-label="Toggle section"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="m18 15-6-6-6 6"/></svg></button>
           <label class="switch"><input id="downloads-enabled" type="checkbox"><span class="track"></span>Enabled</label>
         </div>
         <label class="field">Folder override<input id="downloads-directory" type="text" placeholder="Leave blank for the OS Downloads folder"></label>
@@ -3201,6 +3670,7 @@
       <section class="settings-card grid-wide" aria-labelledby="section-email">
         <div class="section-head">
           <h2 id="section-email" data-section="05">New email · IMAP</h2>
+          <button type="button" class="collapse-chev" aria-expanded="true" aria-label="Toggle section"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="m18 15-6-6-6 6"/></svg></button>
           <label class="switch"><input id="email-enabled" type="checkbox"><span class="track"></span>Enabled</label>
         </div>
         <div class="grid">
@@ -3219,6 +3689,7 @@
       <section class="settings-card grid-wide" aria-labelledby="section-discord">
         <div class="section-head">
           <h2 id="section-discord" data-section="06">Discord bot message</h2>
+          <button type="button" class="collapse-chev" aria-expanded="true" aria-label="Toggle section"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="m18 15-6-6-6 6"/></svg></button>
           <label class="switch"><input id="discord-enabled" type="checkbox"><span class="track"></span>Enabled</label>
         </div>
         <div class="grid">
@@ -3232,7 +3703,8 @@
       </section>
 
       <section id="dev-tools" class="settings-card grid-wide" aria-labelledby="section-developer" hidden>
-        <div class="section-head"><h2 id="section-developer" data-section="Dev">Developer test events</h2><span class="eyebrow">tauri dev only</span></div>
+        <div class="section-head"><h2 id="section-developer" data-section="Dev">Developer test events</h2>
+          <button type="button" class="collapse-chev" aria-expanded="true" aria-label="Toggle section"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="m18 15-6-6-6 6"/></svg></button><span class="eyebrow">tauri dev only</span></div>
         <div class="dev-grid">
           <button type="button" data-test-event="battery_low">Battery low</button>
           <button type="button" data-test-event="overheating">Overheating</button>
@@ -3270,6 +3742,28 @@
       const hero = document.querySelector(".settings-hero");
       const editorScroll = document.querySelector(".settings-scroll");
       const reducedMotion = window.matchMedia("(prefers-reduced-motion: reduce)");
+
+      /* Collapsible detector cards: wrap each card's content after its
+         header into an animatable body and wire the chevron buttons.
+         Runs here so every element exists before listeners attach. */
+      document.querySelectorAll("section.settings-card").forEach((card) => {
+        const head = card.querySelector(".section-head");
+        if (!head || card.querySelector(".card-body")) return;
+        const body = document.createElement("div");
+        body.className = "card-body";
+        const inner = document.createElement("div");
+        inner.className = "card-body-inner";
+        while (head.nextSibling) inner.appendChild(head.nextSibling);
+        body.appendChild(inner);
+        head.after(body);
+      });
+      form.addEventListener("click", (event) => {
+        const chevron = event.target.closest(".collapse-chev");
+        if (!chevron) return;
+        const card = chevron.closest("section.settings-card");
+        const collapsed = card.toggleAttribute("data-collapsed");
+        chevron.setAttribute("aria-expanded", String(!collapsed));
+      });
       let currentSettings = null;
       let windowMotionTimer = 0;
       let viewMotionTimer = 0;
