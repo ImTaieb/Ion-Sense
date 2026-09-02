@@ -2574,6 +2574,22 @@
     .utility-status[data-hero-enter] > .hero-core-wrap {
       animation: core-bloom 620ms var(--ease-out) 70ms both;
     }
+    /* Static page ambience behind the core - depth for the orb's own glow
+       without touching the canvas, shader, or any orb behavior. */
+    .hero-core-wrap::before {
+      content: "";
+      position: absolute;
+      inset: -38%;
+      border-radius: 50%;
+      background: radial-gradient(
+        circle,
+        rgba(48, 209, 88, .09) 0%,
+        rgba(48, 209, 88, .035) 46%,
+        transparent 72%
+      );
+      pointer-events: none;
+    }
+    .hero-core-wrap #ion-core-canvas { position: relative; z-index: 1; }
 
     /* Stats: plain text row with a green dot */
     .utility-stats {
@@ -3243,19 +3259,19 @@
       align-items: stretch;
       justify-content: center;
       margin: 12px 0 0;
-      padding: 11px 8px;
+      padding: 12px 10px;
       border: 1px solid var(--v3-line);
       border-radius: 999px;
       background: var(--v3-surface);
       color: var(--v3-text-mid);
       font-size: 11px;
     }
-    .utility-stat { display: inline-flex; align-items: center; gap: 8px; padding: 0 16px; }
+    .utility-stat { display: inline-flex; align-items: center; gap: 8px; padding: 0 18px; }
     .utility-stat:first-child { padding-left: 4px; }
     .utility-stat:last-child { padding-right: 4px; }
     .utility-stat + .utility-stat { border-left: 1px solid var(--v3-line); }
     .utility-stat strong { color: var(--v3-text-hi); font-weight: 680; font-variant-numeric: tabular-nums; }
-    .stat-dot { width: 6px; height: 6px; background: var(--v3-green); }
+    .stat-dot { width: 6px; height: 6px; background: var(--v3-green); box-shadow: 0 0 8px rgba(48, 209, 88, .55); }
 
     /* Metric card: one grouped rounded container */
     .metric-grid {
@@ -3293,7 +3309,24 @@
       width: 1px;
       background: var(--v3-line-soft);
     }
-    .metric-label { color: var(--v3-text-low); font-size: 8.5px; font-weight: 650; letter-spacing: .14em; }
+    .metric-label {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      color: var(--v3-text-low);
+      font-size: 9px;
+      font-weight: 650;
+      letter-spacing: .12em;
+    }
+    .metric-label svg {
+      width: 14px;
+      height: 14px;
+      fill: none;
+      stroke: var(--v3-text-mid);
+      stroke-width: 1.8;
+      stroke-linecap: round;
+      stroke-linejoin: round;
+    }
     .metric-value { color: var(--v3-text-hi); font-size: 20px; font-weight: 700; font-variant-numeric: tabular-nums; letter-spacing: -.015em; }
     .metric-sub { color: var(--v3-text-low); font-size: 9px; }
 
@@ -3345,12 +3378,13 @@
       display: inline-flex;
       align-items: center;
       gap: 8px;
-      min-height: 40px;
+      min-height: 42px;
       margin: 0;
-      padding: 0 12px 0 14px;
+      padding: 0 12px 0 16px;
       border: 1px solid var(--v3-line);
       border-radius: 999px;
       background: var(--v3-surface-2);
+      box-shadow: inset 0 1px 0 rgba(255, 255, 255, .05);
       color: var(--v3-text-hi);
       font-size: 11.5px;
       font-weight: 600;
@@ -3549,6 +3583,19 @@
       box-shadow: 0 0 0 3px rgba(48, 209, 88, .18);
       outline: none;
     }
+    /* Numeric settings read as rows: quiet label left, compact value box
+       right - matching the reference panels. Long text fields stay stacked. */
+    .settings-card .grid > label.field:has(> input[type="number"]) {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 12px;
+    }
+    .settings-card .grid > label.field:has(> input[type="number"]) input {
+      width: 128px;
+      flex: none;
+      margin: 0;
+    }
     .hint { margin: 12px 0 0; color: var(--v3-text-low); font-size: 9.5px; line-height: 1.6; border-top: none; padding-top: 0; }
     .hint code { color: var(--v3-text-mid); }
     .credential-row { display: flex; align-items: flex-end; gap: 12px; }
@@ -3635,6 +3682,7 @@
       box-shadow: 0 0 6px rgba(48, 209, 88, .35);
     }
     button.primary {
+      position: relative;
       flex: none;
       width: 100%;
       min-height: 50px;
@@ -3652,6 +3700,21 @@
     }
     button.primary:hover:not(:disabled) { background: #3ADD64; transform: none; box-shadow: none; }
     button.primary:active:not(:disabled) { transform: scale(.97); }
+    /* Persistent state indicator: a quiet ring that is always present in
+       the CTA - dim at idle, spinning arc while detectors restart. */
+    button.primary .button-progress {
+      position: absolute;
+      right: 16px;
+      top: 50%;
+      width: 16px;
+      height: 16px;
+      margin-top: -8px;
+      opacity: .38;
+      border: 2px solid rgba(255, 255, 255, .34);
+      border-top-color: rgba(255, 255, 255, .12);
+      border-radius: 50%;
+    }
+    button.primary[data-state="saved"] .button-progress { opacity: .55; }
     button.primary:focus-visible { outline: none; box-shadow: 0 0 0 3px rgba(48, 209, 88, .25); }
     button.primary:disabled { background: #30D158; color: #F2FFF5; opacity: .72; }
 
@@ -3704,22 +3767,22 @@
         </div>
         <div class="metric-grid" aria-label="Live system metrics">
           <div class="metric-card" id="metric-battery">
-            <span class="metric-label">Battery</span>
+            <span class="metric-label"><svg viewBox="0 0 24 24" aria-hidden="true"><rect x="2.5" y="8" width="15.5" height="8" rx="2"/><path d="M21 10.5v3"/></svg>Battery</span>
             <span class="metric-value" id="metric-battery-value">—</span>
             <span class="metric-sub" id="metric-battery-sub">Checking…</span>
           </div>
           <div class="metric-card" id="metric-temperature">
-            <span class="metric-label">Temperature</span>
+            <span class="metric-label"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M14 14.76V5a2 2 0 0 0-4 0v9.76a4 4 0 1 0 4 0z"/></svg>Temperature</span>
             <span class="metric-value" id="metric-temperature-value">—</span>
             <span class="metric-sub" id="metric-temperature-sub">Checking…</span>
           </div>
           <div class="metric-card" id="metric-cpu">
-            <span class="metric-label">CPU</span>
+            <span class="metric-label"><svg viewBox="0 0 24 24" aria-hidden="true"><rect x="6.5" y="6.5" width="11" height="11" rx="2"/><path d="M9 3v3.5M15 3v3.5M9 17.5V21M15 17.5V21M3 9h3.5M3 15h3.5M17.5 9H21M17.5 15H21"/></svg>CPU</span>
             <span class="metric-value" id="metric-cpu-value">—</span>
             <span class="metric-sub" id="metric-cpu-sub">Checking…</span>
           </div>
           <div class="metric-card" id="metric-downloads">
-            <span class="metric-label">Downloads</span>
+            <span class="metric-label"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 4v10"/><path d="m8 10 4 4 4-4"/><path d="M5 19.5h14"/></svg>Downloads</span>
             <span class="metric-value" id="metric-downloads-value">—</span>
             <span class="metric-sub" id="metric-downloads-sub">Today</span>
           </div>
