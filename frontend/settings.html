@@ -2449,7 +2449,7 @@
 
     /* Overview: topbar / scrollable status / bottom nav */
     section.utility-overview {
-      display: flex;
+      display: flex !important; /* the Apple-minimal layer pins display:block with !important */
       flex-direction: column;
       height: 100%;
       padding: 0;
