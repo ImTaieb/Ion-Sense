@@ -25,8 +25,19 @@ Thumbs.db
 .vscode/
 .tmp/
 
-# User-installed design skills (impeccable, motion, 21st-*, ui-ux-pro-max,
-# frontend-design). These are tool installations for the local agent
-# harness, not part of the product.
+# User-installed design skills / local agent tooling
 .agents/
 skills/
+.codex/
+.zcode/
+
+# ION local voice (Chatterbox-Turbo) — runtime/generated files only
+tools/ion-voice/.venv/
+tools/ion-voice/*.wav
+tools/ion-voice/assets/*.wav
+tools/ion-voice/__pycache__/
+tools/ion-voice/cache/
+tools/ion-voice/worker.log
+
+# Experimental voice-design lab — not part of RC1
+tools/ion-voice-lab/

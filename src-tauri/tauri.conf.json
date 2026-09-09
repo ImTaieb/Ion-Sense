@@ -53,11 +53,16 @@
       }
     ],
     "security": {
-      "csp": "default-src 'self'; style-src 'self' 'unsafe-inline'; script-src 'self' 'unsafe-inline'; img-src 'self' data:; connect-src ipc: http://ipc.localhost"
+      "csp": "default-src 'self'; style-src 'self' 'unsafe-inline'; script-src 'self' 'unsafe-inline'; img-src 'self' data:; media-src 'self' blob:; connect-src ipc: http://ipc.localhost http://127.0.0.1:8662"
     }
   },
   "bundle": {
     "active": true,
+    "resources": {
+      "../tools/ion-voice/ion_tts.py": "voice/ion_tts.py",
+      "../assets/voice/ion-reference.wav": "voice/ion-reference.wav",
+      "../assets/voice/README.md": "voice/README.md"
+    },
     "icon": [
       "icons/32x32.png",
       "icons/128x128.png",

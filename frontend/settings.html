@@ -6,12 +6,15 @@
   <meta name="color-scheme" content="dark">
   <title>Ion Sense Settings</title>
     <link rel="stylesheet" href="ion-tokens.css">
+  <link rel="stylesheet" href="fonts/geist.css">
 <style>
     /* Authoritative design tokens. The pre-existing :root (line ~900) is
        the consolidated layer; the legacy aliases below keep older rules
        resolving. */
     :root {
       --ion: #45ee86;
+      --ion-font: "Geist", "Segoe UI Variable", "Segoe UI", sans-serif;
+      --ion-font-display: "Geist", "Segoe UI Variable", "Segoe UI", sans-serif;
       --ion-rgb: 69, 238, 134;
       --panel: rgba(8, 14, 10, 0.86);
       --line: rgba(207, 244, 216, 0.09);
@@ -634,25 +637,20 @@
       border-top-color: #031006;
       border-radius: 50%;
     }
-    form[aria-busy="true"] button.primary .button-label { opacity: 0; transform: translateY(2px); }
-    form[aria-busy="true"] button.primary .button-progress { opacity: 1; animation: status-spin 620ms linear infinite; }
-    /* 700ms saved-state swap (brief §10). No radial flash, no bounce.
-       Stays the same solid green as idle so the swap reads as a label
-       change, not a re-skin. */
-    button.primary[data-state="saved"] {
-      border: 0;
-      background: var(--ion, #34C759);
-      color: #06210F;
-      box-shadow: inset 0 1px 0 rgba(255, 255, 255, .16), 0 4px 14px rgba(0, 0, 0, .22);
-    }
+    /* Busy state keeps the label readable (JS swaps the copy to
+       "Restarting detectors…"); the small ring fades in as quiet progress,
+       never as the main event. */
+    form[aria-busy="true"] button.primary .button-progress { opacity: .75; animation: status-spin 620ms linear infinite; }
+    /* 700ms saved-state swap (brief §10). The saved material is owned by the
+       final button layer further down; only the label swap lives here. */
     button.primary[data-state="saved"] .button-label[data-label="idle"] { display: none; }
     button.primary[data-state="saved"] .button-label[data-label="saved"] { display: inline-flex; }
     button.primary[data-state="saved"] .button-label::after {
       content: "";
       width: 7px;
       height: 3px;
-      border-left: 1.5px solid #06210F;
-      border-bottom: 1.5px solid #06210F;
+      border-left: 1.5px solid rgba(48, 209, 88, .9);
+      border-bottom: 1.5px solid rgba(48, 209, 88, .9);
       transform: rotate(-45deg) translate(1px, -1px);
     }
     button.primary .button-label[data-label="saved"] { display: none; }
@@ -1031,8 +1029,10 @@
         border-color var(--motion-panel) ease,
         box-shadow var(--motion-panel) ease;
     }
-    body[data-window-state="hidden"] .shell {
-      opacity: 1;
+    /* Hidden = the invisible start pose: WebView2 stale-frame presentation on
+       the first show can never flash settled content before the entrance. */
+body[data-window-state="hidden"] .shell {
+      opacity: 0;
       transform: none;
       pointer-events: none;
     }
@@ -1564,11 +1564,14 @@
 
     /* Settings window entrance animates only the shell. The brief
        explicitly forbids per-child stagger. */
+    /* The shell entrance is the ONLY open motion (native alpha jumps to full
+       on the committed invisible frame). 320ms, 6px, 2.5% scale: one soft
+       materialization inside the 300-450ms perceived-open budget. */
     body[data-window-state="entering"] .shell {
-      animation: shell-enter 380ms cubic-bezier(.32, .72, 0, 1) both;
+      animation: shell-enter 320ms cubic-bezier(.32, .72, 0, 1) both;
     }
     @keyframes shell-enter {
-      from { opacity: 0; transform: translateY(10px) scale(.965); }
+      from { opacity: 0; transform: translateY(6px) scale(.975); }
       to   { opacity: 1; transform: none; }
     }
     @keyframes status-confirm {
@@ -1632,6 +1635,10 @@
     }
     /* ION Core — the living energy orb (frontend/ion-core.js, three.js
        vendored at frontend/vendor/). State rules target .hero-core-wrap. */
+    /* Base state is settled and animation-free: the entrance is owned solely
+       by the data-hero-enter core-bloom rule below. The old base
+       hero-core-reveal replayed the entrance a second time whenever the
+       1150ms cleanup removed the attribute (animation-name change restarts). */
     .hero-core-wrap {
       position: relative;
       display: grid;
@@ -1639,11 +1646,11 @@
       width: 172px;
       height: 172px;
       margin: -6px 0 -10px;
-      opacity: 0;
+      opacity: 1;
       border: 0;
       background: transparent;
       box-shadow: none;
-      animation: hero-core-reveal 900ms var(--ease-out) 160ms forwards;
+      animation: none;
     }
     .hero-core-wrap #ion-core-canvas {
       width: 100%;
@@ -1660,15 +1667,13 @@
       opacity: 0.5;
       pointer-events: none;
     }
-    @keyframes hero-core-reveal { to { opacity: 1; } }
 
     /* Core states: focus = detectors restarting, alert = a test event fired.
        The orb's shader energy rises through uEnergy; the wrap adds only a
        restrained scale pulse for the alert beat. */
     body[data-core-state="alert"][data-window-state="active"] .hero-core-wrap,
     body[data-core-state="alert"][data-window-state="entering"] .hero-core-wrap {
-      animation: hero-core-reveal 900ms var(--ease-out) 160ms forwards,
-        core-alert-pulse 900ms var(--ease-out);
+      animation: core-alert-pulse 900ms var(--ease-out);
     }
     @keyframes core-alert-pulse {
       0%   { transform: scale(1); }
@@ -1676,8 +1681,7 @@
       100% { transform: scale(1); }
     }
     body[data-core-state="alert"][data-core-severity="critical"][data-window-state="active"] .hero-core-wrap {
-      animation: hero-core-reveal 900ms var(--ease-out) 160ms forwards,
-        core-alert-pulse 760ms var(--ease-out) 2;
+      animation: core-alert-pulse 760ms var(--ease-out) 2;
     }
     .utility-status h2 {
       font-family: var(--font-display);
@@ -1967,7 +1971,7 @@
     .switch {
       min-height: 30px;
       gap: 9px;
-      padding-right: 17px;
+      padding-right: 0; /* the track right edge aligns with the inputs and chevrons */
       color: #c3cec7;
       font-size: 12px;
       letter-spacing: .01em;
@@ -2047,10 +2051,14 @@
       border-color: rgba(255, 112, 112, .66);
       box-shadow: 0 0 0 3px rgba(255, 90, 90, .06);
     }
-    /* Detector enable/disable is opacity only — no overshoot bounce, no
-       gradient wipe. */
-    section.settings-card[data-detector-state="disabled"] {
-      opacity: 0.55;
+    /* Detector enable/disable: ONE dim level on the card itself, nothing
+       stacked on its children — contents stay muted but readable. The
+       selectors out-specify every variant of the entrance-clearing rule
+       (plain / editor / editor+settled) that pins section cards to opacity 1. */
+    .settings-grid section.settings-card[data-detector-state="disabled"],
+    .shell[data-view="editor"] section.settings-card[data-detector-state="disabled"],
+    .shell[data-view="editor"][data-view-motion="settled"] section.settings-card[data-detector-state="disabled"] {
+      opacity: 0.7;
     }
     section.settings-card[data-detector-state="disabled"] input,
     section.settings-card[data-detector-state="disabled"] .hint,
@@ -2214,14 +2222,14 @@
     .utility-status[data-hero-enter] > p { animation-delay: 200ms; }
     .utility-status[data-hero-enter] > .utility-stats { animation-delay: 250ms; }
     .utility-status[data-hero-enter] > #active-detectors { animation-delay: 290ms; }
-    .utility-status[data-hero-enter] > .utility-note { animation-delay: 520ms; }
+    .utility-status[data-hero-enter] > .utility-note { animation-delay: 400ms; }
     .utility-status[data-hero-enter] .metric-card {
       animation: card-rise 420ms var(--ease-out) both;
     }
     .utility-status[data-hero-enter] .metric-grid > .metric-card:nth-child(1) { animation-delay: 340ms; }
-    .utility-status[data-hero-enter] .metric-grid > .metric-card:nth-child(2) { animation-delay: 380ms; }
-    .utility-status[data-hero-enter] .metric-grid > .metric-card:nth-child(3) { animation-delay: 420ms; }
-    .utility-status[data-hero-enter] .metric-grid > .metric-card:nth-child(4) { animation-delay: 460ms; }
+    .utility-status[data-hero-enter] .metric-grid > .metric-card:nth-child(2) { animation-delay: 330ms; }
+    .utility-status[data-hero-enter] .metric-grid > .metric-card:nth-child(3) { animation-delay: 360ms; }
+    .utility-status[data-hero-enter] .metric-grid > .metric-card:nth-child(4) { animation-delay: 390ms; }
 
     .settings-grid[data-list-enter] > section.settings-card {
       animation: card-rise 420ms var(--ease-out) both;
@@ -2323,12 +2331,15 @@
       opacity: .82;
       cursor: default;
     }
-    form[data-dirty="true"] button.primary:not(:disabled),
-    form[data-dirty="true"] button.primary:hover:not(:disabled) {
-      background: var(--ion, #34C759);
+    /* Dirty state: slightly luminous graphite with a restrained green
+       hairline — an available action, not a filled CTA. */
+    form[data-dirty="true"] button.primary:not(:disabled) {
+      background: #232823;
+      border-color: rgba(48, 209, 88, .32);
     }
     form[data-dirty="true"] button.primary:hover:not(:disabled) {
-      background: var(--ion-bright, #3DD968);
+      background: #282E29;
+      border-color: rgba(48, 209, 88, .42);
     }
 
     /* Status pill: neutral by default, green when saved, red on error. */
@@ -2714,7 +2725,7 @@
       background: rgba(52, 199, 89, .06);
     }
     #open-editor:active { transform: scale(.97); }
-    #open-editor:focus-visible { outline: none; box-shadow: 0 0 0 3px rgba(52, 199, 89, .16); }
+    #open-editor:focus-visible { outline: none; box-shadow: 0 0 0 3px rgba(48, 209, 88, .26); }
 
     /* Editor */
 
@@ -2827,9 +2838,6 @@
       padding-top: 20px;
       border-top: 1px solid rgba(255, 255, 255, .05);
     }
-    section.settings-card[data-detector-state="disabled"] .grid,
-    section.settings-card[data-detector-state="disabled"] .hint,
-    section.settings-card[data-detector-state="disabled"] label.field { opacity: .45; }
     .section-head {
       display: block;
       min-height: 0;
@@ -3069,26 +3077,31 @@
       box-shadow: none;
       transition: background-color 180ms ease, transform 120ms ease;
     }
-    button.primary:hover:not(:disabled),
-    form[data-dirty="true"] button.primary:not(:disabled),
-    form[data-dirty="true"] button.primary:hover:not(:disabled) {
-      background: #37AF4E;
+    form[data-dirty="true"] button.primary:not(:disabled) {
+      background: #232823;
+      border-color: rgba(48, 209, 88, .32);
       box-shadow: none;
       transform: none;
+    }
+    form[data-dirty="true"] button.primary:hover:not(:disabled) {
+      background: #282E29;
+      border-color: rgba(48, 209, 88, .42);
+    }
+    /* Pressing must darken in the dirty state too — this ties with the
+       dirty-hover rule on specificity and wins by order. */
+    form[data-dirty="true"] button.primary:active:not(:disabled) {
+      background: #1D221E;
+      border-color: rgba(48, 209, 88, .30);
     }
     button.primary:active:not(:disabled) { transform: scale(.98); }
     button.primary:focus-visible { outline: none; box-shadow: 0 0 0 3px rgba(52, 199, 89, .22); }
     button.primary:disabled { background: #2E9E44; color: #ECFFF1; opacity: .72; }
     button.primary[data-state="saved"] {
-      background: #30D158;
-      color: #F2FFF5;
-      border: none;
-      animation: save-pulse 700ms var(--ease-out);
-    }
-    @keyframes save-pulse {
-      0%   { transform: scale(1); }
-      35%  { transform: scale(1.02); }
-      100% { transform: scale(1); }
+      background: #212622;
+      color: #F0F4F1;
+      border-color: rgba(48, 209, 88, .34);
+      box-shadow: inset 0 1px 0 rgba(255, 255, 255, .07);
+      animation: none;
     }
 
     /* ═══ Interaction system (v3.1): one grammar for every control ═════
@@ -3229,14 +3242,14 @@
 
     .utility-status { padding: 16px 20px 8px; }
     .utility-status > .eyebrow {
-      padding: 7px 14px;
-      border: 1px solid var(--v3-line);
+      padding: 6px 13px;
+      border: 1px solid rgba(255, 255, 255, .04);
       border-radius: 999px;
-      background: var(--v3-surface);
-      color: var(--v3-text-mid);
-      font-size: 10px;
-      font-weight: 650;
-      letter-spacing: .08em;
+      background: rgba(255, 255, 255, .015);
+      color: rgba(245, 247, 245, .42);
+      font-size: 9px;
+      font-weight: 620;
+      letter-spacing: .16em;
     }
     .utility-status h2 {
       margin: 10px 0 0;
@@ -3254,27 +3267,29 @@
       line-height: 1.5;
     }
 
-    /* Status pill: dot + count | runtime */
+    /* Status pill: lower-contrast container; the count leads, the
+       supporting label recedes. */
     .utility-stats {
       display: flex;
       align-items: stretch;
       justify-content: center;
       margin: 12px 0 0;
-      padding: 12px 10px;
-      border: 1px solid var(--v3-line);
+      padding: 10px 8px;
+      border: 1px solid rgba(255, 255, 255, .05);
       border-radius: 999px;
-      background: var(--v3-surface);
-      color: var(--v3-text-mid);
-      font-size: 11px;
+      background: rgba(255, 255, 255, .015);
+      color: rgba(245, 247, 245, .45);
+      font-size: 10.5px;
     }
     .utility-stat { display: inline-flex; align-items: center; gap: 8px; padding: 0 18px; }
     .utility-stat:first-child { padding-left: 4px; }
     .utility-stat:last-child { padding-right: 4px; }
     .utility-stat + .utility-stat { border-left: 1px solid var(--v3-line); }
-    .utility-stat strong { color: var(--v3-text-hi); font-weight: 680; font-variant-numeric: tabular-nums; }
+    .utility-stat strong { color: var(--v3-text-hi); font-size: 12.5px; font-weight: 700; font-variant-numeric: tabular-nums; }
     .stat-dot { width: 6px; height: 6px; background: var(--v3-green); box-shadow: 0 0 8px rgba(48, 209, 88, .55); }
 
-    /* Metric card: one grouped rounded container */
+    /* Metric card: one grouped rounded container, one step quieter than
+       the detector cards so the telemetry reads as a band, not a box. */
     .metric-grid {
       width: 100%;
       display: grid;
@@ -3282,10 +3297,12 @@
       gap: 0;
       margin: 12px 0 0;
       padding: 2px 0;
-      border: 1px solid var(--v3-line);
+      border: 1px solid rgba(255, 255, 255, .06);
       border-radius: var(--v3-r-lg);
-      background: var(--v3-surface);
-      box-shadow: inset 0 1px 0 rgba(255, 255, 255, .04);
+      background:
+        linear-gradient(180deg, rgba(255, 255, 255, .012), transparent 42%),
+        var(--v3-surface);
+      box-shadow: inset 0 1px 0 rgba(255, 255, 255, .03);
     }
     .metric-card {
       display: flex;
@@ -3331,29 +3348,34 @@
     .metric-value { color: var(--v3-text-hi); font-size: 20px; font-weight: 700; font-variant-numeric: tabular-nums; letter-spacing: -.015em; }
     .metric-sub { color: var(--v3-text-low); font-size: 9px; }
 
-    /* Alert card */
-    .utility-note {
+    /* System whisper: quiet tertiary line between telemetry and the
+       footer nav — a small shield glyph and secondary-weight text, no
+       container. .utility-status scoping out-specifies the generic
+       .utility-status p rules that would otherwise size it as body copy. */
+    .utility-status .utility-note {
       display: flex;
       align-items: center;
-      gap: 12px;
+      justify-content: center;
+      gap: 8px;
       width: 100%;
-      margin: 10px 0 2px;
-      padding: 12px 16px;
-      border: 1px solid var(--v3-line);
-      border-radius: var(--v3-r-lg);
-      background: var(--v3-surface);
-      box-shadow: inset 0 1px 0 rgba(255, 255, 255, .04);
-      color: var(--v3-text-mid);
-      font-size: 11px;
-      line-height: 1.55;
-      text-align: left;
+      margin: 0;
+      padding: 0;
+      border: 0;
+      border-radius: 0;
+      background: transparent;
+      box-shadow: none;
+      color: rgba(245, 247, 245, .58);
+      font-size: 10.5px;
+      font-weight: 480;
+      line-height: 1.4;
+      text-align: center;
     }
-    .utility-note svg {
+    .utility-status .utility-note svg {
       flex: none;
-      width: 20px;
-      height: 20px;
+      width: 15px;
+      height: 15px;
       fill: none;
-      stroke: var(--v3-green);
+      stroke: rgba(48, 209, 88, .62);
       stroke-width: 1.6;
       stroke-linecap: round;
       stroke-linejoin: round;
@@ -3368,10 +3390,12 @@
       gap: 12px;
       margin: 12px 16px 14px;
       padding: 11px 11px 11px 18px;
-      border: 1px solid var(--v3-line);
+      border: 1px solid rgba(255, 255, 255, .05);
       border-radius: var(--v3-r-lg);
-      background: var(--v3-surface);
-      box-shadow: inset 0 1px 0 rgba(255, 255, 255, .04);
+      background:
+        linear-gradient(180deg, rgba(255, 255, 255, .014), transparent 42%),
+        var(--v3-surface);
+      box-shadow: inset 0 1px 0 rgba(255, 255, 255, .035);
     }
     .utility-wordmark { color: var(--v3-text-hi); font-size: 12px; font-weight: 700; letter-spacing: .08em; }
     .utility-wordmark small { color: var(--v3-text-low); font-size: 9px; font-weight: 500; letter-spacing: .06em; }
@@ -3451,15 +3475,17 @@
     section.settings-card:only-of-type {
       margin: 0;
       padding: 16px 18px 18px;
-      border: 1px solid var(--v3-line);
+      border: 1px solid rgba(255, 255, 255, .05);
       border-radius: var(--v3-r-lg);
-      background: var(--v3-surface);
-      box-shadow: inset 0 1px 0 rgba(255, 255, 255, .04);
+      background:
+        linear-gradient(180deg, rgba(255, 255, 255, .014), transparent 42%),
+        var(--v3-surface);
+      box-shadow: inset 0 1px 0 rgba(255, 255, 255, .035);
     }
     section.settings-card + section.settings-card {
       margin-top: 0;
       padding-top: 16px;
-      border-top: 1px solid var(--v3-line);
+      border-top: 1px solid rgba(255, 255, 255, .05);
     }
     section.settings-card:hover,
     section.settings-card:focus-within {
@@ -3502,10 +3528,10 @@
       padding: 0;
       border: none;
       background: transparent;
-      color: var(--v3-green);
+      color: rgba(245, 247, 245, .3);
       font-family: ui-monospace, "Cascadia Mono", "SF Mono", Consolas, monospace;
-      font-size: 11px;
-      font-weight: 600;
+      font-size: 10px;
+      font-weight: 500;
       letter-spacing: .1em;
     }
     .section-head .switch {
@@ -3599,6 +3625,8 @@
     }
     .hint { margin: 12px 0 0; color: var(--v3-text-low); font-size: 9.5px; line-height: 1.6; border-top: none; padding-top: 0; }
     .hint code { color: var(--v3-text-mid); }
+    /* The raw settings path is tertiary: available, never dominant. */
+    #settings-path { margin-top: 10px; color: rgba(245, 247, 245, .26); font-size: 9px; }
     .credential-row { display: flex; align-items: flex-end; gap: 12px; }
     .credential-row button {
       min-height: 40px;
@@ -3682,42 +3710,79 @@
       background: var(--v3-green);
       box-shadow: 0 0 6px rgba(48, 209, 88, .35);
     }
+    /* The primary action is a first-party system control: quiet graphite at
+       rest, luminous when dirty, and it never turns into a filled CTA.
+       Motion: fast attack with a soft settle (200ms on --ease-out), press
+       compresses immediately on --ease-press and returns on the base curve. */
     button.primary {
       position: relative;
       flex: none;
       width: 100%;
-      min-height: 50px;
+      min-height: 44px;
       margin: 0;
       padding: 0 18px;
-      border: none;
+      border: 1px solid rgba(255, 255, 255, .13);
       border-radius: var(--v3-r-md);
-      background: #30D158;
-      color: #F2FFF5;
-      font-size: 13.5px;
-      font-weight: 660;
+      background: #1D2122;
+      color: #F0F4F1;
+      font-size: 13px;
+      font-weight: 620;
       letter-spacing: .01em;
-      box-shadow: none;
-      transition: background-color 180ms ease, transform 120ms ease;
+      box-shadow: inset 0 1px 0 rgba(255, 255, 255, .06);
+      /* Leave path: everything returns slowly and together — no snap,
+         no hover residue. */
+      transition:
+        background-color 210ms ease,
+        border-color 210ms ease,
+        color 160ms ease,
+        box-shadow 220ms ease,
+        transform 240ms var(--ease-out);
     }
-    button.primary:hover:not(:disabled) { background: #3ADD64; transform: none; box-shadow: none; }
-    button.primary:active:not(:disabled) { transform: scale(.97); }
-    /* Persistent state indicator: a quiet ring that is always present in
-       the CTA - dim at idle, spinning arc while detectors restart. */
+    /* Enter path: luminance responds almost instantly, the lift/scale
+       settles just behind it — one continuous gesture, not a jump. */
+    button.primary:hover:not(:disabled) {
+      background: #262B2C;
+      border-color: rgba(255, 255, 255, .18);
+      box-shadow: inset 0 1px 0 rgba(255, 255, 255, .10);
+      transform: translateY(-1px) scale(1.005);
+      transition:
+        background-color 90ms ease,
+        border-color 120ms ease,
+        color 90ms ease,
+        box-shadow 140ms ease,
+        transform 170ms var(--ease-out);
+    }
+    button.primary:active:not(:disabled) {
+      background: #181C1D;
+      border-color: rgba(255, 255, 255, .10);
+      box-shadow: inset 0 1px 0 rgba(255, 255, 255, .03);
+      transform: translateY(0) scale(.988);
+      transition: transform 100ms var(--ease-press), background-color 70ms ease, border-color 90ms ease, box-shadow 110ms ease;
+    }
+    /* Persistent state indicator: hidden at rest, fades in only while the
+       save round-trip is in flight. */
     button.primary .button-progress {
       position: absolute;
       right: 16px;
       top: 50%;
-      width: 16px;
-      height: 16px;
-      margin-top: -8px;
-      opacity: .38;
-      border: 2px solid rgba(255, 255, 255, .34);
-      border-top-color: rgba(255, 255, 255, .12);
+      width: 14px;
+      height: 14px;
+      margin-top: -7px;
+      opacity: 0;
+      border: 2px solid rgba(255, 255, 255, .30);
+      border-top-color: rgba(255, 255, 255, .10);
       border-radius: 50%;
     }
-    button.primary[data-state="saved"] .button-progress { opacity: .55; }
     button.primary:focus-visible { outline: none; box-shadow: 0 0 0 3px rgba(48, 209, 88, .25); }
-    button.primary:disabled { background: #30D158; color: #F2FFF5; opacity: .72; }
+    button.primary:disabled {
+      background: #1A1E1F;
+      color: rgba(240, 244, 241, .72);
+      border-color: rgba(255, 255, 255, .08);
+      box-shadow: inset 0 1px 0 rgba(255, 255, 255, .04);
+      opacity: 1;
+      cursor: default;
+      transform: none;
+    }
 
 
 
@@ -3757,10 +3822,19 @@
     .metric-label svg { width: 10px; height: 10px; stroke-width: 2; }
     .metric-value { white-space: nowrap; }
 
-    /* Runtime pill: uniform stat padding, small edge insets. */
+    /* Runtime pill: uniform stat padding, small edge insets. Lower-hero
+       status padding-bottom tuned so the whisper line clears the footer at
+       390x680 without scrolling. */
     .utility-stat { padding: 0 18px; }
     .utility-stat:first-child { padding-left: 8px; }
     .utility-stat:last-child { padding-right: 8px; }
+    .utility-status { padding: 16px 14px 3px; gap: 11px; }
+    .metric-label { font-size: 9px; gap: 3px; letter-spacing: 0; }
+    .metric-sub { font-size: 9.5px; }
+    label.field, .hint { font-size: 10px; }
+    #settings-path { color: var(--v3-text-low); font-size: 10px; overflow-wrap: anywhere; }
+    #voice-status { color: var(--v3-text-low); font-size: 10px; }
+    section.settings-card::after { content: none; }
 
     /* Footer: the wordmark carried a second left padding on top of the
        nav gutter; align it to the same edge. */
@@ -3866,6 +3940,7 @@
           <label class="switch"><input id="launch-at-login" type="checkbox"><span class="track"></span>Launch at login</label>
         </div>
         <p id="settings-path" class="hint"></p>
+        <p id="voice-status" class="hint" role="status">Checking voice…</p>
       </section>
 
       <section class="settings-card grid-half" aria-labelledby="section-battery">
@@ -3890,7 +3965,7 @@
           <label class="field">Threshold (°C)<input id="temperature-threshold" type="number" min="40" max="120" step="1" required></label>
           <label class="field">Poll interval (seconds)<input id="temperature-poll" type="number" min="2" max="300" step="1" required></label>
         </div>
-        <p class="hint">Windows exposes ACPI thermal zones inconsistently; the detector reports the hottest sensor available to sysinfo.</p>
+        <p class="hint">Monitors the hottest available sensor. Some PCs do not expose temperature readings.</p>
       </section>
 
       <section class="settings-card grid-wide" aria-labelledby="section-downloads">
@@ -3900,7 +3975,7 @@
           <label class="switch"><input id="downloads-enabled" type="checkbox"><span class="track"></span>Enabled</label>
         </div>
         <label class="field">Folder override<input id="downloads-directory" type="text" placeholder="Leave blank for the OS Downloads folder"></label>
-        <p class="hint">Completion is detected when a browser's in-progress file (such as <code>.crdownload</code> or <code>.part</code>) disappears, or when a new file finishes growing.</p>
+        <p class="hint">Alerts when a browser download completes or a new file finishes growing.</p>
       </section>
 
       <section class="settings-card grid-wide" aria-labelledby="section-email">
@@ -3987,6 +4062,13 @@
         if (!head || card.querySelector(".card-body")) return;
         const body = document.createElement("div");
         body.className = "card-body";
+        const heading = head.querySelector("h2");
+        const chevron = head.querySelector(".collapse-chev");
+        if (heading && chevron) {
+          body.id = `${heading.id}-body`;
+          chevron.setAttribute("aria-controls", body.id);
+          chevron.setAttribute("aria-label", `Toggle ${heading.textContent.trim()} section`);
+        }
         const inner = document.createElement("div");
         inner.className = "card-body-inner";
         while (head.nextSibling) inner.appendChild(head.nextSibling);
@@ -3998,6 +4080,7 @@
         if (!chevron) return;
         const card = chevron.closest("section.settings-card");
         const collapsed = card.toggleAttribute("data-collapsed");
+        card.querySelector(".card-body").inert = collapsed;
         chevron.setAttribute("aria-expanded", String(!collapsed));
       });
 
@@ -4181,6 +4264,7 @@
       async function prepareAndPresent(generation) {
         if (!Number.isSafeInteger(generation)) return;
         playWindowEntrance(generation);
+        void refreshVoiceStatus();
         await nextPaint();
         if (closing || activeOpenGeneration !== generation) return;
         try {
@@ -4188,9 +4272,17 @@
             generation,
             reducedMotion: reducedMotion.matches
           });
+          // No entrance restart: frame sampling showed the restart reversed
+          // shell opacity (entrance rises, drops, replays) — the "opened
+          // twice" sensation. The hidden shell pose is opacity 0 and the
+          // native ramp masks surface creation, so the single animation
+          // committed with the entering state IS the whole entrance.
         }
         catch (error) { console.error("Ion Sense could not reveal settings", error); }
-        playViewEntrance(shell.dataset.view || "overview");
+        // The tray open is owned solely by the shell entrance: playViewEntrance
+        // stays exclusive to setView (view navigation). Re-staggering the hero
+        // children here made the already-revealed content drop to opacity 0
+        // and fade in again — the visible "window opens twice".
       }
 
       async function announceSettingsReady() {
@@ -4205,6 +4297,12 @@
               void playWindowExit(Number(payload));
             })
           ]);
+        }
+        // Deferred modules (including Presence's initial painted frame) finish
+        // before DOMContentLoaded. Readiness must mean the same prepared UI
+        // for the first tray open as for every later one.
+        if (document.readyState === "loading") {
+          await new Promise((resolve) => document.addEventListener("DOMContentLoaded", resolve, { once: true }));
         }
         try { await document.fonts?.ready; } catch (_) { /* system font remains safe */ }
         await nextPaint();
@@ -4232,7 +4330,40 @@
       }
 
       let statusSwapTimer = 0;
+      let busyLabelTimer = 0;
+      function reportError(error, message) {
+        console.error("Ion Sense settings action failed", error);
+        const validationMessages = new Set([
+          "Settings are still loading.",
+          "Fix the highlighted Discord channel ID before saving.",
+          "Every numeric setting needs a value.",
+          "IMAP host is required while email is enabled.",
+          "IMAP username is required while email is enabled.",
+          "IMAP mailbox is required while email is enabled."
+        ]);
+        setStatus(validationMessages.has(error?.message) ? error.message : message, true);
+      }
+
+      let voiceStatusGeneration = 0;
+      async function refreshVoiceStatus() {
+        const generation = ++voiceStatusGeneration;
+        const target = field("voice-status");
+        if (!nativeInvoke) { target.textContent = "Voice status is available in the desktop app."; return; }
+        const controller = new AbortController();
+        // Bounded status read: an unavailable worker must not hold up Settings.
+        const timeout = window.setTimeout(() => controller.abort(), 1500);
+        let message = "ION voice unavailable. Windows speech is used when available; alerts remain active.";
+        try {
+          const response = await fetch("http://127.0.0.1:8662/health", { signal: controller.signal });
+          const health = await response.json();
+          if (response.ok && health.state === "ready") message = "ION voice ready.";
+          else if (response.ok && health.state === "starting") message = "ION voice is warming up. Alerts remain active.";
+        } catch (_) { /* The fallback state is intentional and keeps alerts independent. */ }
+        finally { window.clearTimeout(timeout); }
+        if (generation === voiceStatusGeneration) target.textContent = message;
+      }
       function setStatus(message, error = false, state = "neutral") {
+        window.clearTimeout(statusSwapTimer);
         const apply = () => {
           status.textContent = message;
           status.dataset.state = error ? "error" : state;
@@ -4249,7 +4380,32 @@
         statusSwapTimer = window.setTimeout(apply, 130);
       }
 
-      function setBusy(busy) {
+      function setBusy(busy, { label: busyLabel = null } = {}) {
+        const submit = form.querySelector("button.primary");
+        const label = submit?.querySelector('.button-label[data-label="idle"]');
+        if (label) {
+          if (!label.dataset.rest) label.dataset.rest = label.textContent;
+          window.clearTimeout(busyLabelTimer);
+          const next = busy ? (busyLabel || label.dataset.rest) : label.dataset.rest;
+          const needsSwap = next !== label.textContent;
+          if (!needsSwap || reducedMotion.matches) {
+            // Covers the fast busy -> unbusy round trip: an earlier call may
+            // have dipped the label while its swap timer was still pending.
+            if (needsSwap) label.textContent = next;
+            label.style.opacity = "";
+            label.style.transform = "";
+          } else {
+            // Typography transition: a few-pixel slide + dip out, swap the
+            // copy, settle back. No hard text replacement.
+            label.style.opacity = "0";
+            label.style.transform = "translateY(2px)";
+            busyLabelTimer = window.setTimeout(() => {
+              label.textContent = next;
+              label.style.opacity = "";
+              label.style.transform = "";
+            }, 130);
+          }
+        }
         form.querySelectorAll("button, input").forEach((control) => {
           control.disabled = busy;
         });
@@ -4317,7 +4473,9 @@
         if (!card) return;
         field(`${cardId}-sub`).textContent = sub;
         const target = field(`${cardId}-value`);
-        if (reducedMotion.matches) {
+        window.clearTimeout(metricCountTimers.get(cardId));
+        metricCountTimers.delete(cardId);
+        if (reducedMotion.matches || document.body.dataset.windowState === "hidden") {
           target.textContent = value;
           return;
         }
@@ -4340,7 +4498,8 @@
         window.clearTimeout(metricCountTimers.get(cardId));
         const began = performance.now();
         const duration = 520;
-        const step = (now) => {
+        const step = () => {
+          const now = performance.now();
           const t = Math.min(1, (now - began) / duration);
           const eased = 1 - Math.pow(1 - t, 3);
           const current = start + (goal - start) * eased;
@@ -4349,6 +4508,7 @@
           if (t < 1) {
             metricCountTimers.set(cardId, window.setTimeout(step, 16));
           } else {
+            metricCountTimers.delete(cardId);
             target.textContent = value;
             target.dataset.countedValue = String(goal);
           }
@@ -4356,9 +4516,13 @@
         metricCountTimers.set(cardId, window.setTimeout(step, 16));
       }
 
+      let metricsInFlight = false;
       async function refreshMetrics() {
+        if (metricsInFlight) return;
+        metricsInFlight = true;
         try {
           const metrics = await invoke("get_system_metrics");
+          if (document.hidden || document.body.dataset.windowState !== "active" || shell.dataset.view !== "overview") return;
           const battery = metrics.battery || {};
           const temperature = metrics.temperature || {};
           const cpu = metrics.cpu || {};
@@ -4374,7 +4538,7 @@
           setMetric(
             "metric-temperature",
             temperaturePresent ? `${Math.round(temperature.celsius)}°` : "—",
-            temperaturePresent ? "Component peak" : "No sensor"
+            temperaturePresent ? "Sensor peak" : "No sensor"
           );
           const cpuUsage = Number.isFinite(cpu.usage) ? cpu.usage : null;
           setMetric("metric-cpu", cpuUsage === null ? "—" : `${Math.max(0, Math.round(cpuUsage))}%`, "Processor");
@@ -4382,6 +4546,8 @@
           setMetric("metric-downloads", formatMetricBytes(bytes), "Last 24 hours");
         } catch (error) {
           console.info("Ion Sense live metrics are unavailable.", error);
+        } finally {
+          metricsInFlight = false;
         }
       }
 
@@ -4411,7 +4577,12 @@
       function flagValidationError(control) {
         control.setAttribute("aria-invalid", "true");
         const card = control.closest("section.settings-card");
-        if (card) card.dataset.validation = "error";
+        if (card) {
+          card.dataset.validation = "error";
+          card.removeAttribute("data-collapsed");
+          card.querySelector(".card-body").inert = false;
+          card.querySelector(".collapse-chev").setAttribute("aria-expanded", "true");
+        }
         const label = control.closest("label.field")?.firstChild?.textContent?.trim() || "Highlighted field";
         setStatus(`${label} needs attention.`, true);
       }
@@ -4525,16 +4696,17 @@
       }
 
       async function load() {
+        void refreshVoiceStatus();
         const [settings, info] = await Promise.all([
           invokeAfterNativeSetup("get_settings"),
           invokeAfterNativeSetup("get_runtime_info")
         ]);
         currentSettings = settings;
         populate(settings);
-        field("settings-path").textContent = `Settings file: ${info.settingsPath}`;
+        field("settings-path").textContent = `Settings storage · ${info.settingsPath}`;
         field("dev-tools").hidden = !info.dev;
         field("platform-note").textContent = info.platform === "windows"
-          ? "Windows note: temperature readings depend on ACPI sensor exposure; many systems do not expose CPU package temperature through standard APIs."
+          ? "Temperature monitoring depends on the sensors your PC makes available."
           : info.platform === "macos"
             ? "macOS note: transparent windows use platform-specific behavior, and tray-only mode runs as an accessory app."
             : "Linux note: transparency, tray support, hardware sensors, and keychain availability depend on the desktop compositor and session services.";
@@ -4566,7 +4738,7 @@
           validate(next);
           const emailPassword = field("email-password").value;
           const discordToken = field("discord-token").value;
-          setBusy(true);
+          setBusy(true, { label: "Restarting detectors…" });
           setStatus("Saving and restarting detectors…", false, "loading");
           setCoreState("focus", 3200);
           currentSettings = await invoke("save_settings", {
@@ -4583,7 +4755,7 @@
           flashSavedPrimary();
           setCoreState("focus", 2400);
         } catch (error) {
-          setStatus(String(error), true);
+          reportError(error, "Could not save settings. Check your changes and try again.");
           setCoreState("idle");
         } finally {
           setBusy(false);
@@ -4591,7 +4763,7 @@
       });
 
       field("clear-email-password").addEventListener("click", async () => {
-        setBusy(true);
+        setBusy(true, { label: "Restarting detectors…" });
         try {
           setStatus("Removing the saved password and disabling email…", false, "loading");
           currentSettings = await invoke("clear_imap_password");
@@ -4599,12 +4771,12 @@
           await refreshCredentialStatus();
           form.dataset.dirty = "false";
           setStatus("Email disabled and its password removed from the OS keychain.", false, "success");
-        } catch (error) { setStatus(String(error), true); }
+        } catch (error) { reportError(error, "Could not remove the email password. Try again."); }
         finally { setBusy(false); }
       });
 
       field("clear-discord-token").addEventListener("click", async () => {
-        setBusy(true);
+        setBusy(true, { label: "Restarting detectors…" });
         try {
           setStatus("Removing the saved token and disabling Discord messages…", false, "loading");
           currentSettings = await invoke("clear_discord_token");
@@ -4612,7 +4784,7 @@
           await refreshCredentialStatus();
           form.dataset.dirty = "false";
           setStatus("Discord disabled and its token removed from the OS keychain.", false, "success");
-        } catch (error) { setStatus(String(error), true); }
+        } catch (error) { reportError(error, "Could not remove the Discord token. Try again."); }
         finally { setBusy(false); }
       });
 
@@ -4625,7 +4797,7 @@
           setStatus(`Triggered ${button.textContent.trim()}.`, false, "success");
         } catch (error) {
           setCoreState("idle");
-          setStatus(String(error), true);
+          reportError(error, "Could not show the test alert. Try again.");
         }
       });
 
@@ -4691,19 +4863,24 @@
       let metricsTimer = 0;
       function scheduleMetrics() {
         window.clearTimeout(metricsTimer);
-        // Light poll: refresh live metrics while the monitoring view is shown.
-        if (shell.dataset.view !== "overview") return;
+        // Keep the previous readings through the shell entrance. Sampling is
+        // independent of presentation and resumes only once that shell settles.
+        if (shell.dataset.view !== "overview" || document.hidden || document.body.dataset.windowState !== "active") return;
         refreshMetrics().catch(() => {});
         metricsTimer = window.setTimeout(scheduleMetrics, 15000);
       }
       scheduleMetrics();
+      new MutationObserver(scheduleMetrics).observe(document.body, {
+        attributes: true, attributeFilter: ["data-window-state"]
+      });
+      document.addEventListener("visibilitychange", scheduleMetrics);
 
       const previewView = new URLSearchParams(location.search).get("view");
       setView(previewView === "editor" ? "editor" : "overview", { focus: false });
 
       setBusy(true);
       load()
-        .catch((error) => setStatus(String(error), true))
+        .catch((error) => reportError(error, "Could not load settings. Close and reopen Ion Sense to try again."))
         .finally(() => setBusy(false));
       announceSettingsReady().catch((error) => {
         console.error("Ion Sense settings lifecycle setup failed", error);

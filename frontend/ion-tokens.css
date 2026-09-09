@@ -29,10 +29,8 @@
   --ion-on-accent: #06210F;
 
   /* Type — system stack, no futuristic faces */
-  --ion-font: -apple-system, BlinkMacSystemFont, "Segoe UI Variable Text",
-    "Segoe UI", Inter, system-ui, sans-serif;
-  --ion-font-display: -apple-system, BlinkMacSystemFont,
-    "Segoe UI Variable Display", "Segoe UI", Inter, system-ui, sans-serif;
+  --ion-font: "Geist", "Segoe UI Variable", "Segoe UI", sans-serif;
+  --ion-font-display: "Geist", "Segoe UI Variable", "Segoe UI", sans-serif;
 
   /* Radii */
   --ion-radius-control: 10px;

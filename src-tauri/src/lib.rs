@@ -38,6 +38,20 @@ const SETTINGS_WIDTH_LOGICAL: f64 = 390.0;
 const SETTINGS_HEIGHT_LOGICAL: f64 = 680.0;
 const SETTINGS_CORNER_RADIUS_LOGICAL: f64 = 16.0;
 
+// Opt-in release diagnostics. No file I/O or timing work in normal operation.
+fn trace_settings_open(stage: &str, generation: u64) {
+    static ENABLED: OnceLock<bool> = OnceLock::new();
+    if !ENABLED.get_or_init(|| std::env::var_os("ION_TRACE_OPEN").is_some()) {
+        return;
+    }
+    let milliseconds = std::time::SystemTime::now()
+        .duration_since(std::time::UNIX_EPOCH)
+        .unwrap_or_default()
+        .as_secs_f64()
+        * 1000.0;
+    eprintln!("Ion Sense open trace: {milliseconds:.3} {generation} {stage}");
+}
+
 #[cfg(windows)]
 fn set_native_window_alpha(window: &WebviewWindow, alpha: u8) -> tauri::Result<()> {
     use windows::Win32::Foundation::COLORREF;
@@ -128,10 +142,9 @@ async fn fade_settings_window(
     generation: u64,
     from: u8,
     to: u8,
-    reduced_motion: bool,
+    steps: usize,
+    step_delay_ms: u64,
 ) -> tauri::Result<bool> {
-    let steps = if reduced_motion { 1 } else { 12 };
-    let delay = if reduced_motion { 0 } else { 14 };
     for step in 1..=steps {
         if lifecycle.generation.load(Ordering::Acquire) != generation {
             return Ok(false);
@@ -142,8 +155,8 @@ async fn fade_settings_window(
         let alpha = alpha.round().clamp(0.0, 255.0) as u8;
         set_native_window_alpha(window, alpha)?;
         lifecycle.alpha.store(alpha, Ordering::Release);
-        if delay > 0 {
-            tokio::time::sleep(Duration::from_millis(delay)).await;
+        if step_delay_ms > 0 {
+            tokio::time::sleep(Duration::from_millis(step_delay_ms)).await;
         }
     }
     Ok(true)
@@ -156,6 +169,8 @@ struct NativeState {
     dispatcher: EventDispatcher,
     hud: Arc<HudLifecycle>,
     settings_window: Arc<SettingsWindowLifecycle>,
+    audio_tx: Mutex<std::sync::mpsc::Sender<IonAudioMsg>>,
+    audio_device_ok: Arc<AtomicBool>,
 }
 
 struct HudLifecycle {
@@ -174,6 +189,16 @@ impl HudLifecycle {
             changed: Notify::new(),
         }
     }
+}
+
+/// Native voice playback. Chatterbox generates/caches WAVs; playback is owned
+/// by a dedicated thread (rodio's stream is !Send) that holds the speaker
+/// device for the process lifetime — WebView audio rules can never silence an
+/// alert. Commands send clips over the channel; the thread emits
+/// voice-started/voice-ended events itself.
+enum IonAudioMsg {
+    Play { wav: Vec<u8>, id: String },
+    Stop,
 }
 
 struct SettingsWindowLifecycle {
@@ -245,6 +270,7 @@ fn settings_ready(
     state: State<'_, NativeState>,
 ) -> Result<Option<u64>, String> {
     require_window(&window, "settings")?;
+    trace_settings_open("webview-ready", 0);
     let mut inner = state
         .settings_window
         .inner
@@ -282,7 +308,9 @@ fn settings_present(
         inner.pending_generation = None;
     }
 
+    trace_settings_open("show-requested", generation);
     window.show().map_err(|error| error.to_string())?;
+    trace_settings_open("show-returned", generation);
     apply_settings_window_shape(&window).map_err(|error| error.to_string())?;
     if let Err(error) = window.set_focus() {
         let _ = set_native_window_alpha(&window, 0);
@@ -292,23 +320,31 @@ fn settings_present(
         return Err(error.to_string());
     }
     lifecycle.opening.store(true, Ordering::Release);
-    let fade_window = window.clone();
-    let fade_lifecycle = lifecycle.clone();
-    tauri::async_runtime::spawn(async move {
-        if let Err(_error) = fade_settings_window(
-            &fade_window,
-            &fade_lifecycle,
-            generation,
-            0,
-            255,
-            reduced_motion,
-        )
-        .await
-        {
-            #[cfg(debug_assertions)]
-            eprintln!("Ion Sense could not fade settings in: {_error}");
-        }
-    });
+    // Cold-start mask: on the first open WebView2 may present a stale frame
+    // (the settled pre-entrance content) for a frame or two while it creates
+    // its composition surface. The hidden shell state is opacity 0 (frontend),
+    // so any stale frame is invisible; this short eased ramp covers the
+    // surface-creation gap and is imperceptible on warm opens. The shell
+    // entrance plays once, committed by the frontend before settings_present;
+    // native reveal does not restart it.
+    {
+        let fade_window = window.clone();
+        let fade_lifecycle = lifecycle.clone();
+        let steps = if reduced_motion { 1 } else { 10 };
+        let delay = if reduced_motion { 0 } else { 15 };
+        tauri::async_runtime::spawn(async move {
+            let _ = fade_settings_window(
+                &fade_window,
+                &fade_lifecycle,
+                generation,
+                0,
+                255,
+                steps,
+                delay,
+            )
+            .await;
+        });
+    }
     let focus_window = window.clone();
     tauri::async_runtime::spawn(async move {
         tokio::time::sleep(Duration::from_millis(260)).await;
@@ -345,7 +381,8 @@ async fn settings_hide(
         generation,
         current_alpha,
         0,
-        reduced_motion,
+        if reduced_motion { 1 } else { 12 },
+        if reduced_motion { 0 } else { 14 },
     )
     .await
     .map_err(|error| error.to_string())?;
@@ -364,6 +401,202 @@ async fn settings_hide(
     Ok(true)
 }
 
+/// Plays alert audio natively. The WebView hands over the WAV bytes it got
+/// from the local TTS service; the dedicated audio thread owns the speaker
+/// device, so browser autoplay/context rules can never silence an alert. Ok
+/// means the clip was accepted for playback; `ion-sense://voice-started` and
+/// `ion-sense://voice-ended` (echoing `id`) drive the HUD waveform.
+#[tauri::command]
+fn play_ion_wav(
+    state: State<'_, NativeState>,
+    window: WebviewWindow,
+    id: String,
+    wav_base64: String,
+    cache_key: String,
+) -> Result<bool, String> {
+    require_window(&window, "hud")?;
+    if id.len() > 128 || cache_key.len() > 180 || wav_base64.len() > 8 * 1024 * 1024 {
+        return Err("audio request exceeds its limit".into());
+    }
+    if !state.audio_device_ok.load(Ordering::Acquire) {
+        return Err("audio device unavailable".into());
+    }
+    use base64::Engine as _;
+    let wav = base64::engine::general_purpose::STANDARD
+        .decode(wav_base64.as_bytes())
+        .map_err(|error| format!("invalid wav payload: {error}"))?;
+    if wav.len() < 44 {
+        return Err("wav payload too small".into());
+    }
+    rodio::Decoder::new_wav(std::io::Cursor::new(wav.clone()))
+        .map_err(|_| "audio clip could not be decoded".to_owned())?;
+    // Mirror the clip so the alert remains audible even when the neural
+    // service later goes down (last-good playback needs no service).
+    if let Some(path) = ion_lastgood_path(&cache_key) {
+        let saved = path
+            .parent()
+            .map(|dir| std::fs::create_dir_all(dir).and_then(|_| std::fs::write(&path, &wav)));
+        if let Some(Err(error)) = saved {
+            eprintln!("Ion Sense could not cache alert audio: {error}");
+        }
+    }
+    state
+        .audio_tx
+        .lock()
+        .map_err(|_| "audio tx lock unavailable".to_owned())?
+        .send(IonAudioMsg::Play { wav, id })
+        .map_err(|_| "audio thread is gone".to_owned())?;
+    Ok(true)
+}
+
+/// Plays the last-good mirrored clip for a key (text+profile) natively.
+/// Used when the neural service is unavailable so known alerts remain
+/// audible with the same ION speaker. Fails if no mirror exists yet.
+#[tauri::command]
+fn play_ion_lastgood(
+    state: State<'_, NativeState>,
+    window: WebviewWindow,
+    id: String,
+    cache_key: String,
+) -> Result<bool, String> {
+    require_window(&window, "hud")?;
+    if id.len() > 128 || cache_key.len() > 180 {
+        return Err("audio request exceeds its limit".into());
+    }
+    if !state.audio_device_ok.load(Ordering::Acquire) {
+        return Err("audio device unavailable".into());
+    }
+    let Some(path) = ion_lastgood_path(&cache_key) else {
+        return Err("no last-good clip".into());
+    };
+    let wav = std::fs::read(&path).map_err(|error| format!("lastgood read: {error}"))?;
+    state
+        .audio_tx
+        .lock()
+        .map_err(|_| "audio tx lock unavailable".to_owned())?
+        .send(IonAudioMsg::Play { wav, id })
+        .map_err(|_| "audio thread is gone".to_owned())?;
+    Ok(true)
+}
+
+fn ion_lastgood_path(cache_key: &str) -> Option<std::path::PathBuf> {
+    let key: String = cache_key
+        .chars()
+        .map(|c| if c.is_ascii_alphanumeric() { c } else { '_' })
+        .collect();
+    dirs::cache_dir().map(|dir| {
+        dir.join("ion-sense")
+            .join("voice-lastgood")
+            .join(format!("{key}.wav"))
+    })
+}
+
+/// Stops any currently playing alert audio (dismiss / replace / cancel).
+#[tauri::command]
+fn stop_ion_audio(state: State<'_, NativeState>, window: WebviewWindow) -> Result<(), String> {
+    require_window(&window, "hud")?;
+    state
+        .audio_tx
+        .lock()
+        .map_err(|_| "audio tx lock unavailable".to_owned())?
+        .send(IonAudioMsg::Stop)
+        .map_err(|_| "audio thread is gone".to_owned())
+}
+
+/// Owns the rodio output stream for the whole process and serializes alert
+/// playback. rodio's stream is !Send, so it must live entirely in here.
+fn ion_audio_emit(app: &AppHandle, event: &str, id: &str) {
+    if let Some(hud) = app.get_webview_window("hud") {
+        let _ = hud.emit(event, id.to_string());
+    }
+}
+
+fn ion_audio_start(
+    current: &mut Option<(rodio::Sink, String)>,
+    handle: &rodio::OutputStreamHandle,
+    app: &AppHandle,
+    wav: Vec<u8>,
+    id: &str,
+) {
+    let cursor = std::io::Cursor::new(wav);
+    let decoder = match rodio::Decoder::new_wav(cursor) {
+        Ok(decoder) => decoder,
+        Err(error) => {
+            eprintln!("Ion Sense alert audio decode failed: {error}");
+            ion_audio_emit(app, "ion-sense://voice-failed", id);
+            return;
+        }
+    };
+    match rodio::Sink::try_new(handle) {
+        Ok(sink) => {
+            sink.append(decoder);
+            ion_audio_emit(app, "ion-sense://voice-started", id);
+            #[cfg(debug_assertions)]
+            eprintln!("Ion Sense alert audio playing ({id})");
+            *current = Some((sink, id.to_string()));
+        }
+        Err(error) => {
+            eprintln!("Ion Sense audio sink unavailable: {error}");
+            ion_audio_emit(app, "ion-sense://voice-failed", id);
+        }
+    }
+}
+
+fn spawn_ion_audio_thread(
+    app: AppHandle,
+    receiver: std::sync::mpsc::Receiver<IonAudioMsg>,
+    device_ok: Arc<AtomicBool>,
+) {
+    std::thread::spawn(move || {
+        let (stream, handle) = match rodio::OutputStream::try_default() {
+            Ok(pair) => pair,
+            Err(error) => {
+                eprintln!("Ion Sense audio device unavailable: {error}");
+                return;
+            }
+        };
+        device_ok.store(true, Ordering::Release);
+        eprintln!("Ion Sense audio device ready");
+        let _stream_keepalive = stream;
+
+        // The active clip and its request id; None when nothing is playing.
+        let mut current: Option<(rodio::Sink, String)> = None;
+        let stop_current = |current: &mut Option<(rodio::Sink, String)>| {
+            if let Some((sink, _)) = current.take() {
+                sink.stop();
+            }
+        };
+
+        while let Ok(message) = receiver.recv() {
+            match message {
+                IonAudioMsg::Stop => stop_current(&mut current),
+                IonAudioMsg::Play { wav, id } => {
+                    stop_current(&mut current);
+                    ion_audio_start(&mut current, &handle, &app, wav, &id);
+                }
+            }
+            // Stay responsive to stop/replace while reporting completion.
+            while let Some((sink, id)) = current.as_ref() {
+                if sink.empty() {
+                    let id = id.clone();
+                    current = None;
+                    ion_audio_emit(&app, "ion-sense://voice-ended", &id);
+                    #[cfg(debug_assertions)]
+                    eprintln!("Ion Sense alert audio finished");
+                    break;
+                }
+                match receiver.recv_timeout(std::time::Duration::from_millis(40)) {
+                    Ok(IonAudioMsg::Stop) => stop_current(&mut current),
+                    Ok(IonAudioMsg::Play { wav, id }) => {
+                        stop_current(&mut current);
+                        ion_audio_start(&mut current, &handle, &app, wav, &id);
+                    }
+                    Err(_) => continue,
+                }
+            }
+        }
+    });
+}
 #[tauri::command]
 async fn save_settings(
     window: WebviewWindow,
@@ -517,8 +750,8 @@ fn get_credential_status(
 }
 
 /// Live system readouts for the monitoring screen. Read-only sampling that
-/// mirrors the same crate APIs the detectors use; never blocks longer than
-/// the CPU sampling pause.
+/// mirrors the same crate APIs the detectors use. Sampling and filesystem
+/// access run off the window thread so they cannot delay a tray reveal.
 #[derive(serde::Serialize)]
 #[serde(rename_all = "camelCase")]
 struct SystemMetrics {
@@ -657,9 +890,19 @@ fn downloads_bytes_last_24h() -> u64 {
 }
 
 #[tauri::command]
-fn get_system_metrics(window: WebviewWindow) -> Result<SystemMetrics, String> {
+async fn get_system_metrics(window: WebviewWindow) -> Result<SystemMetrics, String> {
     require_window(&window, "settings")?;
-    Ok(collect_system_metrics())
+    tauri::async_runtime::spawn_blocking(|| {
+        trace_settings_open("metrics-start", 0);
+        let metrics = collect_system_metrics();
+        trace_settings_open("metrics-end", 0);
+        metrics
+    })
+    .await
+    .map_err(|error| {
+        eprintln!("Ion Sense metrics task failed: {error}");
+        "System readings are temporarily unavailable.".to_owned()
+    })
 }
 
 #[tauri::command]
@@ -938,6 +1181,8 @@ fn setup_app(app: &mut App) -> Result<(), Box<dyn std::error::Error>> {
     let detectors = DetectorRuntime::start(&settings, dispatcher.clone());
     let settings_window = Arc::new(SettingsWindowLifecycle::new());
 
+    let audio_device_ok = Arc::new(AtomicBool::new(false));
+    let (audio_tx, audio_rx) = std::sync::mpsc::channel::<IonAudioMsg>();
     app.manage(NativeState {
         settings: RwLock::new(settings),
         settings_path,
@@ -945,9 +1190,18 @@ fn setup_app(app: &mut App) -> Result<(), Box<dyn std::error::Error>> {
         dispatcher: dispatcher.clone(),
         hud: hud.clone(),
         settings_window,
+        audio_tx: Mutex::new(audio_tx),
+        audio_device_ok: audio_device_ok.clone(),
     });
+    spawn_ion_audio_thread(app.handle().clone(), audio_rx, audio_device_ok);
     #[cfg(debug_assertions)]
     eprintln!("Ion Sense native state ready");
+
+    // ION voice: spawn the local Chatterbox-Turbo worker asynchronously when
+    // the isolated environment exists. Voice is additive — the service loads
+    // its model in the background and every failure path falls back to Web
+    // Speech inside the HUD, so this can never block or break startup.
+    spawn_ion_voice_service(app.handle());
 
     let app_handle = app.handle().clone();
     tauri::async_runtime::spawn(forward_events(
@@ -958,6 +1212,85 @@ fn setup_app(app: &mut App) -> Result<(), Box<dyn std::error::Error>> {
     ));
     Ok(())
 }
+
+#[cfg(windows)]
+static VOICE_SERVICE_CHILD: std::sync::Mutex<Option<u32>> = std::sync::Mutex::new(None);
+
+#[cfg(windows)]
+fn kill_voice_service_tree() {
+    let pid = VOICE_SERVICE_CHILD
+        .lock()
+        .map(|guard| *guard)
+        .unwrap_or(None);
+    if let Some(pid) = pid {
+        use std::os::windows::process::CommandExt;
+        const CREATE_NO_WINDOW: u32 = 0x0800_0000;
+        let _ = std::process::Command::new("taskkill")
+            .args(["/PID", &pid.to_string(), "/T", "/F"])
+            .creation_flags(CREATE_NO_WINDOW)
+            .stdout(std::process::Stdio::null())
+            .stderr(std::process::Stdio::null())
+            .status();
+        eprintln!("Ion Sense voice service stopped");
+    }
+}
+
+#[cfg(windows)]
+fn spawn_ion_voice_service(app: &AppHandle) {
+    use std::os::windows::process::CommandExt;
+    const CREATE_NO_WINDOW: u32 = 0x0800_0000;
+
+    // Only trusted, explicit locations. Never execute a worker discovered
+    // relative to the launch working directory or an executable ancestor.
+    let mut candidates = Vec::new();
+    if let (Ok(resources), Ok(data)) = (app.path().resource_dir(), app.path().app_local_data_dir())
+    {
+        let python = std::env::var_os("ION_VOICE_PYTHON")
+            .map(PathBuf::from)
+            .filter(|path| path.is_absolute())
+            .unwrap_or_else(|| data.join("voice/.venv/Scripts/python.exe"));
+        candidates.push((python, resources.join("voice")));
+    }
+    #[cfg(debug_assertions)]
+    {
+        let base = PathBuf::from(env!("CARGO_MANIFEST_DIR")).join("..");
+        let dir = base.join("tools/ion-voice");
+        candidates.push((dir.join(".venv/Scripts/python.exe"), dir));
+    }
+    for (python, dir) in candidates {
+        let script = dir.join("ion_tts.py");
+        if python.exists() && script.exists() {
+            let reference = dir.join("ion-reference.wav");
+            if reference.is_file() {
+                eprintln!("ION VOICE REFERENCE: ion-reference.wav");
+            } else {
+                eprintln!("ION VOICE REFERENCE: MISSING — FALLBACK ACTIVE");
+            }
+            let result = std::process::Command::new(&python)
+                .arg(&script)
+                .current_dir(&dir)
+                .creation_flags(CREATE_NO_WINDOW)
+                .stdout(std::process::Stdio::null())
+                .stderr(std::process::Stdio::null())
+                .spawn();
+            match result {
+                Ok(child) => {
+                    VOICE_SERVICE_CHILD
+                        .lock()
+                        .map(|mut guard| *guard = Some(child.id()))
+                        .unwrap_or_else(|_| eprintln!("Ion Sense voice child tracking failed"));
+                    eprintln!("Ion Sense voice service spawned");
+                }
+                Err(error) => eprintln!("Ion Sense voice service failed to spawn: {error}"),
+            }
+            return;
+        }
+    }
+    eprintln!("Ion Sense voice service not installed; using Web Speech");
+}
+
+#[cfg(not(windows))]
+fn spawn_ion_voice_service(_app: &AppHandle) {}
 
 async fn forward_events(
     app: AppHandle,
@@ -988,7 +1321,7 @@ async fn forward_events(
             #[cfg(debug_assertions)]
             eprintln!(
                 "Ion Sense delivered {:?} through {EVENT_NAME}",
-                event.event_type
+                event.event_type,
             );
 
             loop {
@@ -1122,6 +1455,7 @@ fn setup_tray(app: &AppHandle) -> tauri::Result<()> {
                 ..
             } = event
             {
+                trace_settings_open("tray-click", 0);
                 let app = tray.app_handle();
                 if let Some(window) = app.get_webview_window("settings")
                     && window.is_visible().unwrap_or(false)
@@ -1163,6 +1497,7 @@ const NATIVE_TRAY_GUID: windows::core::GUID =
 
 #[cfg(windows)]
 fn activate_native_tray(position: Option<PhysicalPosition<f64>>) {
+    trace_settings_open("native-tray-click", 0);
     let Some(app) = NATIVE_TRAY_APP.get().cloned() else {
         return;
     };
@@ -1365,6 +1700,7 @@ fn setup_native_windows_tray(_app: &AppHandle) -> tauri::Result<()> {
 }
 
 fn open_settings(app: &AppHandle, anchor: Option<PhysicalPosition<f64>>) -> tauri::Result<()> {
+    trace_settings_open("open-begins", 0);
     if let Some(window) = app.get_webview_window("settings") {
         position_settings_popover(&window, anchor)?;
         // Reassert non-client settings before every reveal. This prevents
@@ -1379,6 +1715,7 @@ fn open_settings(app: &AppHandle, anchor: Option<PhysicalPosition<f64>>) -> taur
         let lifecycle = app.state::<NativeState>().settings_window.clone();
         lifecycle.alpha.store(0, Ordering::Release);
         let generation = lifecycle.cancel_close();
+        trace_settings_open("window-prepared", generation);
         lifecycle.opening.store(true, Ordering::Release);
         let ready = {
             let mut inner = lifecycle.inner.lock().map_err(|_| {
@@ -1394,6 +1731,7 @@ fn open_settings(app: &AppHandle, anchor: Option<PhysicalPosition<f64>>) -> taur
         // and explicitly acknowledges it via `settings_present`; Rust never
         // guesses whether a hidden WebView has composited yet.
         if ready {
+            trace_settings_open("prepare-requested", generation);
             window.emit(SETTINGS_OPEN_EVENT, generation)?;
         }
     }
@@ -1601,7 +1939,11 @@ pub fn run() {
         hud_present,
         hud_has_followup,
         hud_idle,
-        fire_test_event
+        fire_test_event,
+        play_ion_wav,
+        play_ion_lastgood,
+        play_ion_lastgood,
+        stop_ion_audio
     ]);
 
     #[cfg(not(debug_assertions))]
@@ -1619,7 +1961,11 @@ pub fn run() {
         hud_ready,
         hud_present,
         hud_has_followup,
-        hud_idle
+        hud_idle,
+        play_ion_wav,
+        play_ion_lastgood,
+        play_ion_lastgood,
+        stop_ion_audio
     ]);
 
     let app = builder
@@ -1632,6 +1978,10 @@ pub fn run() {
         {
             eprintln!("Ion Sense could not create its tray icon: {error}");
             app_handle.exit(1);
+        }
+        if let tauri::RunEvent::Exit = event {
+            #[cfg(windows)]
+            kill_voice_service_tree();
         }
     });
 }

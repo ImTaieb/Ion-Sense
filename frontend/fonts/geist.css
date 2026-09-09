@@ -1,0 +1,10 @@
+/* Geist Sans (variable) — Vercel, SIL Open Font License.
+   Bundled locally: no CDN, no runtime network. Fallbacks keep the UI
+   fully intact if the font fails to load. */
+@font-face {
+  font-family: "Geist";
+  src: url("geist-variable.woff2") format("woff2-variations");
+  font-weight: 100 900;
+  font-style: normal;
+  font-display: swap;
+}

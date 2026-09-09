@@ -11,6 +11,20 @@
     }
   </script>
     <link rel="stylesheet" href="ion-tokens.css">
+    <link rel="stylesheet" href="fonts/geist.css">
+  <script>
+    (() => {
+      const v = new URLSearchParams(location.search).get("font");
+      if (v === "a" || v === "b" || v === "c") {
+        const st = document.createElement("style");
+        st.textContent = ':root { --ion-font: ' +
+          (v === "a" ? '"Segoe UI Variable Text", "Segoe UI", sans-serif' :
+           v === "b" ? '"Geist", "Segoe UI Variable Text", "Segoe UI", sans-serif' :
+                       '"Segoe UI", sans-serif') + ' !important; }';
+        document.head.appendChild(st);
+      }
+    })();
+  </script>
 <style>
     /* Authoritative design tokens. Reverted to c922804 composition; no
        per-element entrance choreography; no overshoot easings. */
@@ -29,14 +43,14 @@
 
       /* Identity tokens: kept inline so the HUD renders correctly even where
          the shared ion-tokens.css cannot resolve (standalone prototype copy). */
-      --ion-font:          -apple-system, BlinkMacSystemFont, "Segoe UI Variable Text", "Segoe UI", Inter, system-ui, sans-serif;
-      --ion-font-display:  -apple-system, BlinkMacSystemFont, "Segoe UI Variable Display", "Segoe UI Variable Text", "Segoe UI", Inter, system-ui, sans-serif;
+      --ion-font:          "Geist", "Segoe UI Variable", "Segoe UI", sans-serif;
+      --ion-font-display:  "Geist", "Segoe UI Variable", "Segoe UI", sans-serif;
       --ion-surface:       #0B0D0C;
       --ion-ease-spring:   cubic-bezier(0.34, 1.3, 0.42, 1);
 
       --ion-text:          #ECF4EE;
-      --ion-text-secondary: rgba(220, 232, 224, 0.66);
-      --ion-text-tertiary:  rgba(190, 205, 196, 0.42);
+      --ion-text-secondary: rgba(220, 232, 224, 0.74);
+      --ion-text-tertiary:  rgba(190, 205, 196, 0.53);
       --text:              var(--ion-text);
       --muted:             var(--ion-text-secondary);
 
@@ -390,8 +404,8 @@
       stroke-linecap: round;
       stroke-linejoin: round;
       filter:
-        drop-shadow(0 0 2px rgba(var(--ion-rgb), 0.58))
-        drop-shadow(0 0 8px rgba(var(--ion-rgb), 0.22));
+        drop-shadow(0 0 2px rgba(var(--ion-rgb), 0.32))
+        drop-shadow(0 0 8px rgba(var(--ion-rgb), 0.1));
     }
 
     .event-copy {
@@ -544,9 +558,11 @@
     }
 
     /* The badge is the brand core: one thin neutral ring, one restrained
-       green progress arc, and the clean capital I. No orbit, no particles. */
+       green progress arc, and the clean capital I. No orbit, no particles.
+       Graphite carries structure; green stays as signal, not decoration. */
     .badge-outer {
       stroke: rgba(255, 255, 255, 0.14);
+      opacity: .72;
       filter: none;
     }
 
@@ -1010,7 +1026,7 @@
       border-radius: 32px;
       background:
         radial-gradient(circle at 13% 50%, rgba(var(--ion-rgb), .035), transparent 30%),
-        linear-gradient(180deg, rgba(17, 19, 18, .95), rgba(11, 13, 12, .92) 62%, rgba(9, 11, 10, .9));
+        linear-gradient(180deg, rgba(23, 25, 24, .95), rgba(17, 19, 18, .92) 62%, rgba(15, 17, 16, .9));
       box-shadow:
         inset 0 1px 0 rgba(255, 255, 255, .04),
         0 24px 64px rgba(0, 0, 0, .5);
@@ -1045,8 +1061,8 @@
       width: 1px;
       height: 100px;
       align-self: center;
-      background: linear-gradient(180deg, transparent, rgba(var(--ion-rgb), .54) 18%, rgba(var(--ion-rgb), .30) 82%, transparent);
-      box-shadow: 0 0 8px rgba(var(--ion-rgb), .20);
+      background: linear-gradient(180deg, transparent, rgba(var(--ion-rgb), .42) 18%, rgba(var(--ion-rgb), .24) 82%, transparent);
+      box-shadow: 0 0 8px rgba(var(--ion-rgb), .14);
     }
     /* Energy propagation: when the alert materializes, a soft light travels
        down the conduit from the core toward the content — the left anchor and
@@ -1054,13 +1070,13 @@
        inside the same 1px line, not a new element. */
     .hud-toast.is-entering .hud-body::before {
       background:
-        linear-gradient(180deg, transparent, rgba(var(--ion-rgb), .54) 18%, rgba(var(--ion-rgb), .30) 82%, transparent);
+        linear-gradient(180deg, transparent, rgba(var(--ion-rgb), .42) 18%, rgba(var(--ion-rgb), .24) 82%, transparent);
       animation: conduit-flare 700ms 240ms var(--ion-spring) both;
     }
     @keyframes conduit-flare {
-      0% { box-shadow: 0 0 8px rgba(var(--ion-rgb), .2); }
-      38% { box-shadow: 0 0 16px rgba(var(--ion-rgb), .55), 0 0 4px rgba(var(--ion-rgb), .5); }
-      100% { box-shadow: 0 0 8px rgba(var(--ion-rgb), .2); }
+      0% { box-shadow: 0 0 8px rgba(var(--ion-rgb), .14); }
+      38% { box-shadow: 0 0 14px rgba(var(--ion-rgb), .4), 0 0 4px rgba(var(--ion-rgb), .34); }
+      100% { box-shadow: 0 0 8px rgba(var(--ion-rgb), .14); }
     }
     .event-icon-shell {
       position: relative;
@@ -1069,11 +1085,12 @@
       width: 98px;
       height: 98px;
       border-width: 1px;
-      border-color: rgba(var(--ion-rgb), .40);
+      border-color: rgba(var(--ion-rgb), .29);
+      color: var(--ion-bright);
       background:
-        radial-gradient(circle at 50% 45%, rgba(var(--ion-rgb), .075), transparent 55%),
-        rgba(0, 4, 2, .26);
-      box-shadow: inset 0 0 0 8px rgba(var(--ion-rgb), .008), inset 0 1px rgba(255,255,255,.035), 0 0 12px rgba(var(--ion-rgb), .06);
+        radial-gradient(circle at 50% 45%, rgba(var(--ion-rgb), .055), transparent 55%),
+        rgba(9, 13, 11, .26);
+      box-shadow: inset 0 0 0 8px rgba(var(--ion-rgb), .008), inset 0 1px rgba(255,255,255,.035), 0 0 12px rgba(var(--ion-rgb), .04);
     }
     .event-icon-shell::after {
       content: "";
@@ -1081,7 +1098,7 @@
       inset: -7px;
       border: 1px solid rgba(var(--ion-rgb), .10);
       border-radius: 50%;
-      opacity: .68;
+      opacity: .4;
       pointer-events: none;
     }
     .event-icon-shell svg { width: 36px; height: 36px; }
@@ -1096,10 +1113,10 @@
       border-top: 0;
       background: linear-gradient(90deg, rgba(var(--ion-rgb), .025), transparent 42%), rgba(0, 0, 0, .07);
     }
-    .hud-footer::before { content: ""; position: absolute; top: -1px; right: 0; left: 339px; height: 1px; background: linear-gradient(90deg, rgba(var(--ion-rgb), .28), rgba(var(--ion-rgb), .11) 72%, transparent); }
-    .speaker-icon { width: 34px; height: 34px; stroke-width: 1.55; }
+    .hud-footer::before { content: ""; position: absolute; top: -1px; right: 0; left: 339px; height: 1px; background: linear-gradient(90deg, rgba(220, 232, 224, .16), rgba(220, 232, 224, .08) 72%, transparent); }
+    .speaker-icon { width: 34px; height: 34px; color: var(--ion-text-tertiary); stroke-width: 1.55; }
     .waveform { height: 40px; margin-left: 46px; justify-content: space-between; gap: 0; }
-    .wave-bar { width: 1.5px; flex-basis: 1.5px; }
+    .wave-bar { width: 1px; flex-basis: 1px; background: var(--ion-bright); }
     .wave-bar.is-dot { width: 3px; height: 3px; min-height: 3px; flex-basis: 3px; }
     .spoken-line { margin-left: 58px; font-family: var(--ion-font-display); font-size: 12.5px; font-weight: 500; letter-spacing: .02em; color: var(--ion-text-tertiary); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
     .brand-badge {
@@ -1112,9 +1129,9 @@
       box-shadow: none;
       filter: drop-shadow(0 0 3px rgba(var(--ion-rgb), .14)) drop-shadow(0 0 13px rgba(var(--ion-rgb), .055));
     }
-    .badge-outer { stroke-width: 1.25; opacity: .9; }
-    .badge-arc { opacity: .62; }
-    .badge-mark { opacity: .92; filter: drop-shadow(0 0 3px rgba(var(--ion-rgb), .12)); }
+    .badge-outer { stroke-width: 1.25; opacity: .80; }
+    .badge-arc { opacity: .48; }
+    .badge-mark { opacity: .78; filter: none; }
     .brand-badge .badge-svg { width: 100%; height: 100%; margin: 0; }
 
     /* Subtle will-change hints for the elements that actually animate. */
@@ -1384,14 +1401,14 @@
     .hud-toast .waveform[data-visualizer-state="speaking"] {
       opacity: 1;
       transform: none;
-      --wave-baseline-opacity: .1;
+      --wave-baseline-opacity: .07;
       --wave-baseline-scale: 1;
     }
 
     .hud-toast .waveform[data-visualizer-state="active"] .wave-bar,
     .hud-toast .waveform[data-visualizer-state="speaking"] .wave-bar {
       animation: none !important;
-      opacity: var(--wave-opacity, .68);
+      opacity: var(--wave-opacity, .55);
       transform: scaleY(var(--wave-level, .78));
     }
 
@@ -1401,10 +1418,14 @@
     }
 
     .hud-toast .waveform[data-visualizer-state="speaking"] {
-      --wave-baseline-opacity: .18;
+      --wave-baseline-opacity: .16;
       filter:
-        drop-shadow(0 0 2px rgba(var(--ion-rgb), .5))
-        drop-shadow(0 0 8px rgba(var(--ion-rgb), .18));
+        drop-shadow(0 0 2px rgba(var(--ion-rgb), .32))
+        drop-shadow(0 0 8px rgba(var(--ion-rgb), .1));
+    }
+    /* The speaking glow fades with the envelope rather than snapping. */
+    .hud-toast .waveform {
+      transition: filter 260ms ease-out;
     }
 
     .hud-toast .waveform[data-visualizer-state="exiting"] {
@@ -1435,13 +1456,13 @@
     }
     @keyframes visualizer-bar-in {
       0% { opacity: 0; transform: scaleY(.04); }
-      68% { opacity: .92; transform: scaleY(1.08); }
-      100% { opacity: .68; transform: scaleY(.78); }
+      68% { opacity: .78; transform: scaleY(1.08); }
+      100% { opacity: .55; transform: scaleY(.78); }
     }
     @keyframes visualizer-dot-in {
       0% { opacity: 0; transform: scale(0); }
-      68% { opacity: .88; transform: scale(1.06); }
-      100% { opacity: .66; transform: scale(.84); }
+      68% { opacity: .74; transform: scale(1.06); }
+      100% { opacity: .54; transform: scale(.84); }
     }
     @keyframes visualizer-energy-pass {
       0% { opacity: 0; transform: translate3d(-130%, 0, 0); }
@@ -1475,19 +1496,19 @@
       --progress-opacity: .45;
     }
     .hud-toast[data-severity="info"] {
-      --severity-border: .16;
+      --severity-border: .18;
       --severity-energy: .48;
       --severity-arc: .24;
       --progress-opacity: .41;
     }
     .hud-toast[data-severity="warning"] {
-      --severity-border: .2;
+      --severity-border: .22;
       --severity-energy: .68;
       --severity-arc: .38;
       --progress-opacity: .47;
     }
     .hud-toast[data-severity="critical"] {
-      --severity-border: .28;
+      --severity-border: .30;
       --severity-energy: .92;
       --severity-arc: .55;
       --progress-opacity: .52;
@@ -1498,12 +1519,12 @@
     /* The left core shares the event's energy: arc and glyph luminance follow
        severity through opacity only — one palette, changing intensity. */
     .hud-toast[data-severity] .badge-arc {
-      --badge-arc-opacity: calc(.5 + var(--severity-energy) * .45);
+      --badge-arc-opacity: calc(.38 + var(--severity-energy) * .34);
       stroke-dasharray: calc(var(--severity-arc, .3)) calc(1 - var(--severity-arc, .3));
       opacity: var(--badge-arc-opacity);
     }
     .hud-toast[data-severity] .badge-mark {
-      opacity: calc(.72 + var(--severity-energy) * .14);
+      opacity: calc(.66 + var(--severity-energy) * .12);
     }
 
     .hud-layer[data-severity="info"] .screen-overlay::before { opacity: .72; }
@@ -1567,10 +1588,10 @@
       height: 10px;
       background: rgba(255, 255, 255, .14);
     }
-    .event-source { color: rgba(190, 205, 196, .6); }
+    .event-source { color: rgba(190, 205, 196, .68); }
     .event-time {
       margin-left: auto;
-      color: rgba(190, 205, 196, .5);
+      color: rgba(190, 205, 196, .60);
       font-variant-numeric: tabular-nums;
       letter-spacing: .05em;
     }
@@ -1788,7 +1809,7 @@
         },
         download_finished: {
           title: "Downloads finished",
-          voiceLine: "Your download has finished successfully.",
+          voiceLine: "Your download has completed.",
           icon: `<svg viewBox="0 0 32 32"><path d="m7 16 6 6L25 9"></path></svg>`
         },
         new_email: {
@@ -1809,6 +1830,45 @@
       });
 
       const SEVERITIES = new Set(["info", "warning", "critical"]);
+      /* Warm the local voice service with this product's fixed alert lines so
+         every real alert speaks instantly (fire-and-forget; failures silent). */
+      const warmIonVoice = () => {
+        const lines = Object.entries(DISPLAY).map(([type, entry]) => ({
+          text: entry.voiceLine,
+          profile: type === "overheating" ? "critical" : type === "battery_low" ? "warning" : "routine"
+        }));
+        fetch(ION_TTS_ENDPOINT + "/warm", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ lines })
+        }).catch(() => {});
+      };
+      window.setTimeout(warmIonVoice, 1200);
+      /* Once ready, retain every known WAV in memory. A failed line keeps
+         the existing bounded retry loop alive without suppressing alerts. */
+      let ionPredecodeTries = 0;
+      const predecodeIonLines = async () => {
+        try {
+          const health = await fetch(ION_TTS_ENDPOINT + "/health").then((r) => r.json());
+          if (health.state !== "ready") throw new Error(health.state);
+          let complete = true;
+          for (const [type, entry] of Object.entries(DISPLAY)) {
+            const profile = type === "overheating" ? "critical" : type === "battery_low" ? "warning" : "routine";
+            await ensureIonWav(entry.voiceLine, profile, { background: true }).catch(() => { complete = false; });
+          }
+          return complete;
+        } catch (_) {
+          return false;
+        }
+      };
+      const predecodeLoop = async () => {
+        while (ionPredecodeTries < 40) {
+          ionPredecodeTries += 1;
+          if (await predecodeIonLines()) return;
+          await new Promise((resolve) => window.setTimeout(resolve, 15000));
+        }
+      };
+      window.setTimeout(predecodeLoop, 2500);
       const AUTO_DISMISS_MS = 6200;
       const queue = [];
 
@@ -1839,6 +1899,11 @@
       let visualizerGeneration = 0;
       let visualizerStartedAt = 0;
       let visualizerBars = [];
+      /* Macro energy envelope: 0 at silence, 1 at full speaking energy.
+         ATTACK rises ~110ms with the voice; RELEASE decays ~320ms after it
+         ends — the signal dissipates instead of unplugging. */
+      let visualizerEnergy = 0;
+      let visualizerEnergyTarget = 0;
       const reducedMotionQuery = typeof window.matchMedia === "function"
         ? window.matchMedia("(prefers-reduced-motion: reduce)")
         : null;
@@ -1939,7 +2004,11 @@
           const delta = Math.min(48, Math.max(0, time - previousTime));
           previousTime = time;
           const speaking = visualizerState === "speaking";
-          const smoothing = 1 - Math.exp(-delta * (speaking ? .021 : .009));
+          visualizerEnergyTarget = speaking ? 1 : .3;
+          const energyRate = visualizerEnergy < visualizerEnergyTarget ? .016 : .008;
+          visualizerEnergy += (visualizerEnergyTarget - visualizerEnergy) * (1 - Math.exp(-delta * energyRate));
+          const smoothing = 1 - Math.exp(-delta * (speaking ? .013 : .009));
+          const energy = .35 + visualizerEnergy * .65;
 
           visualizerBars.forEach((bar, index) => {
             const dot = bar.classList.contains("is-dot");
@@ -1952,11 +2021,11 @@
             let target;
 
             if (speaking) {
-              target = dot
+              target = (dot
                 ? .55 + envelope * .48
                 : peak
                   ? .34 + envelope * .9
-                  : .46 + envelope * .64;
+                  : .46 + envelope * .64) * energy;
             } else {
               target = dot
                 ? .76 + envelope * .16
@@ -2086,35 +2155,297 @@
         );
       }
 
+      /* ION voice character: one original speaker — refined, calm, low-mid
+         register, precise, quietly authoritative. Severity only shifts the
+         delivery (pace, weight); the identity never changes. Values are a
+         starting tune around the Web Speech API's coarse controls. */
+      const ION_VOICE_PROFILES = Object.freeze({
+        routine: { rate: 1.0, pitch: 0.92, volume: 0.78 },
+        warning: { rate: 0.96, pitch: 0.88, volume: 0.8 },
+        critical: { rate: 0.92, pitch: 0.84, volume: 0.82 }
+      });
+
+      /* Warm the voice list early: Chromium engines populate it
+         asynchronously, and the first alert must speak with the same voice
+         as every later one. */
+      try {
+        window.speechSynthesis?.getVoices?.();
+        window.speechSynthesis?.addEventListener?.(
+          "voiceschanged",
+          () => { window.speechSynthesis?.getVoices?.(); },
+          { once: true }
+        );
+      } catch (_) { /* the voice list simply loads late */ }
+
+      function resolveIonVoice(utterance) {
+        /* Prefer a polished British male voice when the system provides one;
+           otherwise any English voice beats an arbitrary OS default. Web
+           Speech exposes no audio stream, so delivery is the only lever. */
+        try {
+          const voices = window.speechSynthesis?.getVoices?.() || [];
+          const preferred =
+            voices.find((v) => /en-gb/i.test(v.lang) && /george|ryan|en-gb\b/i.test(v.name)) ||
+            voices.find((v) => /en-gb/i.test(v.lang)) ||
+            voices.find((v) => /^en/i.test(v.lang) && /david|mark|guy/i.test(v.name)) ||
+            voices.find((v) => /^en/i.test(v.lang));
+          if (preferred) {
+            utterance.voice = preferred;
+            utterance.lang = preferred.lang;
+          }
+        } catch (_) { /* system default remains */ }
+      }
+
+      /* Local Chatterbox-Turbo provider (primary): the ION voice service
+         (tools/ion-voice, 127.0.0.1:8662) synthesizes neural speech with the
+         ION speaker identity. Unavailable / loading / failed -> Web Speech
+         fallback below. Alerts never depend on the voice. */
+      const ION_TTS_ENDPOINT = "http://127.0.0.1:8662";
+      // Raw WAV bytes per line (profile|text): known alerts play with a
+      // lookup + one IPC call — no network, no decoding in the WebView.
+      const ionWavCache = new Map();
+      let ionTtsFetch = null;
+      // After a failure (service down / starting / no reference) stop asking
+      // for a while so alerts never spend time on a dead endpoint.
+      const ION_TTS_SPEAK_TIMEOUT_MS = 3000;
+      // Playback completion is reported by the native layer via events that
+      // echo the request id; the pending map correlates them with hooks.
+      const ionNativePending = new Map();
+      let ionNativeListening = null;
+
+      function base64FromBytes(bytes) {
+        let binary = "";
+        const chunk = 0x8000;
+        for (let i = 0; i < bytes.length; i += chunk) {
+          binary += String.fromCharCode.apply(null, bytes.subarray(i, i + chunk));
+        }
+        return btoa(binary);
+      }
+
+      function ensureIonNativeListeners() {
+        if (ionNativeListening) return ionNativeListening;
+        const tauri = window.__TAURI__;
+        if (!tauri?.event?.listen) return Promise.reject(new Error("Native audio unavailable"));
+        const handle = (eventName, kind) =>
+          tauri.event.listen(eventName, ({ payload }) => {
+            const pending = ionNativePending.get(payload);
+            if (!pending) return;
+            if (kind !== "start") ionNativePending.delete(payload);
+            if (kind === "start") pending.onstart();
+            else if (kind === "end") pending.onend();
+            else pending.onerror();
+          });
+        ionNativeListening = Promise.allSettled([
+          handle("ion-sense://voice-started", "start"),
+          handle("ion-sense://voice-ended", "end"),
+          handle("ion-sense://voice-failed", "error")
+        ]).then((results) => {
+          if (results.some((result) => result.status === "rejected")) {
+            results.forEach((result) => { if (result.status === "fulfilled") result.value(); });
+            ionNativeListening = null;
+            throw new Error("Native audio events unavailable");
+          }
+        });
+        return ionNativeListening;
+      }
+
+      function stopIonTtsAudio() {
+        ionNativePending.forEach((pending) => pending.onerror());
+        ionNativePending.clear();
+        if (ionTtsFetch) {
+          ionTtsFetch.abort();
+          ionTtsFetch = null;
+        }
+        if (ionHtmlAudio) {
+          const audio = ionHtmlAudio;
+          ionHtmlAudio = null;
+          audio.onplay = null;
+          audio.onended = null;
+          audio.onerror = null;
+          audio.pause();
+          URL.revokeObjectURL(audio.src);
+          audio.removeAttribute("src");
+        }
+        const tauri = window.__TAURI__;
+        tauri?.core?.invoke?.("stop_ion_audio").catch(() => {});
+      }
+
+      /* Returns WAV bytes for a line: memory cache → local service (which
+         serves its disk cache instantly or generates). */
+      async function ensureIonWav(text, profile, hooks) {
+        const key = profile + "|" + text;
+        const cached = ionWavCache.get(key);
+        if (cached) { hooks.voiceProvider = "chatterbox-cache"; return cached; }
+        const controller = new AbortController();
+        if (!hooks.background) ionTtsFetch = controller;
+        const timeout = window.setTimeout(() => controller.abort(), ION_TTS_SPEAK_TIMEOUT_MS);
+        try {
+          const response = await fetch(ION_TTS_ENDPOINT + "/speak", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ text, profile }),
+            signal: controller.signal
+          });
+          if (!response.ok) {
+            // A starting or unavailable worker must not delay every alert.
+            throw new Error("ion tts " + response.status);
+          }
+          const bytes = new Uint8Array(await response.arrayBuffer());
+          hooks.voiceProvider = response.headers.get("X-ION-Voice-Provider") || "chatterbox";
+          // The alert may have been dismissed while audio was being produced.
+          if (!hooks.background && hooks.generation !== speechGeneration) return null;
+          ionWavCache.set(key, bytes);
+          return bytes;
+        } finally {
+          window.clearTimeout(timeout);
+          if (ionTtsFetch === controller) ionTtsFetch = null;
+        }
+      }
+
+      /* One speaker path for every event: neural → last-good → cached
+         HTMLAudio → Windows speech only after the ION paths fail. */
+      async function speakIonLine(text, profile = "routine", hooks = {}) {
+        const providers = [
+          ["chatterbox", () => speakViaChatterbox(text, profile, hooks)],
+          ["last-good", () => playIonNative("play_ion_lastgood", { cacheKey: profile + "|" + text }, hooks)],
+          ["html-audio", () => speakViaHtmlAudio(text, profile, hooks)],
+          ["fallback", () => speakViaWebSpeech(text, profile, hooks)]
+        ];
+        const onstart = hooks.onstart;
+        const onend = hooks.onend;
+        hooks.onstart = () => {
+          console.info(`ION_VOICE started event=${hooks.eventType || "preview"} provider=${hooks.voiceProvider} profile=${profile} text=${JSON.stringify(text)}`);
+          onstart?.();
+        };
+        hooks.onend = () => {
+          console.info(`ION_VOICE ended provider=${hooks.voiceProvider} profile=${profile}`);
+          onend?.();
+        };
+        for (const [name, provider] of providers) {
+          if (hooks.generation !== speechGeneration) return;
+          hooks.voiceProvider = name === "html-audio" ? "chatterbox-cache" : name;
+          try {
+            await provider();
+            return;
+          } catch (error) {
+            console.info(`ION_VOICE unavailable provider=${name} profile=${profile} reason=${error?.message ?? error}`);
+          }
+        }
+        if (hooks.generation === speechGeneration) {
+          hooks.onerror?.();
+          console.info("Ion Sense voice unavailable; the alert remains visible.");
+        }
+      }
+
+      async function speakViaChatterbox(text, profile, hooks) {
+        const bytes = await ensureIonWav(text, profile, hooks);
+        if (!bytes || hooks.generation !== speechGeneration) return;
+        return playIonNative("play_ion_wav", {
+          cacheKey: profile + "|" + text,
+          wavBase64: base64FromBytes(bytes)
+        }, hooks);
+      }
+
+      let nativePlaybackSequence = 0;
+      async function playIonNative(command, args, hooks) {
+        await ensureIonNativeListeners();
+        if (hooks.generation !== speechGeneration) return;
+        const id = `${hooks.generation}:${++nativePlaybackSequence}`;
+        // A bounded acknowledgement watchdog detects a dead audio thread;
+        // it never fabricates playback or drives waveform energy.
+        return new Promise((resolve, reject) => {
+          const fail = (error) => {
+            window.clearTimeout(watchdog);
+            ionNativePending.delete(id);
+            reject(new Error(error ? String(error) : "Native playback unavailable"));
+          };
+          const watchdog = window.setTimeout(() => {
+            window.__TAURI__.core.invoke("stop_ion_audio").catch(() => {});
+            fail();
+          }, 1200);
+          ionNativePending.set(id, {
+            onstart: () => {
+              window.clearTimeout(watchdog);
+              if (hooks.generation === speechGeneration) hooks.onstart?.();
+              resolve();
+            },
+            onend: () => {
+              window.clearTimeout(watchdog);
+              if (hooks.generation === speechGeneration) hooks.onend?.();
+              resolve();
+            },
+            onerror: fail
+          });
+          window.__TAURI__.core.invoke(command, { ...args, id }).catch(fail);
+        });
+      }
+
+      /* HTMLAudio fallback: proven audible in this WebView even where Web
+         Audio contexts and Web Speech are not. Uses the same cached WAV. */
+      let ionHtmlAudio = null;
+
+      async function speakViaHtmlAudio(text, profile, hooks) {
+        const key = profile + "|" + text;
+        const bytes = ionWavCache.get(key);
+        if (!bytes) throw new Error("no cached wav for html audio");
+        stopIonTtsAudio();
+        const blob = new Blob([bytes], { type: "audio/wav" });
+        const url = URL.createObjectURL(blob);
+        const audio = new Audio(url);
+        ionHtmlAudio = audio;
+        audio.onplay = () => hooks.onstart?.();
+        audio.onended = () => {
+          if (ionHtmlAudio === audio) ionHtmlAudio = null;
+          URL.revokeObjectURL(url);
+          hooks.onend?.();
+        };
+        audio.onerror = () => {
+          if (ionHtmlAudio === audio) ionHtmlAudio = null;
+          URL.revokeObjectURL(url);
+          hooks.onerror?.();
+        };
+        try { await audio.play(); }
+        catch (error) {
+          if (ionHtmlAudio === audio) ionHtmlAudio = null;
+          URL.revokeObjectURL(url);
+          throw error;
+        }
+      }
+
+      function speakViaWebSpeech(text, profile = "routine", hooks = {}) {
+        const tune = ION_VOICE_PROFILES[profile] || ION_VOICE_PROFILES.routine;
+        window.speechSynthesis.cancel();
+        const utterance = new SpeechSynthesisUtterance(text);
+        utterance.rate = tune.rate;
+        utterance.pitch = tune.pitch;
+        utterance.volume = tune.volume;
+        resolveIonVoice(utterance);
+        utterance.onstart = hooks.onstart || null;
+        utterance.onend = hooks.onend || null;
+        utterance.onerror = hooks.onerror || null;
+        activeUtterance = utterance;
+        window.speechSynthesis.speak(utterance);
+      }
+
       function speakEventLine() {
         const generation = ++speechGeneration;
         const voiceLine = DISPLAY[activeEvent?.type]?.voiceLine || "Ion Sense has detected a new alert.";
         const visualDuration = Math.min(6000, Math.max(1800, 700 + voiceLine.length * 52));
-        if (!("speechSynthesis" in window) || typeof window.SpeechSynthesisUtterance !== "function") {
-          startVoiceVisualization(generation, visualDuration);
-          return;
-        }
+        const startSpeaking = () => startVoiceVisualization(generation, visualDuration);
+        const stopSpeaking = () => stopVoiceVisualization(generation);
         try {
-          window.speechSynthesis.cancel();
-          const utterance = new SpeechSynthesisUtterance(voiceLine);
-          utterance.rate = 0.92;
-          utterance.pitch = 0.84;
-          utterance.volume = 0.78;
-          utterance.onstart = () => startVoiceVisualization(generation, visualDuration);
-          utterance.onend = () => stopVoiceVisualization(generation);
-          utterance.onerror = () => stopVoiceVisualization(generation);
-          activeUtterance = utterance;
-          window.speechSynthesis.speak(utterance);
-          // WebView2 voices occasionally omit onstart. Start a visual fallback
-          // on the next frame; a real onstart simply restarts it in sync.
-          window.requestAnimationFrame(() => {
-            if (generation === speechGeneration && visualizerState !== "speaking") {
-              startVoiceVisualization(generation, visualDuration);
-            }
+          const severity = SEVERITIES.has(activeEvent?.severity) ? activeEvent.severity : "info";
+          const profile = severity === "critical" ? "critical" : severity === "warning" ? "warning" : "routine";
+          speakIonLine(voiceLine, profile, {
+            generation,
+            eventType: activeEvent?.type,
+            onstart: startSpeaking,
+            onend: stopSpeaking,
+            onerror: stopSpeaking
           });
         } catch (error) {
-          startVoiceVisualization(generation, visualDuration);
-          console.info("Ion Sense voice preview is unavailable in this browser.", error);
+          // No fake speaking state on failure (§15): the waveform only moves
+          // for real audio. Playback providers have their own fallbacks.
+          console.info("Ion Sense voice unavailable:", error);
         }
       }
 
@@ -2230,7 +2561,20 @@
           updateDevStatus();
         }, enterDuration());
 
-        speechTimer = window.setTimeout(speakEventLine, prefersReducedMotion() ? 0 : 1180);
+        /* Voice joins the HUD reveal (§3/§4): state-based, not a blind delay.
+           The first requestAnimationFrame after the entering commit is the
+           first frame the compositor actually draws — the visual-ready point.
+           From there a single bounded 150ms offset waits for the shell shape
+           to become readable through the reveal (audible ≈ T+170-210ms,
+           inside the 120-220ms target), and the HUD keeps settling while it
+           talks. Reduced motion skips the offset entirely. */
+        const revealGeneration = speechGeneration;
+        requestAnimationFrame(() => {
+          if (speechGeneration !== revealGeneration || activeEvent?.timestamp !== timestamp || (lifecycle !== "entering" && lifecycle !== "visible")) return;
+          speechTimer = window.setTimeout(() => {
+            if (speechGeneration === revealGeneration && activeEvent?.timestamp === timestamp && (lifecycle === "entering" || lifecycle === "visible")) speakEventLine();
+          }, prefersReducedMotion() ? 0 : 150);
+        });
         dismissTimer = window.setTimeout(() => void dismissCurrent("timeout"), AUTO_DISMISS_MS);
         return true;
       }
@@ -2248,7 +2592,8 @@
         const timestamp = activeEvent?.timestamp;
         let hasFollowup = queue.length > 0;
         // Manual dismissal must feel immediate even if native IPC is slow.
-        if ("speechSynthesis" in window) window.speechSynthesis.cancel();
+        stopIonTtsAudio();
+          if ("speechSynthesis" in window) window.speechSynthesis.cancel();
         toast.classList.remove("is-entering", "is-visible");
         toast.classList.add("is-exiting");
         hudLayer.classList.remove("is-entering", "is-visible", "is-continuing");
@@ -2326,7 +2671,8 @@
           clearLifecycleTimers();
           setVisualizerState("hidden");
         }
-        if ("speechSynthesis" in window) window.speechSynthesis.cancel();
+        stopIonTtsAudio();
+          if ("speechSynthesis" in window) window.speechSynthesis.cancel();
       });
 
       document.addEventListener("visibilitychange", () => {

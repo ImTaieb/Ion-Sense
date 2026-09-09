@@ -103,11 +103,6 @@ const CoreEnergy = {
       renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
       renderer.setSize(canvas.clientWidth || 148, canvas.clientHeight || 148);
 
-      /* WebGL is live — retire the static fallback disc so it does not
-         read as a hard-edged circle behind the shader. */
-      fallback.style.transition = "opacity 1.2s cubic-bezier(0.16, 1, 0.3, 1)";
-      fallback.style.opacity = "0";
-
       const scene = new THREE.Scene();
       const camera = new THREE.PerspectiveCamera(45, (canvas.clientWidth || 148) / (canvas.clientHeight || 148), 0.1, 100);
       camera.position.z = 4;
@@ -150,9 +145,12 @@ const CoreEnergy = {
           void main() {
             vec3 pos = position;
             float t = uTime * 0.3;
-            float n1 = snoise(pos * 1.2 + vec3(t * 0.5)) * 0.18;
-            float n2 = snoise(pos * 2.8 + vec3(t * 0.8, t * 0.3, t * 0.6)) * 0.09;
-            float n3 = snoise(pos * 5.5 - vec3(t * 0.3)) * 0.04;
+            // Restrained launch tuning: large-scale displacement reduced so
+            // the silhouette stays coherent (engineered, not lava-lamp) while
+            // the higher-frequency layer keeps the surface alive.
+            float n1 = snoise(pos * 1.2 + vec3(t * 0.5)) * 0.085;
+            float n2 = snoise(pos * 2.8 + vec3(t * 0.8, t * 0.3, t * 0.6)) * 0.055;
+            float n3 = snoise(pos * 5.5 - vec3(t * 0.3)) * 0.035;
             float displacement = (n1 + n2 + n3) * (1.0 + uEnergy * 0.9);
             vDisplacement = displacement;
             pos += normal * displacement;
@@ -204,39 +202,9 @@ const CoreEnergy = {
       const coreMesh = new THREE.Mesh(coreGeometry, coreMaterial);
       scene.add(coreMesh);
 
-      /* Outer Glass Shell */
-      const shellGeometry = new THREE.IcosahedronGeometry(1.35, IS_MOBILE ? 16 : 32);
-      const shellMaterial = new THREE.ShaderMaterial({
-        uniforms: { uTime: { value: 0 }, uColor: { value: new THREE.Color(PALETTE.shell) } },
-        vertexShader: `
-          varying float vFresnel;
-          void main() {
-            vec4 worldPos = modelMatrix * vec4(position, 1.0);
-            vNormal = normalize(normalMatrix * normal);
-            vec3 viewDir = normalize(cameraPosition - worldPos.xyz);
-            vFresnel = 1.0 - max(dot(viewDir, vNormal), 0.0);
-            gl_Position = projectionMatrix * viewMatrix * worldPos;
-          }
-        `,
-        fragmentShader: `
-          uniform float uTime;
-          uniform vec3 uColor;
-          varying float vFresnel;
-          void main() {
-            float fresnel = pow(vFresnel, 3.0);
-            float pulse = sin(uTime * 0.4) * 0.1 + 0.9;
-            vec3 color = uColor * fresnel * pulse;
-            float alpha = fresnel * 0.3;
-            gl_FragColor = vec4(color, alpha);
-          }
-        `,
-        transparent: true,
-        depthWrite: false,
-        blending: THREE.AdditiveBlending,
-        side: THREE.BackSide,
-      });
-      const shellMesh = new THREE.Mesh(shellGeometry, shellMaterial);
-      scene.add(shellMesh);
+      // The legacy outer-shell shader never compiled in the approved build.
+      // Omit that dead layer to preserve the approved silhouette and eliminate
+      // repeated WebGL errors without adding a new visible ring.
 
       /* Particle Field */
       const particleCount = IS_MOBILE ? 300 : 600;
@@ -350,7 +318,7 @@ const CoreEnergy = {
 
       /* Debug hook (harmless in production; renderer/camera allow driving a
          frame manually from tests when rAF is throttled). */
-      window.__ionCore = { scene, core: coreMesh, shell: shellMesh, particles, glow: glowMesh, renderer, camera };
+      window.__ionCore = { scene, core: coreMesh, particles, glow: glowMesh, renderer, camera };
 
       window.addEventListener("mousemove", (e) => {
         targetMouseX = (e.clientX / window.innerWidth - 0.5) * 2;
@@ -367,18 +335,37 @@ const CoreEnergy = {
       window.addEventListener("resize", onResize);
       onResize();
 
+      // Prepare the same painted Presence that warm opens already retain.
+      // Shader compilation and buffer upload belong to initialization, not
+      // the first entrance frame. This is one frame, not a hidden render loop.
+      renderer.render(scene, camera);
+      fallback.style.opacity = "0";
+
       const observer = new IntersectionObserver((entries) => {
         isIntersecting = entries[0].isIntersecting;
+        syncRendering();
       }, { threshold: 0.01 });
       if (wrap) observer.observe(wrap);
 
       const windowVisible = () => {
         const state = document.body.dataset.windowState;
-        return state === "active" || state === "entering";
+        return !document.hidden && (state === "active" || state === "entering") && !motionPreference.matches;
       };
 
+      const motionPreference = window.matchMedia("(prefers-reduced-motion: reduce)");
+      let animationFrame = 0;
+      const syncRendering = () => {
+        if (isIntersecting && windowVisible()) {
+          if (!animationFrame) animationFrame = requestAnimationFrame(animate);
+        } else {
+          cancelAnimationFrame(animationFrame);
+          animationFrame = 0;
+        }
+        canvas.style.visibility = motionPreference.matches ? "hidden" : "";
+        fallback.style.opacity = motionPreference.matches ? "0.6" : "";
+      };
       const animate = () => {
-        requestAnimationFrame(animate);
+        animationFrame = 0;
         if (!isIntersecting || !windowVisible() || !renderer) return;
 
         const time = clock.getElapsedTime();
@@ -392,10 +379,6 @@ const CoreEnergy = {
         coreMesh.rotation.y = time * 0.08 + mouseX * 0.3;
         coreMesh.rotation.x = mouseY * 0.2;
 
-        shellMesh.material.uniforms.uTime.value = time;
-        shellMesh.rotation.y = -time * 0.05;
-        shellMesh.rotation.x = mouseY * 0.1;
-
         particles.material.uniforms.uTime.value = time;
         particles.material.uniforms.uMouse.value.set(mouseX, mouseY);
         particles.rotation.y = time * 0.02;
@@ -403,8 +386,14 @@ const CoreEnergy = {
         glowMesh.material.uniforms.uTime.value = time;
 
         renderer.render(scene, camera);
+        animationFrame = requestAnimationFrame(animate);
       };
-      animate();
+      new MutationObserver(syncRendering).observe(document.body, {
+        attributes: true, attributeFilter: ["data-window-state"]
+      });
+      document.addEventListener("visibilitychange", syncRendering);
+      motionPreference.addEventListener("change", syncRendering);
+      syncRendering();
     } catch (error) {
       console.warn("Ion Sense core WebGL initialization failed:", error);
       canvas.style.display = "none";

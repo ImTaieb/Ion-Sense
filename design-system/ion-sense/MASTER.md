@@ -10,8 +10,7 @@ ION Sense is a quiet desktop awareness utility: premium system software first, f
 - Primary text: `#ECF4EE`; secondary text: `rgba(220, 232, 224, 0.66)`; tertiary text: `rgba(190, 205, 196, 0.42)`.
 - Base surfaces: `#030605`, `#050807`, `#070A08`.
 - Hairline: `rgba(207, 244, 216, 0.09)`; active hairline: `rgba(69, 238, 134, 0.32)`.
-- UI font: Inter (preferred) with Segoe UI Variable Text and Segoe UI fallbacks.
-- Display font: Inter (preferred) with Segoe UI Variable Display fallback.
+- UI and display font: Geist (bundled locally, SIL OFL) with Segoe UI Variable, Segoe UI, and sans-serif fallbacks. This supersedes legacy font references below.
 - Spacing rhythm: 4, 8, 12, 16, 20, 24, 32, 40, 48 pixels.
 - Control height: 42–46 pixels where space allows; no interactive target below 40 pixels.
 - Corner radii: small controls 8–10px, inputs/buttons 10–12px, detector sections 14–16px, main windows 20–28px. Use pills only for status badges and metadata.
